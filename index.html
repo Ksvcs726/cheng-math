@@ -60,6 +60,7 @@
     color-scheme: dark;
   }
 
+  html{font-size:17.5px;}
   *{box-sizing:border-box;}
   body{
     margin:0;
@@ -84,7 +85,7 @@
   button{font-family:inherit;}
 
   /* ---------- layout shell ---------- */
-  .page{max-width:1040px;margin:0 auto;padding:0 clamp(16px,4vw,40px);}
+  .page{max-width:1180px;margin:0 auto;padding:0 clamp(20px,4vw,48px);}
   .grid-ground{
     background-image:
       repeating-linear-gradient(0deg, var(--grid-line) 0 1px, transparent 1px 32px),
@@ -117,6 +118,19 @@
   nav.tabs a:nth-child(4){border-left-color:var(--teal);}
   nav.tabs a:nth-child(5){border-left-color:var(--red);}
   nav.tabs a:nth-child(6){border-left-color:var(--indigo);}
+  nav.tabs a.is-active{background:var(--surface-2);color:var(--ink);font-weight:700;}
+
+  .sidebar-foot{margin-top:auto;padding:16px 22px 2px;border-top:1px solid var(--border);}
+  .theme-toggle{
+    display:flex;align-items:center;gap:9px;width:100%;
+    padding:9px 12px;border:1px solid var(--border);border-radius:4px;
+    background:var(--surface-2);color:var(--ink-soft);font-size:.82rem;font-weight:500;cursor:pointer;
+  }
+  .theme-toggle:hover{color:var(--ink);border-color:var(--ink-soft);}
+  .theme-toggle svg{width:16px;height:16px;flex-shrink:0;}
+  .theme-toggle .icon-dark{display:none;}
+  :root[data-theme="dark"] .theme-toggle .icon-light{display:none;}
+  :root[data-theme="dark"] .theme-toggle .icon-dark{display:block;}
 
   .main-col{flex:1;min-width:0;}
 
@@ -150,13 +164,13 @@
   }
 
   /* ---------- hero ---------- */
-  .hero{padding:clamp(48px,8vw,88px) 0 clamp(40px,6vw,64px);}
+  .hero{padding:clamp(48px,8vw,96px) 0 clamp(40px,6vw,68px);}
   .hero-eyebrow{
-    font-family:"JetBrains Mono",monospace;font-size:.78rem;letter-spacing:.12em;
-    color:var(--teal);text-transform:uppercase;margin-bottom:14px;display:block;
+    font-family:"JetBrains Mono",monospace;font-size:.84rem;letter-spacing:.12em;
+    color:var(--teal);text-transform:uppercase;margin-bottom:16px;display:block;
   }
-  .hero h1{font-size:clamp(1.9rem,4.4vw,3rem);max-width:14ch;line-height:1.25;}
-  .hero p{max-width:52ch;color:var(--ink-soft);font-size:1.05rem;margin-top:16px;}
+  .hero h1{font-size:clamp(2.1rem,4.8vw,3.4rem);max-width:14ch;line-height:1.22;}
+  .hero p{max-width:54ch;color:var(--ink-soft);font-size:1.15rem;margin-top:18px;}
   .hero-actions{display:flex;gap:12px;margin-top:28px;flex-wrap:wrap;}
   .btn{
     display:inline-flex;align-items:center;gap:8px;
@@ -169,7 +183,8 @@
   .btn-ghost:hover{background:var(--surface-2);}
 
   /* ---------- sections generic ---------- */
-  section.block{padding:56px 0;border-top:1px solid var(--border);}
+  section.block{padding:64px 0;border-top:1px solid var(--border);}
+  section.block[hidden]{display:none;}
   .block-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:28px;flex-wrap:wrap;}
   .block-head h2{font-size:clamp(1.4rem,2.6vw,1.85rem);}
   .block-tag{
@@ -375,7 +390,16 @@
   footer.site .page{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;}
 </style>
 
-<div class="proto-banner">這是網站雛形（示意版）——內容為示範用的假資料，互動動畫區塊為實際可操作的原型。</div>
+<script>
+(function(){
+  try{
+    var t = localStorage.getItem('mathnotebook-theme');
+    document.documentElement.setAttribute('data-theme', t === 'light' ? 'light' : 'dark');
+  } catch(e){ document.documentElement.setAttribute('data-theme', 'dark'); }
+})();
+</script>
+
+<div class="proto-banner">網站建置中——課堂筆記、考卷等內容陸續上傳中，「敬請期待」會逐步換成真正的連結。</div>
 
 <div class="shell">
 
@@ -394,6 +418,13 @@
       <a href="#grades">小考成績</a>
       <a href="#demos">互動動畫</a>
     </nav>
+    <div class="sidebar-foot">
+      <button type="button" class="theme-toggle" id="themeToggle" aria-label="切換深色／淺色模式">
+        <svg class="icon-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2.5M12 19v2.5M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2.5 12H5M19 12h2.5M4.2 19.8L6 18M18 6l1.8-1.8" stroke-linecap="round"/></svg>
+        <svg class="icon-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 13.5A8.5 8.5 0 1 1 10.5 4a6.8 6.8 0 0 0 9.5 9.5z" stroke-linejoin="round"/></svg>
+        <span id="themeToggleLabel">切換為淺色模式</span>
+      </button>
+    </div>
   </aside>
 
   <div class="main-col">
@@ -412,8 +443,8 @@
       <h1>把每一堂課，留在<br>找得到的地方</h1>
       <p>課堂筆記、考卷詳解、模擬考卷，全部整理在同一個網站；三角函數、線性規劃這類需要「看得到變化」的主題，用互動圖形直接拖拖看。</p>
       <div class="hero-actions">
-        <a class="btn btn-primary" href="#demos">先玩玩互動動畫 ↓</a>
-        <a class="btn btn-ghost" href="#notes">瀏覽課堂筆記</a>
+        <a class="btn btn-primary" href="#demos">前往互動動畫</a>
+        <a class="btn btn-ghost" href="#grades">查詢小考成績</a>
       </div>
     </div>
   </section>
@@ -739,8 +770,8 @@
 
     <footer class="site">
       <div class="page">
-        <span>程老師的數學教室 · 網站雛形（v4）</span>
-        <span>下一步：把示範資料換成真實筆記與考卷連結</span>
+        <span>程老師的數學教室</span>
+        <span>內容持續更新中</span>
       </div>
     </footer>
 
@@ -777,6 +808,60 @@
   if (sidebarNavEl){
     sidebarNavEl.addEventListener('click', function(e){
       if (e.target.closest('a')) closeSidebar();
+    });
+  }
+
+  /* ============ View switching (sidebar acts like page navigation, no scrolling) ============ */
+  var VIEW_IDS = ['notes', 'workbook', 'exams', 'mocks', 'grades', 'demos'];
+  var heroEl = document.querySelector('.hero');
+
+  function switchView(id){
+    if (VIEW_IDS.indexOf(id) === -1) id = 'notes';
+    VIEW_IDS.forEach(function(v){
+      var el = document.getElementById(v);
+      if (el) el.hidden = (v !== id);
+    });
+    if (heroEl) heroEl.hidden = (id !== 'notes');
+    Array.prototype.forEach.call(document.querySelectorAll('#sidebarNav a'), function(a){
+      a.classList.toggle('is-active', a.getAttribute('href') === '#' + id);
+    });
+    window.scrollTo(0, 0);
+    try{ history.replaceState(null, '', '#' + id); } catch(e){ /* ignore */ }
+    closeSidebar();
+  }
+
+  document.addEventListener('click', function(e){
+    var a = e.target.closest('a[href^="#"]');
+    if (!a) return;
+    var id = a.getAttribute('href').slice(1);
+    if (VIEW_IDS.indexOf(id) === -1) return;
+    e.preventDefault();
+    switchView(id);
+  });
+
+  var initialView = (location.hash && VIEW_IDS.indexOf(location.hash.slice(1)) !== -1)
+    ? location.hash.slice(1)
+    : 'notes';
+  switchView(initialView);
+
+  /* ============ Theme toggle ============ */
+  var THEME_KEY = 'mathnotebook-theme';
+  var themeToggleBtn = document.getElementById('themeToggle');
+  var themeToggleLabel = document.getElementById('themeToggleLabel');
+
+  function updateThemeLabel(){
+    var isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+    if (themeToggleLabel) themeToggleLabel.textContent = isDark ? '切換為淺色模式' : '切換為深色模式';
+  }
+  updateThemeLabel();
+
+  if (themeToggleBtn){
+    themeToggleBtn.addEventListener('click', function(){
+      var isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+      var next = isDark ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      try{ localStorage.setItem(THEME_KEY, next); } catch(e){ /* ignore */ }
+      updateThemeLabel();
     });
   }
 
