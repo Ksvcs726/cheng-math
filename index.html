@@ -60,7 +60,7 @@
     color-scheme: dark;
   }
 
-  html{font-size:19.5px;}
+  html{font-size:18px;}
   *{box-sizing:border-box;}
   body{
     margin:0;
@@ -169,8 +169,8 @@
     font-family:"JetBrains Mono",monospace;font-size:.92rem;letter-spacing:.12em;
     color:var(--teal);text-transform:uppercase;margin-bottom:16px;display:block;
   }
-  .hero h1{font-size:clamp(2.4rem,5.6vw,4rem);max-width:15ch;line-height:1.2;}
-  .hero p{max-width:56ch;color:var(--ink-soft);font-size:1.3rem;margin-top:20px;line-height:1.65;}
+  .hero h1{font-size:clamp(2.2rem,5vw,3.6rem);max-width:15ch;line-height:1.22;}
+  .hero p{max-width:56ch;color:var(--ink-soft);font-size:1.2rem;margin-top:20px;line-height:1.65;}
   .hero-actions{display:flex;gap:12px;margin-top:28px;flex-wrap:wrap;}
   .btn{
     display:inline-flex;align-items:center;gap:8px;
@@ -318,6 +318,14 @@
   .lp-vertex-list{list-style:none;margin:8px 0 0;padding:0;font-size:.8rem;}
   .lp-vertex-list li{padding:3px 0;border-bottom:1px dashed var(--border);}
 
+  /* ---------- content login gate (notes / workbook) ---------- */
+  .content-gate{
+    border:1px dashed var(--border);border-radius:6px;padding:48px 24px;text-align:center;
+    color:var(--ink-soft);background:var(--surface);
+  }
+  .content-gate strong{color:var(--ink);display:block;font-size:1.15rem;margin-bottom:8px;}
+  .content-gate .btn{margin-top:18px;}
+
   /* ---------- grade entry / lookup demo ---------- */
   .demo-note{
     background:var(--red-tint);color:var(--red);font-size:.84rem;padding:10px 14px;
@@ -440,7 +448,7 @@
   <section class="hero grid-ground">
     <div class="page">
       <span class="hero-eyebrow">— 高中數學 · 線上筆記本</span>
-      <h1>把每一堂課，留在找得到的地方</h1>
+      <h1>把每一堂課，留在<br>找得到的地方</h1>
       <p>課堂筆記、考卷詳解、模擬考卷，全部整理在同一個網站；三角函數、線性規劃這類需要「看得到變化」的主題，用互動圖形直接拖拖看。</p>
       <div class="hero-actions">
         <a class="btn btn-primary" href="#demos">前往互動動畫</a>
@@ -460,6 +468,11 @@
         <span class="block-tag">4 冊 · 14 章 · 完整目錄</span>
       </div>
 
+      <div class="content-gate" id="notesLoginGate" hidden>
+        <strong>登入後才能查看課堂筆記</strong>
+        內容僅開放給本班學生與程老師，請先登入小考成績帳號（帳號＝學號）。
+        <a class="btn btn-primary" href="#grades">前往登入</a>
+      </div>
       <div class="book-list" id="notesDirectory"></div>
     </div>
   </section>
@@ -475,6 +488,11 @@
         <span class="block-tag">4 冊 · 14 章 · 完整目錄</span>
       </div>
 
+      <div class="content-gate" id="workbookLoginGate" hidden>
+        <strong>登入後才能查看習作解析</strong>
+        內容僅開放給本班學生與程老師，請先登入小考成績帳號（帳號＝學號）。
+        <a class="btn btn-primary" href="#grades">前往登入</a>
+      </div>
       <div class="book-list" id="workbookDirectory"></div>
     </div>
   </section>
@@ -487,9 +505,14 @@
           <h2>考卷解答</h2>
           <p class="block-desc">按日期排列，點「詳解」查看完整計算過程。</p>
         </div>
-        <span class="block-tag">示範資料</span>
+        <span class="block-tag">登入制 · 示範資料</span>
       </div>
-      <div style="overflow-x:auto;">
+      <div class="content-gate" id="examsLoginGate" hidden>
+        <strong>登入後才能查看考卷解答</strong>
+        內容僅開放給本班學生與程老師，請先登入小考成績帳號（帳號＝學號）。
+        <a class="btn btn-primary" href="#grades">前往登入</a>
+      </div>
+      <div id="examsContent" style="overflow-x:auto;">
       <table class="ledger">
         <thead>
           <tr><th>日期</th><th>範圍</th><th>班級</th><th>狀態</th><th></th></tr>
@@ -513,9 +536,14 @@
           <h2>模擬考卷</h2>
           <p class="block-desc">下載考卷自行作答，對照詳解檢查。</p>
         </div>
-        <span class="block-tag">示範資料</span>
+        <span class="block-tag">登入制 · 示範資料</span>
       </div>
-      <div class="mock-grid">
+      <div class="content-gate" id="mocksLoginGate" hidden>
+        <strong>登入後才能查看模擬考卷</strong>
+        內容僅開放給本班學生與程老師，請先登入小考成績帳號（帳號＝學號）。
+        <a class="btn btn-primary" href="#grades">前往登入</a>
+      </div>
+      <div class="mock-grid" id="mocksContent">
         <div class="mock-card">
           <span class="mono">MOCK · 01</span>
           <h3>高一數學 綜合模考</h3>
@@ -541,23 +569,21 @@
       <div class="block-head">
         <div>
           <h2>小考成績登錄／查詢</h2>
-          <p class="block-desc">小老師登錄成績，學生輸入學號查自己的紀錄——下面是可以實際操作的前端示範。</p>
+          <p class="block-desc">小老師登錄成績，學生輸入學號查自己的紀錄，登入後也能查看課堂筆記與習作解析。</p>
         </div>
-        <span class="block-tag">前端示範 · 本機資料</span>
+        <span class="block-tag">登入制 · 真實資料庫</span>
       </div>
 
-      <div class="demo-note">
-        這裡的帳號、密碼、成績資料都只存在<strong>你目前這個瀏覽器</strong>裡（用來示範登入與權限流程），不會同步給別人看到。正式上線時，帳號密碼會改成呼叫 Google Apps Script 對照你的 Google 試算表驗證，成績也會寫進真正的試算表，全班才能共用同一份資料。
-      </div>
+      <div class="demo-note" id="apiStatusNote" hidden></div>
 
       <!-- login gate -->
       <div class="demo-shell" id="loginGate">
         <div class="demo-head"><h3>登入</h3></div>
-        <p class="login-hint">示範帳密——管理者（老師）：帳號 <span class="mono">teacher</span> ／密碼 <span class="mono">admin123</span>。學生／小老師：帳號＝學號，例如 <span class="mono">30503</span>，預設密碼與學號相同（可登入後自行修改）。</p>
+        <p class="login-hint">帳號＝學號，預設密碼與學號相同（可登入後自行修改）；管理者帳號請洽程老師。</p>
         <form id="loginForm" class="exam-meta" style="align-items:flex-end;">
           <label>帳號<input type="text" id="loginAccount" required placeholder="學號或管理者帳號"></label>
           <label>密碼<input type="password" id="loginPassword" required placeholder="密碼"></label>
-          <button type="submit" class="btn btn-primary">登入</button>
+          <button type="submit" class="btn btn-primary" id="loginSubmitBtn">登入</button>
         </form>
         <span class="roster-status is-error" id="loginError"></span>
       </div>
@@ -597,10 +623,7 @@
 
           <div class="exam-meta">
             <label>班級
-              <select id="examClass">
-                <option value="高一忠班">高一忠班（示範）</option>
-                <option value="高一孝班">高一孝班（示範）</option>
-              </select>
+              <select id="examClass"></select>
             </label>
             <label>考試日期
               <input type="date" id="examDate">
@@ -623,7 +646,7 @@
             <span class="roster-status" id="rosterStatus"></span>
           </div>
 
-          <h3 class="ledger-subhead">本機成績紀錄（依你的權限範圍顯示）</h3>
+          <h3 class="ledger-subhead">成績紀錄（依你的權限範圍顯示）</h3>
           <div class="ledger-wrap">
             <table class="ledger" id="gradeLedger">
               <thead><tr><th>日期</th><th>學號</th><th>姓名</th><th>考試</th><th>成績</th><th></th></tr></thead>
@@ -1103,19 +1126,40 @@
   ];
   var DEMO_LINKS = { '1-4 正弦、餘弦函數的圖形':'#demos', '3-3 線性規劃':'#demos' };
 
-  var LINKS_KEY = 'mathnotebook-links-demo-v1';
-  function loadLinks(){
-    try{
-      var raw = localStorage.getItem(LINKS_KEY);
-      if (raw) return JSON.parse(raw);
-    } catch(e){ /* ignore */ }
-    return { notes:{}, workbook:{} };
+  /* ============ 後端 API（Google Apps Script Web App） ============ */
+  var API_URL = 'https://script.google.com/macros/s/AKfycbxFgZQxmhfpeyWRD_GgGJ16CLwK8sRO7uabEjs3IBCELcErqgo0hlRKRZiPQN4d9LNDmQ/exec';
+
+  function callApi(action, payload){
+    try {
+      return fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: action, payload: payload || {} })
+      }).then(function(res){ return res.json(); })
+        .catch(function(){ return { ok:false, error:'連線失敗，請檢查網路連線後再試一次。' }; });
+    } catch (e) {
+      return Promise.resolve({ ok:false, error:'瀏覽器不支援連線功能，請更新瀏覽器後再試。' });
+    }
   }
-  function saveLinks(store){
-    try{ localStorage.setItem(LINKS_KEY, JSON.stringify(store)); } catch(e){ /* ignore */ }
-  }
-  var linksStore = loadLinks();
+
+  var linksStore = { notes:{}, workbook:{} };
   function linkKey(bIdx, cIdx, sIdx){ return bIdx + '-' + cIdx + '-' + sIdx; }
+  function applyLinksFromApi(links){
+    linksStore = { notes:{}, workbook:{} };
+    (links || []).forEach(function(l){
+      if (!linksStore[l.category]) return;
+      linksStore[l.category][linkKey(l.bookIdx, l.chapterIdx, l.sectionIdx)] = l.url;
+    });
+  }
+  function refreshLinksFromApi(){
+    return callApi('getLinks', {}).then(function(res){
+      if (res.ok){
+        applyLinksFromApi(res.links);
+        buildDirectory('notesDirectory', 'notes');
+        buildDirectory('workbookDirectory', 'workbook');
+      }
+    });
+  }
 
   function buildDirectory(containerId, category){
     var container = document.getElementById(containerId);
@@ -1176,152 +1220,86 @@
   buildDirectory('notesDirectory', 'notes');
   buildDirectory('workbookDirectory', 'workbook');
 
-  /* ============ Roster (class lists) ============ */
-  var roster = {
-    '高一忠班': [
-      { seat:'01', sid:'30501', name:'林品睿' },
-      { seat:'02', sid:'30502', name:'黃翊安' },
-      { seat:'03', sid:'30503', name:'張又榛' },
-      { seat:'04', sid:'30504', name:'陳柏宇' },
-      { seat:'05', sid:'30505', name:'劉宜蓁' },
-      { seat:'06', sid:'30506', name:'楊子墨' },
-      { seat:'07', sid:'30507', name:'吳沛涵' },
-      { seat:'08', sid:'30508', name:'蔡承恩' },
-      { seat:'09', sid:'30509', name:'鄭雅筑' },
-      { seat:'10', sid:'30510', name:'謝秉軒' }
-    ],
-    '高一孝班': [
-      { seat:'01', sid:'30601', name:'王詠晴' },
-      { seat:'02', sid:'30602', name:'李冠廷' },
-      { seat:'03', sid:'30603', name:'周芷若' },
-      { seat:'04', sid:'30604', name:'許明哲' },
-      { seat:'05', sid:'30605', name:'賴思穎' },
-      { seat:'06', sid:'30606', name:'潘冠霖' },
-      { seat:'07', sid:'30607', name:'曾意涵' },
-      { seat:'08', sid:'30608', name:'顏子鈞' },
-      { seat:'09', sid:'30609', name:'游珮瑄' },
-      { seat:'10', sid:'30610', name:'方冠傑' }
-    ]
-  };
-  function findClassBySid(sid){
-    var found = null;
-    Object.keys(roster).forEach(function(cls){
-      roster[cls].forEach(function(stu){ if (stu.sid === sid) found = cls; });
-    });
-    return found;
-  }
-
-  /* ============ Accounts (login / roles) ============ */
-  var ACCOUNTS_KEY = 'mathnotebook-accounts-demo-v1';
-  var SESSION_KEY = 'mathnotebook-session-demo-v1';
-
-  function buildSeedAccounts(){
-    var acc = { teacher: { role:'admin', name:'程老師', password:'admin123' } };
-    Object.keys(roster).forEach(function(cls){
-      roster[cls].forEach(function(stu){
-        acc[stu.sid] = { role:'student', name:stu.name, className:cls, password:stu.sid, isMonitor:false };
-      });
-    });
-    return acc;
-  }
-  function loadAccounts(){
-    try{
-      var raw = localStorage.getItem(ACCOUNTS_KEY);
-      if (raw) return JSON.parse(raw);
-    } catch(e){ /* ignore */ }
-    return buildSeedAccounts();
-  }
-  function saveAccounts(acc){
-    try{ localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(acc)); } catch(e){ /* ignore */ }
-  }
-  var accounts = loadAccounts();
-
-  function loadSession(){
-    try{ return localStorage.getItem(SESSION_KEY) || null; } catch(e){ return null; }
-  }
-  function saveSession(acctKey){
-    try{
-      if (acctKey) localStorage.setItem(SESSION_KEY, acctKey);
-      else localStorage.removeItem(SESSION_KEY);
-    } catch(e){ /* ignore */ }
-  }
-  var currentAccount = loadSession();
-  if (currentAccount && !accounts[currentAccount]) currentAccount = null;
-
-  /* ============ Grades data ============ */
-  var GRADE_KEY = 'mathnotebook-grades-demo-v1';
-  var seedGrades = [
-    { date:'2026-09-08', sid:'30503', name:'張又榛', cls:'高一忠班', exam:'小考1 三角函數',       score:88 },
-    { date:'2026-09-15', sid:'30503', name:'張又榛', cls:'高一忠班', exam:'小考2 三角函數的應用', score:76 },
-    { date:'2026-09-08', sid:'30501', name:'林品睿', cls:'高一忠班', exam:'小考1 三角函數',       score:92 },
-    { date:'2026-09-08', sid:'30605', name:'賴思穎', cls:'高一孝班', exam:'小考1 三角函數',       score:65 },
-    { date:'2026-09-15', sid:'30605', name:'賴思穎', cls:'高一孝班', exam:'小考2 三角函數的應用', score:null }
-  ];
-  function loadGrades(){
-    try{
-      var raw = localStorage.getItem(GRADE_KEY);
-      if (raw) return JSON.parse(raw);
-    } catch(e){ /* ignore */ }
-    return seedGrades.slice();
-  }
-  function saveGrades(list){
-    try{ localStorage.setItem(GRADE_KEY, JSON.stringify(list)); } catch(e){ /* ignore */ }
-  }
-  var grades = loadGrades();
+  /* ============ 帳號 / 登入狀態（真實後端：Google Apps Script）============ */
+  var currentUser = null;      // { role, account, sid, name, className }
+  var currentPassword = null;  // 只存在瀏覽器記憶體，重新整理網頁會清空，需要重新登入
+  var adminClassList = [];     // 管理者登入後取得的班級清單
+  var grades = [];             // 目前登入者權限範圍內看得到的成績（來自 API）
+  var rosterCache = {};        // className -> [{sid,name,seat,isMonitor}]
 
   function scoreCell(score){
-    return (score === null || score === undefined) ? '<span class="absent-tag">缺考</span>' : score;
+    return (score === null || score === undefined || score === '') ? '<span class="absent-tag">缺考</span>' : score;
+  }
+  function fmtDate(d){
+    if (!d) return '';
+    var s = String(d);
+    return s.indexOf('T') !== -1 ? s.slice(0, 10) : s;
+  }
+  function showApiError(msg){
+    var note = document.getElementById('apiStatusNote');
+    if (!note) return;
+    note.hidden = false;
+    note.textContent = msg;
+  }
+  function clearApiError(){
+    var note = document.getElementById('apiStatusNote');
+    if (!note) return;
+    note.hidden = true;
+    note.textContent = '';
   }
 
-  /* ---- ledger (scope-limited by role) ---- */
-  function currentLedgerFilterClass(){
-    if (!currentAccount || !accounts[currentAccount]) return undefined;
-    var u = accounts[currentAccount];
-    if (u.role === 'admin') return null;
-    if (u.isMonitor) return u.className;
-    return undefined;
+  /* ---- 課堂筆記／習作解析：需登入才能查看 ---- */
+  var GATED_SECTIONS = [
+    { gateId: 'notesLoginGate', contentId: 'notesDirectory' },
+    { gateId: 'workbookLoginGate', contentId: 'workbookDirectory' },
+    { gateId: 'examsLoginGate', contentId: 'examsContent' },
+    { gateId: 'mocksLoginGate', contentId: 'mocksContent' }
+  ];
+  function updateContentGates(){
+    var loggedIn = !!currentUser;
+    GATED_SECTIONS.forEach(function(sec){
+      var gate = document.getElementById(sec.gateId);
+      var content = document.getElementById(sec.contentId);
+      if (gate) gate.hidden = loggedIn;
+      if (content) content.hidden = !loggedIn;
+    });
   }
+
+  /* ---- ledger（成績紀錄，依角色權限由後端過濾）---- */
   function renderLedger(){
     var body = document.getElementById('gradeLedgerBody');
     if (!body) return;
-    var filterClass = currentLedgerFilterClass();
     body.innerHTML = '';
-    var visible = grades.map(function(g, i){ return { g:g, i:i }; }).filter(function(item){
-      return filterClass === null || item.g.cls === filterClass;
-    });
-    if (visible.length === 0){
+    if (!grades.length){
       var tr = document.createElement('tr');
       tr.className = 'empty-row';
       tr.innerHTML = '<td colspan="6">目前還沒有任何成績紀錄，用上面的名冊登錄看看。</td>';
       body.appendChild(tr);
       return;
     }
-    visible.reverse().forEach(function(item){
-      var g = item.g, i = item.i;
+    grades.slice().reverse().forEach(function(g){
       var tr = document.createElement('tr');
       tr.innerHTML =
-        '<td class="mono">' + g.date + '</td>' +
+        '<td class="mono">' + fmtDate(g.date) + '</td>' +
         '<td class="mono">' + g.sid + '</td>' +
         '<td>' + g.name + '</td>' +
-        '<td>' + g.exam + '</td>' +
-        '<td class="mono">' + scoreCell(g.score) + '</td>' +
-        '<td><button type="button" class="del-btn" data-idx="' + i + '">刪除</button></td>';
+        '<td>' + g.examName + '</td>' +
+        '<td class="mono">' + scoreCell(g.absent ? null : g.score) + '</td>' +
+        '<td></td>';
       body.appendChild(tr);
     });
   }
-  var gradeLedgerBodyEl = document.getElementById('gradeLedgerBody');
-  if (gradeLedgerBodyEl){
-    gradeLedgerBodyEl.addEventListener('click', function(e){
-      var btn = e.target.closest('button[data-idx]');
-      if (!btn) return;
-      var idx = parseInt(btn.getAttribute('data-idx'), 10);
-      grades.splice(idx, 1);
-      saveGrades(grades);
+
+  function refreshGrades(){
+    if (!currentUser){ grades = []; renderLedger(); return Promise.resolve(); }
+    return callApi('getGrades', { actorAccount: currentUser.account, actorPassword: currentPassword }).then(function(res){
+      if (res.ok){ grades = res.grades || []; clearApiError(); }
+      else { grades = []; showApiError(res.error || '讀取成績失敗。'); }
       renderLedger();
     });
   }
 
-  /* ---- roster batch entry ---- */
+  /* ---- roster batch entry（登錄新成績）---- */
   var examDateInput = document.getElementById('examDate');
   var examNameInput = document.getElementById('examName');
   var examClassSelect = document.getElementById('examClass');
@@ -1329,28 +1307,60 @@
   var rosterStatus = document.getElementById('rosterStatus');
   if (examDateInput) examDateInput.value = new Date().toISOString().slice(0, 10);
 
-  function renderRoster(preserveStatus){
+  function populateExamClassOptions(){
+    if (!examClassSelect) return;
+    examClassSelect.innerHTML = '';
+    var list = (currentUser && currentUser.role === 'admin') ? adminClassList : (currentUser ? [currentUser.className] : []);
+    list.forEach(function(cls){
+      var opt = document.createElement('option');
+      opt.value = cls; opt.textContent = cls;
+      examClassSelect.appendChild(opt);
+    });
+    if (currentUser && currentUser.role !== 'admin'){
+      examClassSelect.value = currentUser.className;
+      examClassSelect.disabled = true;
+    } else {
+      examClassSelect.disabled = false;
+    }
+  }
+
+  function renderRosterRows(list){
     if (!rosterBody) return;
-    var list = roster[examClassSelect.value] || [];
     rosterBody.innerHTML = '';
-    list.forEach(function(stu){
+    (list || []).forEach(function(stu){
       var tr = document.createElement('tr');
       tr.innerHTML =
-        '<td class="mono">' + stu.seat + '</td>' +
+        '<td class="mono">' + (stu.seat === null || stu.seat === undefined ? '' : stu.seat) + '</td>' +
         '<td class="mono">' + stu.sid + '</td>' +
         '<td>' + stu.name + '</td>' +
         '<td><input type="number" class="score-input" min="0" max="100" data-sid="' + stu.sid + '" data-name="' + stu.name + '"></td>' +
         '<td style="text-align:center;"><input type="checkbox" class="absent-check" data-sid="' + stu.sid + '"></td>';
       rosterBody.appendChild(tr);
     });
-    if (rosterStatus && !preserveStatus){ rosterStatus.textContent = ''; rosterStatus.className = 'roster-status'; }
+    if (rosterStatus){ rosterStatus.textContent = ''; rosterStatus.className = 'roster-status'; }
   }
+
+  function loadRosterForCurrentClass(){
+    if (!rosterBody || !examClassSelect || !examClassSelect.value || !currentUser) return Promise.resolve();
+    var cls = examClassSelect.value;
+    return callApi('getRoster', { actorAccount: currentUser.account, actorPassword: currentPassword, className: cls }).then(function(res){
+      if (res.ok){
+        rosterCache[cls] = res.students || [];
+        clearApiError();
+        renderRosterRows(rosterCache[cls]);
+      } else {
+        rosterBody.innerHTML = '';
+        showApiError(res.error || '讀取名冊失敗。');
+      }
+    });
+  }
+
   function setRosterStatus(msg, isError){
     if (!rosterStatus) return;
     rosterStatus.textContent = msg;
     rosterStatus.className = 'roster-status' + (isError ? ' is-error' : '');
   }
-  if (examClassSelect) examClassSelect.addEventListener('change', renderRoster);
+  if (examClassSelect) examClassSelect.addEventListener('change', function(){ loadRosterForCurrentClass(); });
   if (rosterBody){
     rosterBody.addEventListener('change', function(e){
       if (!e.target.classList.contains('absent-check')) return;
@@ -1361,11 +1371,12 @@
     });
   }
   var cancelRosterBtn = document.getElementById('cancelRosterBtn');
-  if (cancelRosterBtn) cancelRosterBtn.addEventListener('click', renderRoster);
+  if (cancelRosterBtn) cancelRosterBtn.addEventListener('click', function(){ loadRosterForCurrentClass(); });
 
   var saveRosterBtn = document.getElementById('saveRosterBtn');
   if (saveRosterBtn){
     saveRosterBtn.addEventListener('click', function(){
+      if (!currentUser) return;
       var examName = examNameInput.value.trim();
       var examDate = examDateInput.value;
       var cls = examClassSelect.value;
@@ -1373,62 +1384,65 @@
       if (!examDate){ setRosterStatus('請先選擇考試日期。', true); return; }
 
       var scoreInputs = rosterBody.querySelectorAll('.score-input');
-      var newRecords = [];
+      var rows = [];
       scoreInputs.forEach(function(input){
         var sid = input.getAttribute('data-sid');
         var name = input.getAttribute('data-name');
         var absentBox = rosterBody.querySelector('.absent-check[data-sid="' + sid + '"]');
         if (absentBox.checked){
-          newRecords.push({ date: examDate, sid: sid, name: name, cls: cls, exam: examName, score: null });
+          rows.push({ sid: sid, name: name, score: null, absent: true });
         } else if (input.value !== ''){
           var v = parseFloat(input.value);
           if (!isNaN(v) && v >= 0 && v <= 100){
-            newRecords.push({ date: examDate, sid: sid, name: name, cls: cls, exam: examName, score: v });
+            rows.push({ sid: sid, name: name, score: v, absent: false });
           }
         }
       });
 
-      if (newRecords.length === 0){
+      if (rows.length === 0){
         setRosterStatus('這一批還沒有任何成績或缺考勾選，先填一些再存檔。', true);
         return;
       }
 
-      grades = grades.concat(newRecords);
-      saveGrades(grades);
-      renderLedger();
-
-      var scored = newRecords.filter(function(r){ return r.score !== null; });
-      var absentCount = newRecords.length - scored.length;
-      var avgText = '';
-      if (scored.length > 0){
-        var sum = scored.reduce(function(s, r){ return s + r.score; }, 0);
-        avgText = '，平均 ' + (sum / scored.length).toFixed(1) + ' 分';
-      }
-      setRosterStatus('已儲存 ' + newRecords.length + ' 筆成績（缺考 ' + absentCount + ' 人）' + avgText + '。', false);
-      renderRoster(true);
+      saveRosterBtn.disabled = true;
+      setRosterStatus('儲存中…', false);
+      callApi('saveGrades', {
+        actorAccount: currentUser.account, actorPassword: currentPassword,
+        className: cls, date: examDate, examName: examName, rows: rows
+      }).then(function(res){
+        saveRosterBtn.disabled = false;
+        if (!res.ok){
+          setRosterStatus(res.error || '儲存失敗，請再試一次。', true);
+          return;
+        }
+        var scored = rows.filter(function(r){ return !r.absent; });
+        var absentCount = rows.length - scored.length;
+        var avgText = '';
+        if (scored.length > 0){
+          var sum = scored.reduce(function(s, r){ return s + r.score; }, 0);
+          avgText = '，平均 ' + (sum / scored.length).toFixed(1) + ' 分';
+        }
+        setRosterStatus('已儲存 ' + rows.length + ' 筆成績（缺考 ' + absentCount + ' 人）' + avgText + '。', false);
+        refreshGrades();
+      });
     });
   }
 
-  /* ---- query (shared by student self-view and admin lookup) ---- */
-  function runQueryInto(sid, targetId){
+  /* ---- query（學生自己查詢／管理者查詢任一學生）---- */
+  function renderQueryResult(targetId, sid, records){
     var result = document.getElementById(targetId);
     if (!result) return;
-    if (!sid){
-      result.innerHTML = '<p class="query-empty">請先輸入學號。</p>';
-      return;
-    }
-    var records = grades.filter(function(g){ return g.sid === sid; });
-    if (records.length === 0){
+    if (!records || records.length === 0){
       result.innerHTML = '<p class="query-empty">目前查不到學號「' + sid + '」的成績，可能是小老師還沒登錄，或學號打錯了。</p>';
       return;
     }
     var name = records[records.length - 1].name;
-    var scored = records.filter(function(r){ return r.score !== null && r.score !== undefined; });
+    var scored = records.filter(function(r){ return !r.absent && r.score !== null && r.score !== undefined && r.score !== ''; });
     var avgText = scored.length > 0
-      ? '平均 ' + (scored.reduce(function(s, r){ return s + r.score; }, 0) / scored.length).toFixed(1) + ' 分'
+      ? '平均 ' + (scored.reduce(function(s, r){ return s + Number(r.score); }, 0) / scored.length).toFixed(1) + ' 分'
       : '尚無有效成績';
     var rows = records.slice().reverse().map(function(r){
-      return '<tr><td class="mono">' + r.date + '</td><td>' + r.exam + '</td><td class="mono">' + scoreCell(r.score) + '</td></tr>';
+      return '<tr><td class="mono">' + fmtDate(r.date) + '</td><td>' + r.examName + '</td><td class="mono">' + scoreCell(r.absent ? null : r.score) + '</td></tr>';
     }).join('');
     result.innerHTML =
       '<div class="query-card">' +
@@ -1437,30 +1451,60 @@
         '<div class="avg">' + avgText + '（共 ' + records.length + ' 筆，含缺考 ' + (records.length - scored.length) + ' 筆）</div>' +
       '</div>';
   }
-  var adminQueryBtn = document.getElementById('adminQueryBtn');
-  var adminQueryInput = document.getElementById('adminQueryInput');
-  if (adminQueryBtn){
-    adminQueryBtn.addEventListener('click', function(){ runQueryInto(adminQueryInput.value.trim(), 'adminQueryResult'); });
-    adminQueryInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') runQueryInto(adminQueryInput.value.trim(), 'adminQueryResult'); });
+
+  function runStudentSelfQuery(){
+    if (!currentUser) return;
+    var result = document.getElementById('studentQueryResult');
+    if (result) result.innerHTML = '<p class="query-empty">查詢中…</p>';
+    callApi('getGrades', { actorAccount: currentUser.account, actorPassword: currentPassword }).then(function(res){
+      if (!res.ok){ if (result) result.innerHTML = '<p class="query-empty">' + (res.error || '查詢失敗。') + '</p>'; return; }
+      renderQueryResult('studentQueryResult', currentUser.sid, res.grades || []);
+    });
   }
 
-  /* ---- accounts & permissions panel (admin only) ---- */
+  var adminQueryBtn = document.getElementById('adminQueryBtn');
+  var adminQueryInput = document.getElementById('adminQueryInput');
+  function runAdminQuery(){
+    var sid = adminQueryInput.value.trim();
+    var result = document.getElementById('adminQueryResult');
+    if (!sid){ if (result) result.innerHTML = '<p class="query-empty">請先輸入學號。</p>'; return; }
+    var records = grades.filter(function(g){ return g.sid === sid; });
+    renderQueryResult('adminQueryResult', sid, records);
+  }
+  if (adminQueryBtn){
+    adminQueryBtn.addEventListener('click', runAdminQuery);
+    adminQueryInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') runAdminQuery(); });
+  }
+
+  /* ---- 帳號與權限管理（僅管理者）---- */
   function renderAccountsTable(){
     var tbody = document.getElementById('accountsBody');
     if (!tbody) return;
-    tbody.innerHTML = '';
-    Object.keys(roster).forEach(function(cls){
-      roster[cls].forEach(function(stu){
-        var u = accounts[stu.sid] || { isMonitor:false };
-        var tr = document.createElement('tr');
-        tr.innerHTML =
-          '<td>' + cls + '</td>' +
-          '<td class="mono">' + stu.sid + '</td>' +
-          '<td>' + stu.name + '</td>' +
-          '<td style="text-align:center;"><input type="checkbox" class="monitor-check" data-sid="' + stu.sid + '"' + (u.isMonitor ? ' checked' : '') + '></td>' +
-          '<td><button type="button" class="del-btn reset-pw-btn" data-sid="' + stu.sid + '">重設密碼為學號</button></td>';
-        tbody.appendChild(tr);
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">載入中…</td></tr>';
+    var classes = adminClassList.slice();
+    var loaders = classes.map(function(cls){
+      return callApi('getRoster', { actorAccount: currentUser.account, actorPassword: currentPassword, className: cls })
+        .then(function(res){ return { cls: cls, res: res }; });
+    });
+    Promise.all(loaders).then(function(results){
+      tbody.innerHTML = '';
+      results.forEach(function(item){
+        if (!item.res.ok) return;
+        rosterCache[item.cls] = item.res.students || [];
+        item.res.students.forEach(function(stu){
+          var tr = document.createElement('tr');
+          tr.innerHTML =
+            '<td>' + item.cls + '</td>' +
+            '<td class="mono">' + stu.sid + '</td>' +
+            '<td>' + stu.name + '</td>' +
+            '<td style="text-align:center;"><input type="checkbox" class="monitor-check" data-sid="' + stu.sid + '"' + (stu.isMonitor ? ' checked' : '') + '></td>' +
+            '<td><button type="button" class="del-btn reset-pw-btn" data-sid="' + stu.sid + '">重設密碼為學號</button></td>';
+          tbody.appendChild(tr);
+        });
       });
+      if (!tbody.children.length){
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="5">目前沒有讀到任何班級名單。</td></tr>';
+      }
     });
   }
   var accountsBody = document.getElementById('accountsBody');
@@ -1468,23 +1512,34 @@
     accountsBody.addEventListener('change', function(e){
       if (!e.target.classList.contains('monitor-check')) return;
       var sid = e.target.getAttribute('data-sid');
-      accounts[sid].isMonitor = e.target.checked;
-      saveAccounts(accounts);
-      if (currentAccount === sid) applySession();
+      var isMonitor = e.target.checked;
+      callApi('setMonitor', { actorAccount: currentUser.account, actorPassword: currentPassword, sid: sid, isMonitor: isMonitor })
+        .then(function(res){
+          if (!res.ok){ showApiError(res.error || '設定小老師失敗。'); e.target.checked = !isMonitor; }
+          else clearApiError();
+        });
     });
     accountsBody.addEventListener('click', function(e){
       var btn = e.target.closest('.reset-pw-btn');
       if (!btn) return;
       var sid = btn.getAttribute('data-sid');
-      accounts[sid].password = sid;
-      saveAccounts(accounts);
-      var original = btn.textContent;
-      btn.textContent = '已重設';
-      setTimeout(function(){ btn.textContent = original; }, 1500);
+      btn.disabled = true;
+      callApi('resetPassword', { actorAccount: currentUser.account, actorPassword: currentPassword, sid: sid }).then(function(res){
+        btn.disabled = false;
+        var original = btn.textContent;
+        if (res.ok){
+          btn.textContent = '已重設';
+          clearApiError();
+        } else {
+          btn.textContent = '失敗';
+          showApiError(res.error || '重設密碼失敗。');
+        }
+        setTimeout(function(){ btn.textContent = original; }, 1500);
+      });
     });
   }
 
-  /* ---- link management panel (admin only) ---- */
+  /* ---- 檔案連結管理（僅管理者）---- */
   var linkCategorySel = document.getElementById('linkCategory');
   var linkBookSel = document.getElementById('linkBook');
   var linkChapterSel = document.getElementById('linkChapter');
@@ -1563,14 +1618,25 @@
         linkStatus.className = 'roster-status is-error';
         return;
       }
-      linksStore[category][linkKey(bIdx, cIdx, sIdx)] = url;
-      saveLinks(linksStore);
-      buildDirectory('notesDirectory', 'notes');
-      buildDirectory('workbookDirectory', 'workbook');
-      renderLinksTable();
-      linkUrlInput.value = '';
-      linkStatus.textContent = '已設定連結。';
-      linkStatus.className = 'roster-status';
+      saveLinkBtn.disabled = true;
+      callApi('setLink', {
+        actorAccount: currentUser.account, actorPassword: currentPassword,
+        category: category, bookIdx: bIdx, chapterIdx: cIdx, sectionIdx: sIdx, url: url
+      }).then(function(res){
+        saveLinkBtn.disabled = false;
+        if (!res.ok){
+          linkStatus.textContent = res.error || '儲存失敗，請再試一次。';
+          linkStatus.className = 'roster-status is-error';
+          return;
+        }
+        linksStore[category][linkKey(bIdx, cIdx, sIdx)] = url;
+        buildDirectory('notesDirectory', 'notes');
+        buildDirectory('workbookDirectory', 'workbook');
+        renderLinksTable();
+        linkUrlInput.value = '';
+        linkStatus.textContent = '已設定連結。';
+        linkStatus.className = 'roster-status';
+      });
     });
   }
   var linksBody = document.getElementById('linksBody');
@@ -1578,15 +1644,25 @@
     linksBody.addEventListener('click', function(e){
       var btn = e.target.closest('button[data-key]');
       if (!btn) return;
-      delete linksStore[btn.getAttribute('data-cat')][btn.getAttribute('data-key')];
-      saveLinks(linksStore);
-      buildDirectory('notesDirectory', 'notes');
-      buildDirectory('workbookDirectory', 'workbook');
-      renderLinksTable();
+      var cat = btn.getAttribute('data-cat');
+      var key = btn.getAttribute('data-key');
+      var parts = key.split('-').map(Number);
+      btn.disabled = true;
+      callApi('deleteLink', {
+        actorAccount: currentUser.account, actorPassword: currentPassword,
+        category: cat, bookIdx: parts[0], chapterIdx: parts[1], sectionIdx: parts[2]
+      }).then(function(res){
+        btn.disabled = false;
+        if (!res.ok){ showApiError(res.error || '移除連結失敗。'); return; }
+        delete linksStore[cat][key];
+        buildDirectory('notesDirectory', 'notes');
+        buildDirectory('workbookDirectory', 'workbook');
+        renderLinksTable();
+      });
     });
   }
 
-  /* ---- admin tab switching ---- */
+  /* ---- 管理者子頁籤切換 ---- */
   function setAdminTab(tab){
     Array.prototype.forEach.call(document.querySelectorAll('#adminTabs button'), function(b){
       b.setAttribute('aria-pressed', b.getAttribute('data-tab') === tab ? 'true' : 'false');
@@ -1596,7 +1672,7 @@
     document.getElementById('linksPanel').hidden = (tab !== 'links');
     if (tab === 'accounts') renderAccountsTable();
     if (tab === 'links') renderLinksTable();
-    if (tab === 'entry'){ renderRoster(); renderLedger(); }
+    if (tab === 'entry'){ loadRosterForCurrentClass(); renderLedger(); }
   }
   var adminTabsEl = document.getElementById('adminTabs');
   if (adminTabsEl){
@@ -1607,65 +1683,51 @@
     });
   }
 
-  /* ---- session / login / logout / password ---- */
+  /* ---- session / 登入 / 登出 / 修改密碼 ---- */
   function roleLabel(u){
     if (u.role === 'admin') return '管理者';
-    if (u.isMonitor) return '小老師・' + u.className;
+    if (u.role === 'monitor') return '小老師・' + u.className;
     return '學生・' + u.className;
-  }
-
-  function setupEntryForRole(u){
-    if (!examClassSelect) return;
-    if (u.role === 'admin'){
-      examClassSelect.disabled = false;
-      if (!examClassSelect.value) examClassSelect.value = '高一忠班';
-    } else {
-      examClassSelect.value = u.className;
-      examClassSelect.disabled = true;
-    }
-    renderRoster();
-    renderLedger();
   }
 
   function applySession(){
     var loginGate = document.getElementById('loginGate');
     var loggedInArea = document.getElementById('loggedInArea');
-    if (!currentAccount || !accounts[currentAccount]){
-      currentAccount = null;
+    updateContentGates();
+
+    if (!currentUser){
       loginGate.hidden = false;
       loggedInArea.hidden = true;
       return;
     }
-    var u = accounts[currentAccount];
     loginGate.hidden = true;
     loggedInArea.hidden = false;
-    document.getElementById('sessionInfo').textContent = '已登入：' + u.name + '（' + roleLabel(u) + '）';
+    document.getElementById('sessionInfo').textContent = '已登入：' + currentUser.name + '（' + roleLabel(currentUser) + '）';
 
-    var isAdmin = u.role === 'admin';
-    var isMonitor = u.role === 'student' && !!u.isMonitor;
-    var isPlainStudent = u.role === 'student' && !u.isMonitor;
+    var isAdmin = currentUser.role === 'admin';
+    var isMonitor = currentUser.role === 'monitor';
+    var isPlainStudent = currentUser.role === 'student';
 
     document.getElementById('adminTabs').hidden = !isAdmin;
     document.getElementById('studentQueryPanel').hidden = !isPlainStudent;
 
+    populateExamClassOptions();
+
     if (isAdmin){
       document.getElementById('accountsPanel').hidden = true;
       document.getElementById('linksPanel').hidden = true;
-      setupEntryForRole(u);
       setAdminTab('entry');
     } else if (isMonitor){
       document.getElementById('entryPanel').hidden = false;
       document.getElementById('accountsPanel').hidden = true;
       document.getElementById('linksPanel').hidden = true;
-      setupEntryForRole(u);
+      loadRosterForCurrentClass();
+      refreshGrades();
     } else {
       document.getElementById('entryPanel').hidden = true;
       document.getElementById('accountsPanel').hidden = true;
       document.getElementById('linksPanel').hidden = true;
-    }
-
-    if (isPlainStudent){
-      runQueryInto(currentAccount, 'studentQueryResult');
+      runStudentSelfQuery();
     }
 
     document.getElementById('pwPanel').hidden = true;
@@ -1678,24 +1740,32 @@
       e.preventDefault();
       var accVal = document.getElementById('loginAccount').value.trim();
       var pwVal = document.getElementById('loginPassword').value;
-      var u = accounts[accVal];
-      if (!u || u.password !== pwVal){
-        loginError.textContent = '帳號或密碼錯誤，請確認學號與密碼（預設密碼與學號相同）。';
-        return;
-      }
-      loginError.textContent = '';
-      currentAccount = accVal;
-      saveSession(accVal);
-      loginForm.reset();
-      applySession();
+      var submitBtn = document.getElementById('loginSubmitBtn');
+      loginError.textContent = '登入中…';
+      if (submitBtn) submitBtn.disabled = true;
+      callApi('login', { account: accVal, password: pwVal }).then(function(res){
+        if (submitBtn) submitBtn.disabled = false;
+        if (!res.ok){
+          loginError.textContent = res.error || '登入失敗，請確認帳號密碼。';
+          return;
+        }
+        loginError.textContent = '';
+        currentUser = { role: res.role, account: res.account, sid: res.sid, name: res.name, className: res.className };
+        currentPassword = pwVal;
+        adminClassList = res.classes || [];
+        loginForm.reset();
+        applySession();
+      });
     });
   }
 
   var logoutBtn = document.getElementById('logoutBtn');
   if (logoutBtn){
     logoutBtn.addEventListener('click', function(){
-      currentAccount = null;
-      saveSession(null);
+      currentUser = null;
+      currentPassword = null;
+      adminClassList = [];
+      grades = [];
       if (loginError) loginError.textContent = '';
       applySession();
     });
@@ -1717,12 +1787,7 @@
       var oldPw = document.getElementById('pwOld').value;
       var newPw = document.getElementById('pwNew').value;
       var confirmPw = document.getElementById('pwConfirm').value;
-      var u = accounts[currentAccount];
-      if (!u || oldPw !== u.password){
-        pwStatus.textContent = '目前密碼不正確。';
-        pwStatus.className = 'roster-status is-error';
-        return;
-      }
+      if (!currentUser) return;
       if (newPw.length < 4){
         pwStatus.textContent = '新密碼至少需要 4 碼。';
         pwStatus.className = 'roster-status is-error';
@@ -1733,15 +1798,26 @@
         pwStatus.className = 'roster-status is-error';
         return;
       }
-      u.password = newPw;
-      saveAccounts(accounts);
-      pwStatus.textContent = '密碼已更新。';
+      pwStatus.textContent = '更新中…';
       pwStatus.className = 'roster-status';
-      pwForm.reset();
+      callApi('changePassword', { account: currentUser.account, oldPassword: oldPw, newPassword: newPw }).then(function(res){
+        if (!res.ok){
+          pwStatus.textContent = res.error || '目前密碼不正確。';
+          pwStatus.className = 'roster-status is-error';
+          return;
+        }
+        currentPassword = newPw;
+        pwStatus.textContent = '密碼已更新。';
+        pwStatus.className = 'roster-status';
+        pwForm.reset();
+      });
     });
   }
 
+  updateContentGates();
   applySession();
+  refreshLinksFromApi();
+
 
 })();
 </script>
