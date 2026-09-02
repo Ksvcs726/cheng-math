@@ -3,6 +3,12 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;700&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
+  /* 有些元件（例如 .role-switch、.book-list、.mock-grid）自己設定了 display，
+     specificity 跟瀏覽器預設的 [hidden]{display:none} 相同時，後宣告的會贏，
+     導致 JS 設定 el.hidden = true 卻沒有真的隱藏。用 !important 強制蓋掉，
+     確保任何元素只要有 hidden 屬性，一律不顯示（登入權限判斷才會真的生效）。 */
+  [hidden]{display:none !important;}
+
   :root{
     --bg:#EEF1EC;
     --surface:#FFFFFF;
@@ -646,9 +652,12 @@
         <!-- accounts panel: admin only -->
         <div class="demo-shell" id="accountsPanel" hidden>
           <div class="demo-head"><h3>帳號與權限管理</h3></div>
+          <div class="exam-meta">
+            <label>班級<select id="accountsClassSelect"></select></label>
+          </div>
           <div class="ledger-wrap">
             <table class="ledger">
-              <thead><tr><th>班級</th><th>座號</th><th>學號</th><th>姓名</th><th>設為小老師</th><th></th></tr></thead>
+              <thead><tr><th>座號</th><th>學號</th><th>姓名</th><th>設為小老師</th><th></th></tr></thead>
               <tbody id="accountsBody"></tbody>
             </table>
           </div>
@@ -1565,50 +1574,59 @@
 
   /* ---- 帳號與權限管理（僅管理者）---- */
   var accountsOriginalMonitor = {}; // sid -> 讀取當下的小老師狀態，用來判斷是否有變更待儲存
-  function renderAccountsTable(){
-    var tbody = document.getElementById('accountsBody');
-    if (!tbody) return;
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="6">載入中…</td></tr>';
-    var classes = adminClassList.slice();
-    var loaders = classes.map(function(cls){
-      return callApi('getRoster', { actorAccount: currentUser.account, actorPassword: currentPassword, className: cls })
-        .then(function(res){ return { cls: cls, res: res }; });
+  function populateAccountsClassOptions(){
+    var sel = document.getElementById('accountsClassSelect');
+    if (!sel) return;
+    var prev = sel.value;
+    sel.innerHTML = '';
+    adminClassList.forEach(function(cls){
+      var opt = document.createElement('option');
+      opt.value = cls; opt.textContent = cls;
+      sel.appendChild(opt);
     });
-    Promise.all(loaders).then(function(results){
+    if (prev && adminClassList.indexOf(prev) !== -1) sel.value = prev;
+    loadAccountsForClass(sel.value);
+  }
+  function loadAccountsForClass(cls){
+    var tbody = document.getElementById('accountsBody');
+    if (!tbody || !cls) return;
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">載入中…</td></tr>';
+    callApi('getRoster', { actorAccount: currentUser.account, actorPassword: currentPassword, className: cls }).then(function(res){
+      if (!res.ok){
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="5">' + (res.error || '讀取名單失敗。') + '</td></tr>';
+        return;
+      }
+      var students = (res.students || []).slice().sort(function(a, b){
+        var sa = a.seat === null || a.seat === undefined ? '' : String(a.seat);
+        var sb = b.seat === null || b.seat === undefined ? '' : String(b.seat);
+        return sa.localeCompare(sb, 'zh-Hant', { numeric: true });
+      });
+      rosterCache[cls] = students;
       tbody.innerHTML = '';
       accountsOriginalMonitor = {};
-      results.forEach(function(item){
-        if (!item.res.ok) return;
-        var students = (item.res.students || []).slice().sort(function(a, b){
-          var sa = a.seat === null || a.seat === undefined ? '' : String(a.seat);
-          var sb = b.seat === null || b.seat === undefined ? '' : String(b.seat);
-          return sa.localeCompare(sb, 'zh-Hant', { numeric: true });
-        });
-        rosterCache[item.cls] = students;
-        var groupRow = document.createElement('tr');
-        groupRow.className = 'class-group-row';
-        groupRow.innerHTML = '<td colspan="6"><strong>' + item.cls + '</strong>（' + students.length + ' 人）</td>';
-        tbody.appendChild(groupRow);
-        students.forEach(function(stu){
-          accountsOriginalMonitor[stu.sid] = !!stu.isMonitor;
-          var tr = document.createElement('tr');
-          tr.innerHTML =
-            '<td>' + item.cls + '</td>' +
-            '<td class="mono">' + (stu.seat === null || stu.seat === undefined ? '' : stu.seat) + '</td>' +
-            '<td class="mono">' + stu.sid + '</td>' +
-            '<td>' + stu.name + '</td>' +
-            '<td style="text-align:center;"><input type="checkbox" class="monitor-check" data-sid="' + stu.sid + '"' + (stu.isMonitor ? ' checked' : '') + '></td>' +
-            '<td><button type="button" class="del-btn reset-pw-btn" data-sid="' + stu.sid + '">重設密碼為學號</button></td>';
-          tbody.appendChild(tr);
-        });
+      students.forEach(function(stu){
+        accountsOriginalMonitor[stu.sid] = !!stu.isMonitor;
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td class="mono">' + (stu.seat === null || stu.seat === undefined ? '' : stu.seat) + '</td>' +
+          '<td class="mono">' + stu.sid + '</td>' +
+          '<td>' + stu.name + '</td>' +
+          '<td style="text-align:center;"><input type="checkbox" class="monitor-check" data-sid="' + stu.sid + '"' + (stu.isMonitor ? ' checked' : '') + '></td>' +
+          '<td><button type="button" class="del-btn reset-pw-btn" data-sid="' + stu.sid + '">重設密碼為學號</button></td>';
+        tbody.appendChild(tr);
       });
       if (!tbody.children.length){
-        tbody.innerHTML = '<tr class="empty-row"><td colspan="6">目前沒有讀到任何班級名單。</td></tr>';
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="5">這個班級目前沒有名單資料。</td></tr>';
       }
       var accountsStatus = document.getElementById('accountsStatus');
       if (accountsStatus){ accountsStatus.textContent = ''; accountsStatus.className = 'roster-status'; }
     });
   }
+  function renderAccountsTable(){
+    populateAccountsClassOptions();
+  }
+  var accountsClassSelectEl = document.getElementById('accountsClassSelect');
+  if (accountsClassSelectEl) accountsClassSelectEl.addEventListener('change', function(){ loadAccountsForClass(this.value); });
   var accountsBody = document.getElementById('accountsBody');
   var saveAccountsBtn = document.getElementById('saveAccountsBtn');
   if (saveAccountsBtn){
