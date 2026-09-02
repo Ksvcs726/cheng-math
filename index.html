@@ -375,6 +375,7 @@
   }
   .del-btn:hover{color:var(--red);}
   .empty-row td{color:var(--ink-soft);font-style:italic;}
+  .class-group-row td{background:var(--surface-2);color:var(--indigo);font-size:.86rem;padding:8px 12px;}
   .absent-tag{color:var(--red);font-weight:600;}
 
   .query-row{display:flex;gap:10px;max-width:420px;margin-bottom:20px;}
@@ -505,7 +506,7 @@
           <h2>考卷解答</h2>
           <p class="block-desc">按日期排列，點「詳解」查看完整計算過程。</p>
         </div>
-        <span class="block-tag">登入制 · 示範資料</span>
+        <span class="block-tag">登入制</span>
       </div>
       <div class="content-gate" id="examsLoginGate" hidden>
         <strong>登入後才能查看考卷解答</strong>
@@ -513,17 +514,7 @@
         <a class="btn btn-primary" href="#grades">前往登入</a>
       </div>
       <div id="examsContent" style="overflow-x:auto;">
-      <table class="ledger">
-        <thead>
-          <tr><th>日期</th><th>範圍</th><th>班級</th><th>狀態</th><th></th></tr>
-        </thead>
-        <tbody>
-          <tr><td class="mono">2026-08-14</td><td>三角函數 · 圖形變換</td><td>高一忠班</td><td><span class="pill">已上傳</span></td><td><a class="link-arrow" href="#">詳解 →</a></td></tr>
-          <tr><td class="mono">2026-07-30</td><td>數列與級數 · 總複習</td><td>高一孝班</td><td><span class="pill">已上傳</span></td><td><a class="link-arrow" href="#">詳解 →</a></td></tr>
-          <tr><td class="mono">2026-07-16</td><td>第二次段考</td><td>高一忠班</td><td><span class="pill">已上傳</span></td><td><a class="link-arrow" href="#">詳解 →</a></td></tr>
-          <tr><td class="mono">2026-06-25</td><td>機率與統計 · 小考</td><td>高一孝班</td><td><span class="pill">已上傳</span></td><td><a class="link-arrow" href="#">詳解 →</a></td></tr>
-        </tbody>
-      </table>
+        <p class="query-empty">目前還沒有上傳考卷解答，之後新增後會顯示在這裡。</p>
       </div>
     </div>
   </section>
@@ -536,7 +527,7 @@
           <h2>模擬考卷</h2>
           <p class="block-desc">下載考卷自行作答，對照詳解檢查。</p>
         </div>
-        <span class="block-tag">登入制 · 示範資料</span>
+        <span class="block-tag">登入制</span>
       </div>
       <div class="content-gate" id="mocksLoginGate" hidden>
         <strong>登入後才能查看模擬考卷</strong>
@@ -544,21 +535,7 @@
         <a class="btn btn-primary" href="#grades">前往登入</a>
       </div>
       <div class="mock-grid" id="mocksContent">
-        <div class="mock-card">
-          <span class="mono">MOCK · 01</span>
-          <h3>高一數學 綜合模考</h3>
-          <div class="mock-actions"><a class="primary" href="#">下載考卷</a><a href="#">詳解</a></div>
-        </div>
-        <div class="mock-card">
-          <span class="mono">MOCK · 02</span>
-          <h3>三角函數 專章模考</h3>
-          <div class="mock-actions"><a class="primary" href="#">下載考卷</a><a href="#">詳解</a></div>
-        </div>
-        <div class="mock-card">
-          <span class="mono">MOCK · 03</span>
-          <h3>期末總複習模考</h3>
-          <div class="mock-actions"><a class="primary" href="#">下載考卷</a><a href="#">詳解</a></div>
-        </div>
+        <p class="query-empty">目前還沒有上傳模擬考卷，之後新增後會顯示在這裡。</p>
       </div>
     </div>
   </section>
@@ -653,6 +630,17 @@
               <tbody id="gradeLedgerBody"></tbody>
             </table>
           </div>
+
+          <div class="demo-shell" id="exportPanel" style="margin-top:24px;" hidden>
+            <div class="demo-head"><h3>匯出某次成績</h3></div>
+            <p class="block-desc" style="margin-bottom:12px;">選班級與考試，匯出成 Excel 可直接開啟的 CSV 檔，不同班分開匯出比較不會亂。</p>
+            <div class="exam-meta">
+              <label>班級<select id="exportClass"></select></label>
+              <label>考試<select id="exportExam"></select></label>
+              <button type="button" class="btn btn-primary" id="exportBtn" style="align-self:flex-end;">匯出 Excel（CSV）</button>
+            </div>
+            <span class="roster-status" id="exportStatus"></span>
+          </div>
         </div>
 
         <!-- accounts panel: admin only -->
@@ -660,9 +648,13 @@
           <div class="demo-head"><h3>帳號與權限管理</h3></div>
           <div class="ledger-wrap">
             <table class="ledger">
-              <thead><tr><th>班級</th><th>學號</th><th>姓名</th><th>設為小老師</th><th></th></tr></thead>
+              <thead><tr><th>班級</th><th>座號</th><th>學號</th><th>姓名</th><th>設為小老師</th><th></th></tr></thead>
               <tbody id="accountsBody"></tbody>
             </table>
+          </div>
+          <div class="roster-actions">
+            <button type="button" class="btn btn-primary" id="saveAccountsBtn">儲存小老師設定</button>
+            <span class="roster-status" id="accountsStatus"></span>
           </div>
           <h3 class="ledger-subhead" style="margin-top:24px;">快速查詢任一學生成績</h3>
           <div class="query-row">
@@ -675,7 +667,7 @@
         <!-- links panel: admin only -->
         <div class="demo-shell" id="linksPanel" hidden>
           <div class="demo-head"><h3>檔案連結管理</h3></div>
-          <p class="block-desc" style="margin-bottom:16px;">選好分類與小節，貼上 Google 雲端硬碟的分享連結存檔，「課堂筆記」／「習作解析」對應小節的「敬請期待」就會換成真正的連結。</p>
+          <p class="block-desc" style="margin-bottom:16px;">選好分類與小節，貼上 Google 雲端硬碟的分享連結存檔，「課堂筆記」／「習作解析」對應小節的「敬請期待」就會換成真正的連結。請用雲端硬碟「取得連結」的分享網址，並把權限設為「知道連結的使用者」——這樣學生點連結會直接在瀏覽器開啟 PDF 預覽畫面，不需要另外下載；如果權限沒開，學生點了會看到「沒有存取權」。</p>
           <div class="exam-meta">
             <label>分類
               <select id="linkCategory">
@@ -1299,6 +1291,99 @@
     });
   }
 
+  /* ---- 匯出某次成績（僅管理者，避免不同班混在同一張成績分頁裡看）---- */
+  function csvEscape(v){
+    var s = (v === null || v === undefined) ? '' : String(v);
+    if (/[",\n]/.test(s)) s = '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  }
+  function downloadCsv(filename, rows){
+    var csv = rows.map(function(r){ return r.map(csvEscape).join(','); }).join('\r\n');
+    var blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  }
+  function examOptionKey(g){ return g.date + '||' + g.examName; }
+  function populateExportClassOptions(){
+    var sel = document.getElementById('exportClass');
+    if (!sel) return;
+    sel.innerHTML = '';
+    adminClassList.forEach(function(cls){
+      var opt = document.createElement('option');
+      opt.value = cls; opt.textContent = cls;
+      sel.appendChild(opt);
+    });
+    populateExportExamOptions();
+  }
+  function populateExportExamOptions(){
+    var classSel = document.getElementById('exportClass');
+    var examSel = document.getElementById('exportExam');
+    if (!classSel || !examSel) return;
+    var cls = classSel.value;
+    var seen = {};
+    var opts = [];
+    grades.filter(function(g){ return g.className === cls; }).forEach(function(g){
+      var key = examOptionKey(g);
+      if (seen[key]) return;
+      seen[key] = true;
+      opts.push({ key: key, label: fmtDate(g.date) + '　' + g.examName });
+    });
+    examSel.innerHTML = '';
+    if (!opts.length){
+      var opt = document.createElement('option');
+      opt.value = ''; opt.textContent = '（這個班還沒有成績紀錄）';
+      examSel.appendChild(opt);
+      return;
+    }
+    opts.forEach(function(o){
+      var opt = document.createElement('option');
+      opt.value = o.key; opt.textContent = o.label;
+      examSel.appendChild(opt);
+    });
+  }
+  var exportClassSel = document.getElementById('exportClass');
+  if (exportClassSel) exportClassSel.addEventListener('change', populateExportExamOptions);
+  var exportBtn = document.getElementById('exportBtn');
+  if (exportBtn){
+    exportBtn.addEventListener('click', function(){
+      var exportStatus = document.getElementById('exportStatus');
+      var cls = document.getElementById('exportClass').value;
+      var examKey = document.getElementById('exportExam').value;
+      if (!cls || !examKey){
+        if (exportStatus){ exportStatus.textContent = '請先選班級與考試。'; exportStatus.className = 'roster-status is-error'; }
+        return;
+      }
+      var rows = grades.filter(function(g){ return g.className === cls && examOptionKey(g) === examKey; });
+      if (!rows.length){
+        if (exportStatus){ exportStatus.textContent = '這個班級／考試沒有成績可以匯出。'; exportStatus.className = 'roster-status is-error'; }
+        return;
+      }
+      // 依名冊座號排序，沒有名冊快取就照原本順序
+      var order = rosterCache[cls];
+      if (order && order.length){
+        var seatOf = {};
+        order.forEach(function(s, i){ seatOf[s.sid] = (s.seat === null || s.seat === undefined) ? i : s.seat; });
+        rows = rows.slice().sort(function(a, b){
+          return String(seatOf[a.sid] || '').localeCompare(String(seatOf[b.sid] || ''), 'zh-Hant', { numeric: true });
+        });
+      }
+      var examParts = examKey.split('||');
+      var table = [['座號', '學號', '姓名', '分數', '缺考']];
+      rows.forEach(function(g){
+        var seat = order ? (order.find(function(s){ return s.sid === g.sid; }) || {}).seat : '';
+        table.push([seat === undefined ? '' : seat, g.sid, g.name, g.absent ? '' : g.score, g.absent ? '是' : '否']);
+      });
+      var filename = cls + '_' + examParts[0] + '_' + examParts[1].replace(/[\\/:*?"<>|]/g, '_') + '.csv';
+      downloadCsv(filename, table);
+      if (exportStatus){ exportStatus.textContent = '已匯出 ' + filename + '（可直接用 Excel 開啟）。'; exportStatus.className = 'roster-status'; }
+    });
+  }
+
   /* ---- roster batch entry（登錄新成績）---- */
   var examDateInput = document.getElementById('examDate');
   var examNameInput = document.getElementById('examName');
@@ -1423,7 +1508,9 @@
           avgText = '，平均 ' + (sum / scored.length).toFixed(1) + ' 分';
         }
         setRosterStatus('已儲存 ' + rows.length + ' 筆成績（缺考 ' + absentCount + ' 人）' + avgText + '。', false);
-        refreshGrades();
+        refreshGrades().then(function(){
+          if (currentUser && currentUser.role === 'admin') populateExportClassOptions();
+        });
       });
     });
   }
@@ -1477,10 +1564,11 @@
   }
 
   /* ---- 帳號與權限管理（僅管理者）---- */
+  var accountsOriginalMonitor = {}; // sid -> 讀取當下的小老師狀態，用來判斷是否有變更待儲存
   function renderAccountsTable(){
     var tbody = document.getElementById('accountsBody');
     if (!tbody) return;
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">載入中…</td></tr>';
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="6">載入中…</td></tr>';
     var classes = adminClassList.slice();
     var loaders = classes.map(function(cls){
       return callApi('getRoster', { actorAccount: currentUser.account, actorPassword: currentPassword, className: cls })
@@ -1488,13 +1576,25 @@
     });
     Promise.all(loaders).then(function(results){
       tbody.innerHTML = '';
+      accountsOriginalMonitor = {};
       results.forEach(function(item){
         if (!item.res.ok) return;
-        rosterCache[item.cls] = item.res.students || [];
-        item.res.students.forEach(function(stu){
+        var students = (item.res.students || []).slice().sort(function(a, b){
+          var sa = a.seat === null || a.seat === undefined ? '' : String(a.seat);
+          var sb = b.seat === null || b.seat === undefined ? '' : String(b.seat);
+          return sa.localeCompare(sb, 'zh-Hant', { numeric: true });
+        });
+        rosterCache[item.cls] = students;
+        var groupRow = document.createElement('tr');
+        groupRow.className = 'class-group-row';
+        groupRow.innerHTML = '<td colspan="6"><strong>' + item.cls + '</strong>（' + students.length + ' 人）</td>';
+        tbody.appendChild(groupRow);
+        students.forEach(function(stu){
+          accountsOriginalMonitor[stu.sid] = !!stu.isMonitor;
           var tr = document.createElement('tr');
           tr.innerHTML =
             '<td>' + item.cls + '</td>' +
+            '<td class="mono">' + (stu.seat === null || stu.seat === undefined ? '' : stu.seat) + '</td>' +
             '<td class="mono">' + stu.sid + '</td>' +
             '<td>' + stu.name + '</td>' +
             '<td style="text-align:center;"><input type="checkbox" class="monitor-check" data-sid="' + stu.sid + '"' + (stu.isMonitor ? ' checked' : '') + '></td>' +
@@ -1503,22 +1603,44 @@
         });
       });
       if (!tbody.children.length){
-        tbody.innerHTML = '<tr class="empty-row"><td colspan="5">目前沒有讀到任何班級名單。</td></tr>';
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="6">目前沒有讀到任何班級名單。</td></tr>';
       }
+      var accountsStatus = document.getElementById('accountsStatus');
+      if (accountsStatus){ accountsStatus.textContent = ''; accountsStatus.className = 'roster-status'; }
     });
   }
   var accountsBody = document.getElementById('accountsBody');
-  if (accountsBody){
-    accountsBody.addEventListener('change', function(e){
-      if (!e.target.classList.contains('monitor-check')) return;
-      var sid = e.target.getAttribute('data-sid');
-      var isMonitor = e.target.checked;
-      callApi('setMonitor', { actorAccount: currentUser.account, actorPassword: currentPassword, sid: sid, isMonitor: isMonitor })
-        .then(function(res){
-          if (!res.ok){ showApiError(res.error || '設定小老師失敗。'); e.target.checked = !isMonitor; }
-          else clearApiError();
-        });
+  var saveAccountsBtn = document.getElementById('saveAccountsBtn');
+  if (saveAccountsBtn){
+    saveAccountsBtn.addEventListener('click', function(){
+      var accountsStatus = document.getElementById('accountsStatus');
+      var checks = accountsBody.querySelectorAll('.monitor-check');
+      var changed = [];
+      checks.forEach(function(chk){
+        var sid = chk.getAttribute('data-sid');
+        if (!!chk.checked !== !!accountsOriginalMonitor[sid]) changed.push({ sid: sid, isMonitor: chk.checked });
+      });
+      if (!changed.length){
+        if (accountsStatus){ accountsStatus.textContent = '沒有變更需要儲存。'; accountsStatus.className = 'roster-status'; }
+        return;
+      }
+      saveAccountsBtn.disabled = true;
+      if (accountsStatus){ accountsStatus.textContent = '儲存中…'; accountsStatus.className = 'roster-status'; }
+      Promise.all(changed.map(function(c){
+        return callApi('setMonitor', { actorAccount: currentUser.account, actorPassword: currentPassword, sid: c.sid, isMonitor: c.isMonitor });
+      })).then(function(results){
+        saveAccountsBtn.disabled = false;
+        var failed = results.filter(function(r){ return !r.ok; }).length;
+        if (failed){
+          if (accountsStatus){ accountsStatus.textContent = '有 ' + failed + ' 筆設定儲存失敗，請再試一次。'; accountsStatus.className = 'roster-status is-error'; }
+        } else {
+          if (accountsStatus){ accountsStatus.textContent = '已儲存 ' + changed.length + ' 筆小老師設定。'; accountsStatus.className = 'roster-status'; }
+          changed.forEach(function(c){ accountsOriginalMonitor[c.sid] = c.isMonitor; });
+        }
+      });
     });
+  }
+  if (accountsBody){
     accountsBody.addEventListener('click', function(e){
       var btn = e.target.closest('.reset-pw-btn');
       if (!btn) return;
@@ -1672,7 +1794,12 @@
     document.getElementById('linksPanel').hidden = (tab !== 'links');
     if (tab === 'accounts') renderAccountsTable();
     if (tab === 'links') renderLinksTable();
-    if (tab === 'entry'){ loadRosterForCurrentClass(); renderLedger(); }
+    if (tab === 'entry'){
+      loadRosterForCurrentClass();
+      refreshGrades().then(function(){
+        if (currentUser && currentUser.role === 'admin') populateExportClassOptions();
+      });
+    }
   }
   var adminTabsEl = document.getElementById('adminTabs');
   if (adminTabsEl){
@@ -1709,7 +1836,9 @@
     var isPlainStudent = currentUser.role === 'student';
 
     document.getElementById('adminTabs').hidden = !isAdmin;
-    document.getElementById('studentQueryPanel').hidden = !isPlainStudent;
+    // 小老師也是學生身分，一樣要能查自己的成績
+    document.getElementById('studentQueryPanel').hidden = !(isPlainStudent || isMonitor);
+    document.getElementById('exportPanel').hidden = !isAdmin;
 
     populateExamClassOptions();
 
@@ -1723,6 +1852,7 @@
       document.getElementById('linksPanel').hidden = true;
       loadRosterForCurrentClass();
       refreshGrades();
+      runStudentSelfQuery();
     } else {
       document.getElementById('entryPanel').hidden = true;
       document.getElementById('accountsPanel').hidden = true;
