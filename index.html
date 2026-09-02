@@ -1,0 +1,1662 @@
+<title>陳老師的數學教室</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;700&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EEF1EC;
+    --surface:#FFFFFF;
+    --surface-2:#F6F7F3;
+    --ink:#1B2430;
+    --ink-soft:#54626E;
+    --indigo:#2B3A67;
+    --indigo-strong:#1E2B50;
+    --indigo-tint:#DDE3F1;
+    --red:#B23A2C;
+    --red-tint:#F4DCD8;
+    --teal:#276E6A;
+    --teal-tint:#D8ECE9;
+    --border:#D7DDD3;
+    --shadow:rgba(27,36,48,.10);
+    --grid-line:rgba(43,58,103,.09);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#10151C;
+      --surface:#1B222C;
+      --surface-2:#161C24;
+      --ink:#E7EAF0;
+      --ink-soft:#A6B0C3;
+      --indigo:#93A6E0;
+      --indigo-strong:#B7C4EE;
+      --indigo-tint:#26314A;
+      --red:#E38A75;
+      --red-tint:#3A2621;
+      --teal:#63C9C1;
+      --teal-tint:#16302C;
+      --border:#2A323E;
+      --shadow:rgba(0,0,0,.45);
+      --grid-line:rgba(147,166,224,.10);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#10151C;
+    --surface:#1B222C;
+    --surface-2:#161C24;
+    --ink:#E7EAF0;
+    --ink-soft:#A6B0C3;
+    --indigo:#93A6E0;
+    --indigo-strong:#B7C4EE;
+    --indigo-tint:#26314A;
+    --red:#E38A75;
+    --red-tint:#3A2621;
+    --teal:#63C9C1;
+    --teal-tint:#16302C;
+    --border:#2A323E;
+    --shadow:rgba(0,0,0,.45);
+    --grid-line:rgba(147,166,224,.10);
+    color-scheme: dark;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Noto Sans TC","Noto Sans",system-ui,sans-serif;
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{
+    font-family:"Noto Serif TC","Noto Serif",serif;
+    font-weight:700;
+    color:var(--ink);
+    text-wrap:balance;
+    margin:0;
+  }
+  .mono{
+    font-family:"JetBrains Mono",ui-monospace,monospace;
+    font-variant-numeric:tabular-nums;
+  }
+  a{color:inherit;}
+  button{font-family:inherit;}
+
+  /* ---------- layout shell ---------- */
+  .page{max-width:1040px;margin:0 auto;padding:0 clamp(16px,4vw,40px);}
+  .grid-ground{
+    background-image:
+      repeating-linear-gradient(0deg, var(--grid-line) 0 1px, transparent 1px 32px),
+      repeating-linear-gradient(90deg, var(--grid-line) 0 1px, transparent 1px 32px);
+  }
+
+  /* ---------- sidebar shell ---------- */
+  .shell{display:flex;align-items:flex-start;min-height:100vh;}
+  .sidebar{
+    width:236px;flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto;
+    background:var(--surface);border-right:1px solid var(--border);
+    display:flex;flex-direction:column;padding:22px 0;z-index:40;
+  }
+  .brand{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:0 22px 18px;border-bottom:1px solid var(--border);margin-bottom:10px;}
+  .brand-mark{
+    font-family:"Noto Serif TC",serif;font-weight:700;font-size:1.1rem;
+    color:var(--indigo);line-height:1.35;
+  }
+  .brand-sub{font-size:.7rem;color:var(--ink-soft);letter-spacing:.06em;}
+  nav.tabs{display:flex;flex-direction:column;gap:1px;}
+  nav.tabs a{
+    text-decoration:none;font-size:.88rem;font-weight:500;color:var(--ink-soft);
+    padding:11px 22px;border-left:3px solid transparent;
+    transition:color .15s ease, border-color .15s ease, background .15s ease;
+  }
+  nav.tabs a:hover{color:var(--ink); background:var(--surface-2);}
+  nav.tabs a:nth-child(1){border-left-color:var(--indigo);}
+  nav.tabs a:nth-child(2){border-left-color:var(--teal);}
+  nav.tabs a:nth-child(3){border-left-color:var(--red);}
+  nav.tabs a:nth-child(4){border-left-color:var(--teal);}
+  nav.tabs a:nth-child(5){border-left-color:var(--red);}
+  nav.tabs a:nth-child(6){border-left-color:var(--indigo);}
+
+  .main-col{flex:1;min-width:0;}
+
+  .mobile-bar{
+    display:none;position:sticky;top:0;z-index:20;
+    background:var(--surface);border-bottom:1px solid var(--border);
+    padding:12px 16px;align-items:center;gap:14px;
+  }
+  .hamburger-btn{
+    width:34px;height:34px;border:1px solid var(--border);border-radius:3px;background:var(--surface);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;flex-shrink:0;
+  }
+  .hamburger-btn span{width:16px;height:2px;background:var(--ink);display:block;}
+  .sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(10,14,20,.4);z-index:30;}
+
+  @media (max-width: 900px){
+    .mobile-bar{display:flex;}
+    .sidebar{
+      position:fixed;top:0;left:0;transform:translateX(-100%);
+      transition:transform .2s ease;box-shadow:0 0 28px var(--shadow);width:250px;
+    }
+    .sidebar.is-open{transform:translateX(0);}
+    .sidebar-backdrop.is-open{display:block;}
+  }
+
+  /* ---------- proto banner ---------- */
+  .proto-banner{
+    background:var(--indigo-tint);color:var(--indigo-strong);
+    font-size:.82rem;text-align:center;padding:8px 16px;
+    border-bottom:1px solid var(--border);
+  }
+
+  /* ---------- hero ---------- */
+  .hero{padding:clamp(48px,8vw,88px) 0 clamp(40px,6vw,64px);}
+  .hero-eyebrow{
+    font-family:"JetBrains Mono",monospace;font-size:.78rem;letter-spacing:.12em;
+    color:var(--teal);text-transform:uppercase;margin-bottom:14px;display:block;
+  }
+  .hero h1{font-size:clamp(1.9rem,4.4vw,3rem);max-width:14ch;line-height:1.25;}
+  .hero p{max-width:52ch;color:var(--ink-soft);font-size:1.05rem;margin-top:16px;}
+  .hero-actions{display:flex;gap:12px;margin-top:28px;flex-wrap:wrap;}
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:11px 20px;border-radius:3px;font-size:.92rem;font-weight:500;
+    text-decoration:none;border:1px solid transparent;cursor:pointer;
+  }
+  .btn-primary{background:var(--indigo);color:var(--surface);}
+  .btn-primary:hover{background:var(--indigo-strong);}
+  .btn-ghost{border-color:var(--border);color:var(--ink);background:transparent;}
+  .btn-ghost:hover{background:var(--surface-2);}
+
+  /* ---------- sections generic ---------- */
+  section.block{padding:56px 0;border-top:1px solid var(--border);}
+  .block-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:28px;flex-wrap:wrap;}
+  .block-head h2{font-size:clamp(1.4rem,2.6vw,1.85rem);}
+  .block-tag{
+    font-family:"JetBrains Mono",monospace;font-size:.72rem;letter-spacing:.1em;
+    padding:4px 10px;border-radius:20px;border:1px solid var(--border);color:var(--ink-soft);
+  }
+  .block-desc{color:var(--ink-soft);max-width:60ch;margin-top:6px;font-size:.95rem;}
+
+  /* ---------- notes cards ---------- */
+  .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;}
+  .note-card{
+    background:var(--surface);border:1px solid var(--border);border-radius:4px;
+    padding:20px;display:flex;flex-direction:column;gap:12px;
+    box-shadow:0 1px 2px var(--shadow);
+  }
+  .note-icon{width:34px;height:34px;color:var(--indigo);}
+  .note-card h3{font-size:1.02rem;}
+  .note-card p{color:var(--ink-soft);font-size:.86rem;margin:0;flex:1;}
+  .note-foot{display:flex;align-items:center;justify-content:space-between;}
+  .badge{
+    font-family:"JetBrains Mono",monospace;font-size:.68rem;letter-spacing:.05em;
+    background:var(--surface-2);border:1px solid var(--border);color:var(--ink-soft);
+    padding:2px 8px;border-radius:20px;
+  }
+  .link-arrow{font-size:.84rem;font-weight:500;color:var(--indigo);text-decoration:none;}
+  .link-arrow:hover{text-decoration:underline;}
+
+  /* ---------- book / chapter directory ---------- */
+  .book-list{display:flex;flex-direction:column;gap:12px;}
+  details.book{
+    background:var(--surface);border:1px solid var(--border);border-radius:4px;
+    box-shadow:0 1px 2px var(--shadow);
+  }
+  details.book summary{
+    list-style:none;cursor:pointer;padding:16px 20px;display:flex;align-items:center;gap:12px;
+    font-family:"Noto Serif TC",serif;font-weight:700;font-size:1rem;
+  }
+  details.book summary::-webkit-details-marker{display:none;}
+  details.book summary::after{
+    content:"+";margin-left:auto;color:var(--ink-soft);font-family:"JetBrains Mono",monospace;font-size:1.1rem;
+  }
+  details.book[open] summary::after{content:"–";}
+  details.book summary .book-tag{
+    font-family:"JetBrains Mono",monospace;font-weight:600;font-size:.74rem;
+    background:var(--indigo-tint);color:var(--indigo-strong);padding:3px 9px;border-radius:20px;flex-shrink:0;
+  }
+  .book-body{
+    padding:4px 20px 18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;
+    border-top:1px solid var(--border);
+  }
+  .chapter h4{
+    font-family:"Noto Sans TC",sans-serif;font-weight:700;font-size:.86rem;color:var(--teal);
+    margin:14px 0 8px;letter-spacing:.02em;
+  }
+  ul.section-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;}
+  ul.section-list li{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    font-size:.84rem;color:var(--ink);padding:4px 0;border-bottom:1px dashed var(--border);
+  }
+  ul.section-list li span:first-child{flex:1;}
+  .demo-badge{
+    background:var(--teal-tint);color:var(--teal);text-decoration:none;font-weight:600;
+    border:1px solid transparent;
+  }
+  .demo-badge:hover{border-color:var(--teal);}
+
+  /* ---------- exam ledger ---------- */
+  .ledger{width:100%;border-collapse:collapse;font-size:.9rem;}
+  .ledger thead th{
+    text-align:left;font-weight:500;color:var(--ink-soft);
+    font-size:.74rem;letter-spacing:.06em;text-transform:uppercase;
+    padding:0 12px 10px;border-bottom:1px solid var(--border);
+  }
+  .ledger tbody td{padding:13px 12px;border-bottom:1px solid var(--border);}
+  .ledger tbody tr:hover{background:var(--surface-2);}
+  .pill{
+    display:inline-block;font-size:.72rem;padding:2px 9px;border-radius:20px;
+    background:var(--red-tint);color:var(--red);font-weight:500;
+  }
+
+  /* ---------- mock exam cards ---------- */
+  .mock-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;}
+  .mock-card{
+    background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:20px;
+    box-shadow:0 1px 2px var(--shadow);
+  }
+  .mock-card .mono{color:var(--teal);font-size:.78rem;}
+  .mock-card h3{font-size:1rem;margin-top:6px;}
+  .mock-actions{display:flex;gap:10px;margin-top:16px;}
+  .mock-actions a{font-size:.82rem;font-weight:500;text-decoration:none;color:var(--ink-soft);border:1px solid var(--border);padding:7px 12px;border-radius:3px;}
+  .mock-actions a.primary{color:var(--surface);background:var(--teal);border-color:var(--teal);}
+
+  /* ---------- animation demos ---------- */
+  .demo-shell{
+    background:var(--surface);border:1px solid var(--border);border-radius:6px;
+    padding:clamp(16px,3vw,28px);box-shadow:0 1px 2px var(--shadow);
+  }
+  .demo-shell + .demo-shell{margin-top:20px;}
+  .demo-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
+  .demo-head h3{font-size:1.05rem;}
+  .demo-body{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(220px,1fr);gap:24px;}
+  @media (max-width:720px){.demo-body{grid-template-columns:1fr;}}
+  .graph-wrap{background:var(--surface-2);border:1px solid var(--border);border-radius:4px;padding:10px;}
+  svg.graph{width:100%;height:auto;display:block;}
+  .axis{stroke:var(--ink-soft);stroke-width:1.2;}
+  .gridline{stroke:var(--border);stroke-width:1;}
+  .curve{fill:none;stroke:var(--indigo);stroke-width:2.4;stroke-linecap:round;}
+  .region{fill:var(--teal);fill-opacity:.18;stroke:var(--teal);stroke-width:1.6;}
+  .constraint{fill:none;stroke:var(--ink-soft);stroke-width:1.2;stroke-dasharray:4 3;}
+  .optpoint{fill:var(--red);}
+  .axislabel{font-family:"JetBrains Mono",monospace;font-size:9px;fill:var(--ink-soft);}
+
+  .controls{display:flex;flex-direction:column;gap:16px;}
+  .control-row label{display:flex;justify-content:space-between;font-size:.82rem;color:var(--ink-soft);margin-bottom:6px;}
+  .control-row output{color:var(--ink);font-family:"JetBrains Mono",monospace;font-weight:600;}
+  input[type="range"]{
+    width:100%;accent-color:var(--indigo);
+  }
+  .func-switch{display:flex;gap:6px;margin-bottom:4px;}
+  .func-switch button{
+    flex:1;padding:6px 4px;font-size:.78rem;border-radius:3px;border:1px solid var(--border);
+    background:var(--surface);color:var(--ink-soft);cursor:pointer;
+  }
+  .func-switch button[aria-pressed="true"]{background:var(--indigo);border-color:var(--indigo);color:var(--surface);}
+  .formula{
+    font-family:"JetBrains Mono",monospace;font-size:.86rem;background:var(--indigo-tint);
+    color:var(--indigo-strong);padding:10px 12px;border-radius:4px;overflow-x:auto;white-space:nowrap;
+  }
+  .lp-readout{font-size:.84rem;color:var(--ink-soft);}
+  .lp-readout .mono{color:var(--red);font-weight:600;}
+  .lp-vertex-list{list-style:none;margin:8px 0 0;padding:0;font-size:.8rem;}
+  .lp-vertex-list li{padding:3px 0;border-bottom:1px dashed var(--border);}
+
+  /* ---------- grade entry / lookup demo ---------- */
+  .demo-note{
+    background:var(--red-tint);color:var(--red);font-size:.84rem;padding:10px 14px;
+    border-radius:4px;margin-bottom:20px;
+  }
+  .role-switch{display:flex;gap:8px;margin-bottom:18px;max-width:420px;}
+  .role-switch button{
+    flex:1;padding:10px 12px;border-radius:3px;border:1px solid var(--border);
+    background:var(--surface);color:var(--ink-soft);font-size:.86rem;font-weight:500;cursor:pointer;
+  }
+  .role-switch button[aria-pressed="true"]{background:var(--indigo);border-color:var(--indigo);color:var(--surface);}
+
+  .login-hint{color:var(--ink-soft);font-size:.84rem;margin-bottom:16px;}
+  .session-bar{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+    padding:12px 16px;background:var(--indigo-tint);color:var(--indigo-strong);border-radius:4px;margin-bottom:20px;
+  }
+  .session-actions{display:flex;gap:8px;}
+
+  .exam-meta{
+    display:flex;gap:18px;flex-wrap:wrap;margin-bottom:20px;padding:14px 16px;
+    background:var(--surface-2);border:1px solid var(--border);border-radius:4px;
+  }
+  .exam-meta label{display:flex;flex-direction:column;gap:6px;font-size:.82rem;color:var(--ink-soft);flex:1;min-width:160px;}
+  .exam-meta input,.exam-meta select{
+    font-family:inherit;font-size:.92rem;padding:8px 10px;border:1px solid var(--border);
+    border-radius:3px;background:var(--surface);color:var(--ink);
+  }
+  .exam-meta input:focus,.exam-meta select:focus{outline:2px solid var(--indigo);outline-offset:1px;}
+
+  .ledger-wrap{overflow-x:auto;}
+  .roster-table input[type="number"]{
+    width:72px;font-family:"JetBrains Mono",monospace;font-size:.9rem;padding:6px 8px;
+    border:1px solid var(--border);border-radius:3px;background:var(--surface);color:var(--ink);
+  }
+  .roster-table input[type="number"]:disabled{background:var(--surface-2);color:var(--ink-soft);opacity:.6;}
+  .roster-table input[type="number"]:focus{outline:2px solid var(--indigo);outline-offset:1px;}
+  .roster-table input[type="checkbox"]{width:17px;height:17px;accent-color:var(--red);cursor:pointer;}
+  .roster-actions{display:flex;align-items:center;gap:12px;margin:16px 0 30px;flex-wrap:wrap;}
+  .roster-status{font-size:.84rem;color:var(--teal);font-weight:500;}
+  .roster-status.is-error{color:var(--red);}
+  .ledger-subhead{font-size:.95rem;margin-bottom:12px;color:var(--ink-soft);}
+
+  .del-btn{
+    border:none;background:transparent;color:var(--ink-soft);cursor:pointer;font-size:.78rem;
+    text-decoration:underline;padding:0;
+  }
+  .del-btn:hover{color:var(--red);}
+  .empty-row td{color:var(--ink-soft);font-style:italic;}
+  .absent-tag{color:var(--red);font-weight:600;}
+
+  .query-row{display:flex;gap:10px;max-width:420px;margin-bottom:20px;}
+  .query-row input{
+    flex:1;font-family:inherit;font-size:.92rem;padding:9px 11px;border:1px solid var(--border);
+    border-radius:3px;background:var(--surface-2);color:var(--ink);
+  }
+  .query-result{max-width:560px;}
+  .query-card{
+    background:var(--surface-2);border:1px solid var(--border);border-radius:4px;padding:18px 20px;
+  }
+  .query-card h4{font-size:1rem;margin-bottom:10px;font-family:"Noto Serif TC",serif;}
+  .query-card .avg{
+    font-family:"JetBrains Mono",monospace;font-weight:600;color:var(--teal);font-size:.9rem;margin-top:10px;
+  }
+  .query-empty{color:var(--ink-soft);font-size:.9rem;}
+
+  footer.site{
+    border-top:1px solid var(--border);padding:36px 0 60px;color:var(--ink-soft);font-size:.85rem;
+  }
+  footer.site .page{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+</style>
+
+<div class="proto-banner">這是網站雛形（示意版）——內容為示範用的假資料，互動動畫區塊為實際可操作的原型。</div>
+
+<div class="shell">
+
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <span class="brand-mark">陳老師的數學教室</span>
+      <span class="brand-sub mono">MATH NOTEBOOK</span>
+    </div>
+    <nav class="tabs" id="sidebarNav">
+      <a href="#notes">課堂筆記</a>
+      <a href="#workbook">習作解析</a>
+      <a href="#exams">考卷解答</a>
+      <a href="#mocks">模擬考卷</a>
+      <a href="#grades">小考成績</a>
+      <a href="#demos">互動動畫</a>
+    </nav>
+  </aside>
+
+  <div class="main-col">
+
+    <div class="mobile-bar">
+      <button type="button" class="hamburger-btn" id="hamburgerBtn" aria-label="開啟選單" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <span class="brand-mark" style="font-size:1rem;">陳老師的數學教室</span>
+    </div>
+
+    <main>
+  <section class="hero grid-ground">
+    <div class="page">
+      <span class="hero-eyebrow">— 高中數學 · 線上筆記本</span>
+      <h1>把每一堂課，留在<br>找得到的地方</h1>
+      <p>課堂筆記、考卷詳解、模擬考卷，全部整理在同一個網站；三角函數、線性規劃這類需要「看得到變化」的主題，用互動圖形直接拖拖看。</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#demos">先玩玩互動動畫 ↓</a>
+        <a class="btn btn-ghost" href="#notes">瀏覽課堂筆記</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= NOTES ================= -->
+  <section class="block" id="notes">
+    <div class="page">
+      <div class="block-head">
+        <div>
+          <h2>課堂筆記</h2>
+          <p class="block-desc">依第1～4冊真實課本目錄建立索引，筆記陸續上傳雲端硬碟後，「敬請期待」會換成真正的連結。</p>
+        </div>
+        <span class="block-tag">4 冊 · 14 章 · 完整目錄</span>
+      </div>
+
+      <div class="book-list" id="notesDirectory"></div>
+    </div>
+  </section>
+
+  <!-- ================= WORKBOOK ANSWERS ================= -->
+  <section class="block" id="workbook">
+    <div class="page">
+      <div class="block-head">
+        <div>
+          <h2>習作解析</h2>
+          <p class="block-desc">跟課堂筆記同一套第1～4冊目錄，放習作題目的詳細解法。</p>
+        </div>
+        <span class="block-tag">4 冊 · 14 章 · 完整目錄</span>
+      </div>
+
+      <div class="book-list" id="workbookDirectory"></div>
+    </div>
+  </section>
+
+  <!-- ================= EXAM SOLUTIONS ================= -->
+  <section class="block" id="exams">
+    <div class="page">
+      <div class="block-head">
+        <div>
+          <h2>考卷解答</h2>
+          <p class="block-desc">按日期排列，點「詳解」查看完整計算過程。</p>
+        </div>
+        <span class="block-tag">示範資料</span>
+      </div>
+      <div style="overflow-x:auto;">
+      <table class="ledger">
+        <thead>
+          <tr><th>日期</th><th>範圍</th><th>班級</th><th>狀態</th><th></th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="mono">2026-08-14</td><td>三角函數 · 圖形變換</td><td>高一忠班</td><td><span class="pill">已上傳</span></td><td><a class="link-arrow" href="#">詳解 →</a></td></tr>
+          <tr><td class="mono">2026-07-30</td><td>數列與級數 · 總複習</td><td>高一孝班</td><td><span class="pill">已上傳</span></td><td><a class="link-arrow" href="#">詳解 →</a></td></tr>
+          <tr><td class="mono">2026-07-16</td><td>第二次段考</td><td>高一忠班</td><td><span class="pill">已上傳</span></td><td><a class="link-arrow" href="#">詳解 →</a></td></tr>
+          <tr><td class="mono">2026-06-25</td><td>機率與統計 · 小考</td><td>高一孝班</td><td><span class="pill">已上傳</span></td><td><a class="link-arrow" href="#">詳解 →</a></td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MOCK EXAMS ================= -->
+  <section class="block" id="mocks">
+    <div class="page">
+      <div class="block-head">
+        <div>
+          <h2>模擬考卷</h2>
+          <p class="block-desc">下載考卷自行作答，對照詳解檢查。</p>
+        </div>
+        <span class="block-tag">示範資料</span>
+      </div>
+      <div class="mock-grid">
+        <div class="mock-card">
+          <span class="mono">MOCK · 01</span>
+          <h3>高一數學 綜合模考</h3>
+          <div class="mock-actions"><a class="primary" href="#">下載考卷</a><a href="#">詳解</a></div>
+        </div>
+        <div class="mock-card">
+          <span class="mono">MOCK · 02</span>
+          <h3>三角函數 專章模考</h3>
+          <div class="mock-actions"><a class="primary" href="#">下載考卷</a><a href="#">詳解</a></div>
+        </div>
+        <div class="mock-card">
+          <span class="mono">MOCK · 03</span>
+          <h3>期末總複習模考</h3>
+          <div class="mock-actions"><a class="primary" href="#">下載考卷</a><a href="#">詳解</a></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= GRADES ================= -->
+  <section class="block" id="grades">
+    <div class="page">
+      <div class="block-head">
+        <div>
+          <h2>小考成績登錄／查詢</h2>
+          <p class="block-desc">小老師登錄成績，學生輸入學號查自己的紀錄——下面是可以實際操作的前端示範。</p>
+        </div>
+        <span class="block-tag">前端示範 · 本機資料</span>
+      </div>
+
+      <div class="demo-note">
+        這裡的帳號、密碼、成績資料都只存在<strong>你目前這個瀏覽器</strong>裡（用來示範登入與權限流程），不會同步給別人看到。正式上線時，帳號密碼會改成呼叫 Google Apps Script 對照你的 Google 試算表驗證，成績也會寫進真正的試算表，全班才能共用同一份資料。
+      </div>
+
+      <!-- login gate -->
+      <div class="demo-shell" id="loginGate">
+        <div class="demo-head"><h3>登入</h3></div>
+        <p class="login-hint">示範帳密——管理者（老師）：帳號 <span class="mono">teacher</span> ／密碼 <span class="mono">admin123</span>。學生／小老師：帳號＝學號，例如 <span class="mono">30503</span>，預設密碼與學號相同（可登入後自行修改）。</p>
+        <form id="loginForm" class="exam-meta" style="align-items:flex-end;">
+          <label>帳號<input type="text" id="loginAccount" required placeholder="學號或管理者帳號"></label>
+          <label>密碼<input type="password" id="loginPassword" required placeholder="密碼"></label>
+          <button type="submit" class="btn btn-primary">登入</button>
+        </form>
+        <span class="roster-status is-error" id="loginError"></span>
+      </div>
+
+      <!-- logged-in area -->
+      <div id="loggedInArea" hidden>
+
+        <div class="session-bar">
+          <span id="sessionInfo" class="mono"></span>
+          <div class="session-actions">
+            <button type="button" class="btn btn-ghost" id="togglePwBtn">修改密碼</button>
+            <button type="button" class="btn btn-ghost" id="logoutBtn">登出</button>
+          </div>
+        </div>
+
+        <div class="demo-shell" id="pwPanel" hidden>
+          <div class="demo-head"><h3>修改密碼</h3></div>
+          <form id="pwForm" class="exam-meta" style="align-items:flex-end;">
+            <label>目前密碼<input type="password" id="pwOld" required></label>
+            <label>新密碼<input type="password" id="pwNew" required minlength="4"></label>
+            <label>確認新密碼<input type="password" id="pwConfirm" required minlength="4"></label>
+            <button type="submit" class="btn btn-primary">更新密碼</button>
+          </form>
+          <span class="roster-status" id="pwStatus"></span>
+        </div>
+
+        <!-- admin-only sub-tabs -->
+        <div class="role-switch" id="adminTabs" hidden>
+          <button type="button" data-tab="entry" aria-pressed="true">小考成績登錄</button>
+          <button type="button" data-tab="accounts" aria-pressed="false">帳號與權限管理</button>
+          <button type="button" data-tab="links" aria-pressed="false">檔案連結管理</button>
+        </div>
+
+        <!-- entry panel: admin (any class) + monitor (own class only) -->
+        <div class="demo-shell" id="entryPanel" hidden>
+          <div class="demo-head"><h3>登錄新成績</h3></div>
+
+          <div class="exam-meta">
+            <label>班級
+              <select id="examClass">
+                <option value="高一忠班">高一忠班（示範）</option>
+                <option value="高一孝班">高一孝班（示範）</option>
+              </select>
+            </label>
+            <label>考試日期
+              <input type="date" id="examDate">
+            </label>
+            <label>考試名稱
+              <input type="text" id="examName" placeholder="例如 小考3 向量">
+            </label>
+          </div>
+
+          <div class="ledger-wrap">
+            <table class="ledger roster-table">
+              <thead><tr><th>座號</th><th>學號</th><th>姓名</th><th>成績</th><th>缺考</th></tr></thead>
+              <tbody id="rosterBody"></tbody>
+            </table>
+          </div>
+
+          <div class="roster-actions">
+            <button type="button" class="btn btn-primary" id="saveRosterBtn">存檔</button>
+            <button type="button" class="btn btn-ghost" id="cancelRosterBtn">取消</button>
+            <span class="roster-status" id="rosterStatus"></span>
+          </div>
+
+          <h3 class="ledger-subhead">本機成績紀錄（依你的權限範圍顯示）</h3>
+          <div class="ledger-wrap">
+            <table class="ledger" id="gradeLedger">
+              <thead><tr><th>日期</th><th>學號</th><th>姓名</th><th>考試</th><th>成績</th><th></th></tr></thead>
+              <tbody id="gradeLedgerBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- accounts panel: admin only -->
+        <div class="demo-shell" id="accountsPanel" hidden>
+          <div class="demo-head"><h3>帳號與權限管理</h3></div>
+          <div class="ledger-wrap">
+            <table class="ledger">
+              <thead><tr><th>班級</th><th>學號</th><th>姓名</th><th>設為小老師</th><th></th></tr></thead>
+              <tbody id="accountsBody"></tbody>
+            </table>
+          </div>
+          <h3 class="ledger-subhead" style="margin-top:24px;">快速查詢任一學生成績</h3>
+          <div class="query-row">
+            <input type="text" id="adminQueryInput" placeholder="輸入學號，例如 30503">
+            <button type="button" class="btn btn-primary" id="adminQueryBtn">查詢</button>
+          </div>
+          <div class="query-result" id="adminQueryResult"></div>
+        </div>
+
+        <!-- links panel: admin only -->
+        <div class="demo-shell" id="linksPanel" hidden>
+          <div class="demo-head"><h3>檔案連結管理</h3></div>
+          <p class="block-desc" style="margin-bottom:16px;">選好分類與小節，貼上 Google 雲端硬碟的分享連結存檔，「課堂筆記」／「習作解析」對應小節的「敬請期待」就會換成真正的連結。</p>
+          <div class="exam-meta">
+            <label>分類
+              <select id="linkCategory">
+                <option value="notes">課堂筆記</option>
+                <option value="workbook">習作解析</option>
+              </select>
+            </label>
+            <label>冊<select id="linkBook"></select></label>
+            <label>章<select id="linkChapter"></select></label>
+            <label>小節<select id="linkSection"></select></label>
+          </div>
+          <div class="exam-meta">
+            <label style="flex:3;">雲端硬碟連結網址<input type="url" id="linkUrl" placeholder="https://drive.google.com/..."></label>
+            <button type="button" class="btn btn-primary" id="saveLinkBtn" style="align-self:flex-end;">儲存連結</button>
+          </div>
+          <span class="roster-status" id="linkStatus"></span>
+          <div class="ledger-wrap" style="margin-top:16px;">
+            <table class="ledger">
+              <thead><tr><th>分類</th><th>位置</th><th>連結</th><th></th></tr></thead>
+              <tbody id="linksBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- student query panel: plain student only -->
+        <div class="demo-shell" id="studentQueryPanel" hidden>
+          <div class="demo-head"><h3>我的小考成績</h3></div>
+          <div class="query-result" id="studentQueryResult"></div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================= INTERACTIVE DEMOS ================= -->
+  <section class="block" id="demos">
+    <div class="page">
+      <div class="block-head">
+        <div>
+          <h2>互動動畫</h2>
+          <p class="block-desc">拖動下面的滑桿，圖形會即時重畫——這兩個示範完全用網頁本身的程式碼繪製，之後也可以換成嵌入 GeoGebra／Desmos 的教材。</p>
+        </div>
+        <span class="block-tag">可操作原型</span>
+      </div>
+
+      <!-- Trig demo -->
+      <div class="demo-shell">
+        <div class="demo-head">
+          <h3>三角函數圖形機</h3>
+          <span class="badge">y = A · f(Bx + Cπ) + D</span>
+        </div>
+        <div class="demo-body">
+          <div class="graph-wrap">
+            <svg id="trigSvg" class="graph" viewBox="0 0 480 300" role="img" aria-label="三角函數圖形"></svg>
+          </div>
+          <div class="controls">
+            <div class="func-switch" id="funcSwitch">
+              <button data-fn="sin" aria-pressed="true">sin</button>
+              <button data-fn="cos" aria-pressed="false">cos</button>
+              <button data-fn="tan" aria-pressed="false">tan</button>
+            </div>
+            <div class="control-row">
+              <label>振幅 A <output id="outA">1.0</output></label>
+              <input type="range" id="ampA" min="0.2" max="3" step="0.1" value="1">
+            </div>
+            <div class="control-row">
+              <label>角頻率 B <output id="outB">1.0</output></label>
+              <input type="range" id="freqB" min="0.5" max="3" step="0.1" value="1">
+            </div>
+            <div class="control-row">
+              <label>相位 C（× π）<output id="outC">0.00</output></label>
+              <input type="range" id="phaseC" min="-1" max="1" step="0.05" value="0">
+            </div>
+            <div class="control-row">
+              <label>垂直位移 D <output id="outD">0.0</output></label>
+              <input type="range" id="shiftD" min="-2" max="2" step="0.1" value="0">
+            </div>
+            <div class="formula" id="formulaOut">y = 1.0 · sin(1.0x + 0.00π) + 0.0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LP demo -->
+      <div class="demo-shell">
+        <div class="demo-head">
+          <h3>線性規劃：可行域與最佳解</h3>
+          <span class="badge">maximize Z = 4x + 3y</span>
+        </div>
+        <div class="demo-body">
+          <div class="graph-wrap">
+            <svg id="lpSvg" class="graph" viewBox="0 0 400 400" role="img" aria-label="線性規劃可行域"></svg>
+          </div>
+          <div class="controls">
+            <div class="control-row">
+              <label>限制 x + y ≤ a <output id="outLpA">10</output></label>
+              <input type="range" id="lpA" min="4" max="18" step="1" value="10">
+            </div>
+            <div class="control-row">
+              <label>限制 2x + y ≤ b <output id="outLpB">16</output></label>
+              <input type="range" id="lpB" min="6" max="26" step="1" value="16">
+            </div>
+            <div class="lp-readout">
+              目標函數在頂點 <span class="mono" id="lpOptPoint">(0,0)</span> 取得最大值
+              <span class="mono" id="lpOptZ">Z = 0</span>
+              <ul class="lp-vertex-list" id="lpVertexList"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+    </main>
+
+    <footer class="site">
+      <div class="page">
+        <span>陳老師的數學教室 · 網站雛形（v4）</span>
+        <span>下一步：把示範資料換成真實筆記與考卷連結</span>
+      </div>
+    </footer>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ============ Sidebar (mobile toggle) ============ */
+  var sidebarEl = document.getElementById('sidebar');
+  var backdropEl = document.getElementById('sidebarBackdrop');
+  var hamburgerBtn = document.getElementById('hamburgerBtn');
+
+  function openSidebar(){
+    sidebarEl.classList.add('is-open');
+    backdropEl.classList.add('is-open');
+    hamburgerBtn.setAttribute('aria-expanded', 'true');
+  }
+  function closeSidebar(){
+    sidebarEl.classList.remove('is-open');
+    backdropEl.classList.remove('is-open');
+    hamburgerBtn.setAttribute('aria-expanded', 'false');
+  }
+  if (hamburgerBtn){
+    hamburgerBtn.addEventListener('click', function(){
+      if (sidebarEl.classList.contains('is-open')) closeSidebar();
+      else openSidebar();
+    });
+  }
+  if (backdropEl) backdropEl.addEventListener('click', closeSidebar);
+  var sidebarNavEl = document.getElementById('sidebarNav');
+  if (sidebarNavEl){
+    sidebarNavEl.addEventListener('click', function(e){
+      if (e.target.closest('a')) closeSidebar();
+    });
+  }
+
+  /* ============ Trig grapher ============ */
+  var svg = document.getElementById('trigSvg');
+  var W = 480, H = 300, marginX = 36, marginY = 24;
+  var xMin = -2*Math.PI, xMax = 2*Math.PI;
+  var yMin = -4, yMax = 4;
+
+  function sx(x){ return marginX + (x - xMin) / (xMax - xMin) * (W - 2*marginX); }
+  function sy(y){ return H - marginY - (y - yMin) / (yMax - yMin) * (H - 2*marginY); }
+
+  var ns = "http://www.w3.org/2000/svg";
+  function el(tag, attrs){
+    var e = document.createElementNS(ns, tag);
+    for (var k in attrs){ e.setAttribute(k, attrs[k]); }
+    return e;
+  }
+
+  function buildTrigStatic(){
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    // grid
+    for (var gx = -6; gx <= 6; gx++){
+      var xv = gx * Math.PI / 2;
+      if (xv < xMin || xv > xMax) continue;
+      svg.appendChild(el('line', {x1:sx(xv),y1:marginY,x2:sx(xv),y2:H-marginY, class:'gridline'}));
+    }
+    for (var gy = yMin; gy <= yMax; gy++){
+      svg.appendChild(el('line', {x1:marginX,y1:sy(gy),x2:W-marginX,y2:sy(gy), class:'gridline'}));
+    }
+    // axes
+    svg.appendChild(el('line', {x1:marginX,y1:sy(0),x2:W-marginX,y2:sy(0), class:'axis'}));
+    svg.appendChild(el('line', {x1:sx(0),y1:marginY,x2:sx(0),y2:H-marginY, class:'axis'}));
+    // x labels at -2pi,-pi,0,pi,2pi
+    var labels = [[-2*Math.PI,'-2π'],[-Math.PI,'-π'],[0,'0'],[Math.PI,'π'],[2*Math.PI,'2π']];
+    labels.forEach(function(L){
+      var t = el('text', {x:sx(L[0])+3, y:sy(0)-6, class:'axislabel'});
+      t.textContent = L[1];
+      svg.appendChild(t);
+    });
+    var path = el('path', {class:'curve', id:'trigPath'});
+    svg.appendChild(path);
+  }
+  buildTrigStatic();
+
+  var currentFn = 'sin';
+  var fnMap = {
+    sin: Math.sin,
+    cos: Math.cos,
+    tan: Math.tan
+  };
+
+  function redrawTrig(){
+    var A = parseFloat(document.getElementById('ampA').value);
+    var B = parseFloat(document.getElementById('freqB').value);
+    var C = parseFloat(document.getElementById('phaseC').value);
+    var D = parseFloat(document.getElementById('shiftD').value);
+    document.getElementById('outA').textContent = A.toFixed(1);
+    document.getElementById('outB').textContent = B.toFixed(1);
+    document.getElementById('outC').textContent = C.toFixed(2);
+    document.getElementById('outD').textContent = D.toFixed(1);
+    document.getElementById('formulaOut').textContent =
+      'y = ' + A.toFixed(1) + ' · ' + currentFn + '(' + B.toFixed(1) + 'x + ' + C.toFixed(2) + 'π) + ' + D.toFixed(1);
+
+    var fn = fnMap[currentFn];
+    var samples = 480;
+    var d = '';
+    var prevY = null;
+    for (var i = 0; i <= samples; i++){
+      var x = xMin + (xMax - xMin) * i / samples;
+      var raw = A * fn(B * x + C * Math.PI) + D;
+      var clipped = Math.max(yMin - 1, Math.min(yMax + 1, raw));
+      var jump = (prevY !== null) && (Math.abs(raw - prevY) > (yMax - yMin) * 0.9);
+      var cmd = (d === '' || jump) ? 'M' : 'L';
+      d += cmd + sx(x).toFixed(2) + ',' + sy(clipped).toFixed(2) + ' ';
+      prevY = raw;
+    }
+    document.getElementById('trigPath').setAttribute('d', d.trim());
+  }
+
+  ['ampA','freqB','phaseC','shiftD'].forEach(function(id){
+    document.getElementById(id).addEventListener('input', redrawTrig);
+  });
+  document.getElementById('funcSwitch').addEventListener('click', function(e){
+    var btn = e.target.closest('button[data-fn]');
+    if (!btn) return;
+    currentFn = btn.getAttribute('data-fn');
+    Array.prototype.forEach.call(this.querySelectorAll('button'), function(b){
+      b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+    });
+    redrawTrig();
+  });
+  redrawTrig();
+
+  /* ============ Linear programming demo ============ */
+  var lpSvg = document.getElementById('lpSvg');
+  var LW = 400, LH = 400, Lmargin = 34;
+  var Lmax = 20; // axis 0..20
+  function lx(x){ return Lmargin + x / Lmax * (LW - 2*Lmargin); }
+  var lyDenom = LH - 2*Lmargin;
+  function ly(y){ return LH - Lmargin - y / Lmax * lyDenom; }
+
+  function buildLpStatic(){
+    while (lpSvg.firstChild) lpSvg.removeChild(lpSvg.firstChild);
+    for (var g = 0; g <= Lmax; g += 2){
+      lpSvg.appendChild(el('line', {x1:lx(g),y1:Lmargin,x2:lx(g),y2:LH-Lmargin, class:'gridline'}));
+      lpSvg.appendChild(el('line', {x1:Lmargin,y1:ly(g),x2:LW-Lmargin,y2:ly(g), class:'gridline'}));
+    }
+    lpSvg.appendChild(el('line', {x1:Lmargin,y1:ly(0),x2:LW-Lmargin,y2:ly(0), class:'axis'}));
+    lpSvg.appendChild(el('line', {x1:lx(0),y1:Lmargin,x2:lx(0),y2:LH-Lmargin, class:'axis'}));
+    [0,5,10,15,20].forEach(function(v){
+      var t1 = el('text', {x:lx(v)+2, y:ly(0)+13, class:'axislabel'}); t1.textContent = v;
+      lpSvg.appendChild(t1);
+      var t2 = el('text', {x:lx(0)-16, y:ly(v)+3, class:'axislabel'}); t2.textContent = v;
+      lpSvg.appendChild(t2);
+    });
+    lpSvg.appendChild(el('polygon', {id:'lpRegion', class:'region', points:''}));
+    lpSvg.appendChild(el('line', {id:'lpC1', class:'constraint'}));
+    lpSvg.appendChild(el('line', {id:'lpC2', class:'constraint'}));
+    lpSvg.appendChild(el('circle', {id:'lpOpt', class:'optpoint', r:5}));
+  }
+  buildLpStatic();
+
+  function clipHalfPlane(poly, a, b, c){
+    // keep points where a*x + b*y <= c
+    var out = [];
+    for (var i = 0; i < poly.length; i++){
+      var cur = poly[i], prev = poly[(i - 1 + poly.length) % poly.length];
+      var curVal = a*cur.x + b*cur.y - c;
+      var prevVal = a*prev.x + b*prev.y - c;
+      var curIn = curVal <= 1e-9;
+      var prevIn = prevVal <= 1e-9;
+      if (curIn){
+        if (!prevIn){ out.push(intersect(prev, cur, a, b, c)); }
+        out.push(cur);
+      } else if (prevIn){
+        out.push(intersect(prev, cur, a, b, c));
+      }
+    }
+    return out;
+  }
+  function intersect(p1, p2, a, b, c){
+    var d1 = a*p1.x + b*p1.y - c;
+    var d2 = a*p2.x + b*p2.y - c;
+    var t = d1 / (d1 - d2);
+    return { x: p1.x + t*(p2.x - p1.x), y: p1.y + t*(p2.y - p1.y) };
+  }
+
+  function redrawLp(){
+    var a = parseFloat(document.getElementById('lpA').value);
+    var b = parseFloat(document.getElementById('lpB').value);
+    document.getElementById('outLpA').textContent = a;
+    document.getElementById('outLpB').textContent = b;
+
+    var box = [ {x:0,y:0}, {x:Lmax,y:0}, {x:Lmax,y:Lmax}, {x:0,y:Lmax} ];
+    var poly = clipHalfPlane(box, 1, 1, a);      // x + y <= a
+    poly = clipHalfPlane(poly, 2, 1, b);          // 2x + y <= b
+
+    var pts = poly.map(function(p){ return lx(p.x) + ',' + ly(p.y); }).join(' ');
+    document.getElementById('lpRegion').setAttribute('points', pts);
+
+    // constraint lines across the visible box (for reference, not clipped to region)
+    function lineForConstraint(coefX, coefY, c){
+      // solve for two boundary points within [0,Lmax]x[0,Lmax]
+      var candidates = [];
+      // x=0
+      if (coefY !== 0){ var y0 = c / coefY; if (y0 >= 0 && y0 <= Lmax) candidates.push({x:0,y:y0}); }
+      // x=Lmax
+      if (coefY !== 0){ var yM = (c - coefX*Lmax) / coefY; if (yM >= 0 && yM <= Lmax) candidates.push({x:Lmax,y:yM}); }
+      // y=0
+      if (coefX !== 0){ var x0 = c / coefX; if (x0 >= 0 && x0 <= Lmax) candidates.push({x:x0,y:0}); }
+      // y=Lmax
+      if (coefX !== 0){ var xM = (c - coefY*Lmax) / coefX; if (xM >= 0 && xM <= Lmax) candidates.push({x:xM,y:Lmax}); }
+      return candidates;
+    }
+    var c1pts = lineForConstraint(1,1,a);
+    if (c1pts.length >= 2){
+      document.getElementById('lpC1').setAttribute('x1', lx(c1pts[0].x));
+      document.getElementById('lpC1').setAttribute('y1', ly(c1pts[0].y));
+      document.getElementById('lpC1').setAttribute('x2', lx(c1pts[1].x));
+      document.getElementById('lpC1').setAttribute('y2', ly(c1pts[1].y));
+    }
+    var c2pts = lineForConstraint(2,1,b);
+    if (c2pts.length >= 2){
+      document.getElementById('lpC2').setAttribute('x1', lx(c2pts[0].x));
+      document.getElementById('lpC2').setAttribute('y1', ly(c2pts[0].y));
+      document.getElementById('lpC2').setAttribute('x2', lx(c2pts[1].x));
+      document.getElementById('lpC2').setAttribute('y2', ly(c2pts[1].y));
+    }
+
+    // objective Z = 4x + 3y, find best vertex
+    var best = null;
+    var list = document.getElementById('lpVertexList');
+    list.innerHTML = '';
+    poly.forEach(function(p){
+      var z = 4*p.x + 3*p.y;
+      var li = document.createElement('li');
+      li.textContent = '(' + p.x.toFixed(1) + ', ' + p.y.toFixed(1) + ')  →  Z = ' + z.toFixed(1);
+      list.appendChild(li);
+      if (!best || z > best.z){ best = { x:p.x, y:p.y, z:z }; }
+    });
+    if (best){
+      document.getElementById('lpOpt').setAttribute('cx', lx(best.x));
+      document.getElementById('lpOpt').setAttribute('cy', ly(best.y));
+      document.getElementById('lpOptPoint').textContent = '(' + best.x.toFixed(1) + ', ' + best.y.toFixed(1) + ')';
+      document.getElementById('lpOptZ').textContent = 'Z = ' + best.z.toFixed(1);
+    }
+  }
+
+  ['lpA','lpB'].forEach(function(id){
+    document.getElementById(id).addEventListener('input', redrawLp);
+  });
+  redrawLp();
+
+  /* ============ Curriculum directories (課堂筆記 + 習作解析) ============ */
+  var CURRICULUM = [
+    { name:'第1冊', tag:'坐標系與函數圖形・直線方程式・式的運算', chapters:[
+      { title:'CH1 坐標系與函數圖形', sections:['1-1 數線與絕對值','1-2 平面坐標系與線型函數','1-3 二次函數','1-4 一元二次不等式'] },
+      { title:'CH2 直線方程式', sections:['2-1 斜率','2-2 直線方程式','2-3(1) 直線的一般式','2-3(2) 點到直線的距離'] },
+      { title:'CH3 式的運算', sections:['3-1 多項式的基本概念與四則運算','3-2 除法原理與餘式定理','3-3 因式分解與分式'] }
+    ]},
+    { name:'第2冊', tag:'三角函數・向量・圓與直線', chapters:[
+      { title:'CH1 三角函數', sections:['1-1 角度的基本性質','1-2 銳角三角函數','1-3(1) 任意角的三角函數','1-3(2) 求任意角的三角函數值','1-4 正弦、餘弦函數的圖形'] },
+      { title:'CH2 三角函數的應用', sections:['2-1 正弦定理與餘弦定理','2-2 三角測量'] },
+      { title:'CH3 向量', sections:['3-1 向量的作圖','3-2 向量的坐標表示法','3-3 向量的內積'] },
+      { title:'CH4 圓與直線', sections:['4-1 圓方程式','4-2 圓與直線的關係'] }
+    ]},
+    { name:'第3冊', tag:'數列與級數・方程式・線性規劃・指數與對數', chapters:[
+      { title:'CH1 數列與級數', sections:['1-1 等差數列與等差級數','1-2 等比數列與等比級數'] },
+      { title:'CH2 方程式', sections:['2-1 一元一次方程式與一元一次不等式','2-2 一元二次方程式'] },
+      { title:'CH3 二元一次不等式及其應用', sections:['3-1 二元一次聯立方程組','3-2 二元一次不等式','3-3 線性規劃'] },
+      { title:'CH4 指數與對數', sections:['4-1 指數','4-2 指數函數及其圖形','4-3 對數','4-4 對數函數及其圖形','4-5 常用對數及其應用','附錄一・附錄二（Σ符號介紹／常用對數表）'] }
+    ]},
+    { name:'第4冊', tag:'排列組合・機率・統計', chapters:[
+      { title:'CH1 排列組合', sections:['1-1 加法原理與乘法原理','1-2 直線排列','1-3 重複排列','1-4 組合','1-5 二項式定理'] },
+      { title:'CH2 機率', sections:['2-1 樣本空間與事件','2-2 機率的運算','2-3 數學期望值'] },
+      { title:'CH3 統計', sections:['3-1 統計的基本概念','3-2 統計資料整理','3-3(1) 統計分析－表達集中趨勢的統計量','3-3(2) 統計分析－表達離散趨勢的統計量'] }
+    ]}
+  ];
+  var DEMO_LINKS = { '1-4 正弦、餘弦函數的圖形':'#demos', '3-3 線性規劃':'#demos' };
+
+  var LINKS_KEY = 'mathnotebook-links-demo-v1';
+  function loadLinks(){
+    try{
+      var raw = localStorage.getItem(LINKS_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch(e){ /* ignore */ }
+    return { notes:{}, workbook:{} };
+  }
+  function saveLinks(store){
+    try{ localStorage.setItem(LINKS_KEY, JSON.stringify(store)); } catch(e){ /* ignore */ }
+  }
+  var linksStore = loadLinks();
+  function linkKey(bIdx, cIdx, sIdx){ return bIdx + '-' + cIdx + '-' + sIdx; }
+
+  function buildDirectory(containerId, category){
+    var container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+    CURRICULUM.forEach(function(book, bIdx){
+      var details = document.createElement('details');
+      details.className = 'book';
+      if (bIdx === 0) details.setAttribute('open', '');
+      var summary = document.createElement('summary');
+      summary.innerHTML = '<span class="book-tag">' + book.name + '</span> ' + book.tag;
+      details.appendChild(summary);
+      var body = document.createElement('div');
+      body.className = 'book-body';
+      book.chapters.forEach(function(ch, cIdx){
+        var chDiv = document.createElement('div');
+        chDiv.className = 'chapter';
+        var h4 = document.createElement('h4');
+        h4.textContent = ch.title;
+        chDiv.appendChild(h4);
+        var ul = document.createElement('ul');
+        ul.className = 'section-list';
+        ch.sections.forEach(function(secTitle, sIdx){
+          var li = document.createElement('li');
+          var span = document.createElement('span');
+          span.textContent = secTitle;
+          li.appendChild(span);
+          var url = linksStore[category] ? linksStore[category][linkKey(bIdx, cIdx, sIdx)] : null;
+          if (category === 'notes' && DEMO_LINKS[secTitle]){
+            var demoA = document.createElement('a');
+            demoA.className = 'badge demo-badge';
+            demoA.href = DEMO_LINKS[secTitle];
+            demoA.textContent = '→ 互動動畫';
+            li.appendChild(demoA);
+          } else if (url){
+            var linkA = document.createElement('a');
+            linkA.className = 'badge demo-badge';
+            linkA.href = url;
+            linkA.target = '_blank';
+            linkA.rel = 'noopener';
+            linkA.textContent = (category === 'notes' ? '查看筆記' : '查看解析') + ' →';
+            li.appendChild(linkA);
+          } else {
+            var pending = document.createElement('span');
+            pending.className = 'badge';
+            pending.textContent = '敬請期待';
+            li.appendChild(pending);
+          }
+          ul.appendChild(li);
+        });
+        chDiv.appendChild(ul);
+        body.appendChild(chDiv);
+      });
+      details.appendChild(body);
+      container.appendChild(details);
+    });
+  }
+  buildDirectory('notesDirectory', 'notes');
+  buildDirectory('workbookDirectory', 'workbook');
+
+  /* ============ Roster (class lists) ============ */
+  var roster = {
+    '高一忠班': [
+      { seat:'01', sid:'30501', name:'林品睿' },
+      { seat:'02', sid:'30502', name:'黃翊安' },
+      { seat:'03', sid:'30503', name:'張又榛' },
+      { seat:'04', sid:'30504', name:'陳柏宇' },
+      { seat:'05', sid:'30505', name:'劉宜蓁' },
+      { seat:'06', sid:'30506', name:'楊子墨' },
+      { seat:'07', sid:'30507', name:'吳沛涵' },
+      { seat:'08', sid:'30508', name:'蔡承恩' },
+      { seat:'09', sid:'30509', name:'鄭雅筑' },
+      { seat:'10', sid:'30510', name:'謝秉軒' }
+    ],
+    '高一孝班': [
+      { seat:'01', sid:'30601', name:'王詠晴' },
+      { seat:'02', sid:'30602', name:'李冠廷' },
+      { seat:'03', sid:'30603', name:'周芷若' },
+      { seat:'04', sid:'30604', name:'許明哲' },
+      { seat:'05', sid:'30605', name:'賴思穎' },
+      { seat:'06', sid:'30606', name:'潘冠霖' },
+      { seat:'07', sid:'30607', name:'曾意涵' },
+      { seat:'08', sid:'30608', name:'顏子鈞' },
+      { seat:'09', sid:'30609', name:'游珮瑄' },
+      { seat:'10', sid:'30610', name:'方冠傑' }
+    ]
+  };
+  function findClassBySid(sid){
+    var found = null;
+    Object.keys(roster).forEach(function(cls){
+      roster[cls].forEach(function(stu){ if (stu.sid === sid) found = cls; });
+    });
+    return found;
+  }
+
+  /* ============ Accounts (login / roles) ============ */
+  var ACCOUNTS_KEY = 'mathnotebook-accounts-demo-v1';
+  var SESSION_KEY = 'mathnotebook-session-demo-v1';
+
+  function buildSeedAccounts(){
+    var acc = { teacher: { role:'admin', name:'程老師', password:'admin123' } };
+    Object.keys(roster).forEach(function(cls){
+      roster[cls].forEach(function(stu){
+        acc[stu.sid] = { role:'student', name:stu.name, className:cls, password:stu.sid, isMonitor:false };
+      });
+    });
+    return acc;
+  }
+  function loadAccounts(){
+    try{
+      var raw = localStorage.getItem(ACCOUNTS_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch(e){ /* ignore */ }
+    return buildSeedAccounts();
+  }
+  function saveAccounts(acc){
+    try{ localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(acc)); } catch(e){ /* ignore */ }
+  }
+  var accounts = loadAccounts();
+
+  function loadSession(){
+    try{ return localStorage.getItem(SESSION_KEY) || null; } catch(e){ return null; }
+  }
+  function saveSession(acctKey){
+    try{
+      if (acctKey) localStorage.setItem(SESSION_KEY, acctKey);
+      else localStorage.removeItem(SESSION_KEY);
+    } catch(e){ /* ignore */ }
+  }
+  var currentAccount = loadSession();
+  if (currentAccount && !accounts[currentAccount]) currentAccount = null;
+
+  /* ============ Grades data ============ */
+  var GRADE_KEY = 'mathnotebook-grades-demo-v1';
+  var seedGrades = [
+    { date:'2026-09-08', sid:'30503', name:'張又榛', cls:'高一忠班', exam:'小考1 三角函數',       score:88 },
+    { date:'2026-09-15', sid:'30503', name:'張又榛', cls:'高一忠班', exam:'小考2 三角函數的應用', score:76 },
+    { date:'2026-09-08', sid:'30501', name:'林品睿', cls:'高一忠班', exam:'小考1 三角函數',       score:92 },
+    { date:'2026-09-08', sid:'30605', name:'賴思穎', cls:'高一孝班', exam:'小考1 三角函數',       score:65 },
+    { date:'2026-09-15', sid:'30605', name:'賴思穎', cls:'高一孝班', exam:'小考2 三角函數的應用', score:null }
+  ];
+  function loadGrades(){
+    try{
+      var raw = localStorage.getItem(GRADE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch(e){ /* ignore */ }
+    return seedGrades.slice();
+  }
+  function saveGrades(list){
+    try{ localStorage.setItem(GRADE_KEY, JSON.stringify(list)); } catch(e){ /* ignore */ }
+  }
+  var grades = loadGrades();
+
+  function scoreCell(score){
+    return (score === null || score === undefined) ? '<span class="absent-tag">缺考</span>' : score;
+  }
+
+  /* ---- ledger (scope-limited by role) ---- */
+  function currentLedgerFilterClass(){
+    if (!currentAccount || !accounts[currentAccount]) return undefined;
+    var u = accounts[currentAccount];
+    if (u.role === 'admin') return null;
+    if (u.isMonitor) return u.className;
+    return undefined;
+  }
+  function renderLedger(){
+    var body = document.getElementById('gradeLedgerBody');
+    if (!body) return;
+    var filterClass = currentLedgerFilterClass();
+    body.innerHTML = '';
+    var visible = grades.map(function(g, i){ return { g:g, i:i }; }).filter(function(item){
+      return filterClass === null || item.g.cls === filterClass;
+    });
+    if (visible.length === 0){
+      var tr = document.createElement('tr');
+      tr.className = 'empty-row';
+      tr.innerHTML = '<td colspan="6">目前還沒有任何成績紀錄，用上面的名冊登錄看看。</td>';
+      body.appendChild(tr);
+      return;
+    }
+    visible.reverse().forEach(function(item){
+      var g = item.g, i = item.i;
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td class="mono">' + g.date + '</td>' +
+        '<td class="mono">' + g.sid + '</td>' +
+        '<td>' + g.name + '</td>' +
+        '<td>' + g.exam + '</td>' +
+        '<td class="mono">' + scoreCell(g.score) + '</td>' +
+        '<td><button type="button" class="del-btn" data-idx="' + i + '">刪除</button></td>';
+      body.appendChild(tr);
+    });
+  }
+  var gradeLedgerBodyEl = document.getElementById('gradeLedgerBody');
+  if (gradeLedgerBodyEl){
+    gradeLedgerBodyEl.addEventListener('click', function(e){
+      var btn = e.target.closest('button[data-idx]');
+      if (!btn) return;
+      var idx = parseInt(btn.getAttribute('data-idx'), 10);
+      grades.splice(idx, 1);
+      saveGrades(grades);
+      renderLedger();
+    });
+  }
+
+  /* ---- roster batch entry ---- */
+  var examDateInput = document.getElementById('examDate');
+  var examNameInput = document.getElementById('examName');
+  var examClassSelect = document.getElementById('examClass');
+  var rosterBody = document.getElementById('rosterBody');
+  var rosterStatus = document.getElementById('rosterStatus');
+  if (examDateInput) examDateInput.value = new Date().toISOString().slice(0, 10);
+
+  function renderRoster(preserveStatus){
+    if (!rosterBody) return;
+    var list = roster[examClassSelect.value] || [];
+    rosterBody.innerHTML = '';
+    list.forEach(function(stu){
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td class="mono">' + stu.seat + '</td>' +
+        '<td class="mono">' + stu.sid + '</td>' +
+        '<td>' + stu.name + '</td>' +
+        '<td><input type="number" class="score-input" min="0" max="100" data-sid="' + stu.sid + '" data-name="' + stu.name + '"></td>' +
+        '<td style="text-align:center;"><input type="checkbox" class="absent-check" data-sid="' + stu.sid + '"></td>';
+      rosterBody.appendChild(tr);
+    });
+    if (rosterStatus && !preserveStatus){ rosterStatus.textContent = ''; rosterStatus.className = 'roster-status'; }
+  }
+  function setRosterStatus(msg, isError){
+    if (!rosterStatus) return;
+    rosterStatus.textContent = msg;
+    rosterStatus.className = 'roster-status' + (isError ? ' is-error' : '');
+  }
+  if (examClassSelect) examClassSelect.addEventListener('change', renderRoster);
+  if (rosterBody){
+    rosterBody.addEventListener('change', function(e){
+      if (!e.target.classList.contains('absent-check')) return;
+      var sid = e.target.getAttribute('data-sid');
+      var scoreInput = rosterBody.querySelector('.score-input[data-sid="' + sid + '"]');
+      if (e.target.checked){ scoreInput.value = ''; scoreInput.disabled = true; }
+      else { scoreInput.disabled = false; }
+    });
+  }
+  var cancelRosterBtn = document.getElementById('cancelRosterBtn');
+  if (cancelRosterBtn) cancelRosterBtn.addEventListener('click', renderRoster);
+
+  var saveRosterBtn = document.getElementById('saveRosterBtn');
+  if (saveRosterBtn){
+    saveRosterBtn.addEventListener('click', function(){
+      var examName = examNameInput.value.trim();
+      var examDate = examDateInput.value;
+      var cls = examClassSelect.value;
+      if (!examName){ setRosterStatus('請先輸入考試名稱。', true); examNameInput.focus(); return; }
+      if (!examDate){ setRosterStatus('請先選擇考試日期。', true); return; }
+
+      var scoreInputs = rosterBody.querySelectorAll('.score-input');
+      var newRecords = [];
+      scoreInputs.forEach(function(input){
+        var sid = input.getAttribute('data-sid');
+        var name = input.getAttribute('data-name');
+        var absentBox = rosterBody.querySelector('.absent-check[data-sid="' + sid + '"]');
+        if (absentBox.checked){
+          newRecords.push({ date: examDate, sid: sid, name: name, cls: cls, exam: examName, score: null });
+        } else if (input.value !== ''){
+          var v = parseFloat(input.value);
+          if (!isNaN(v) && v >= 0 && v <= 100){
+            newRecords.push({ date: examDate, sid: sid, name: name, cls: cls, exam: examName, score: v });
+          }
+        }
+      });
+
+      if (newRecords.length === 0){
+        setRosterStatus('這一批還沒有任何成績或缺考勾選，先填一些再存檔。', true);
+        return;
+      }
+
+      grades = grades.concat(newRecords);
+      saveGrades(grades);
+      renderLedger();
+
+      var scored = newRecords.filter(function(r){ return r.score !== null; });
+      var absentCount = newRecords.length - scored.length;
+      var avgText = '';
+      if (scored.length > 0){
+        var sum = scored.reduce(function(s, r){ return s + r.score; }, 0);
+        avgText = '，平均 ' + (sum / scored.length).toFixed(1) + ' 分';
+      }
+      setRosterStatus('已儲存 ' + newRecords.length + ' 筆成績（缺考 ' + absentCount + ' 人）' + avgText + '。', false);
+      renderRoster(true);
+    });
+  }
+
+  /* ---- query (shared by student self-view and admin lookup) ---- */
+  function runQueryInto(sid, targetId){
+    var result = document.getElementById(targetId);
+    if (!result) return;
+    if (!sid){
+      result.innerHTML = '<p class="query-empty">請先輸入學號。</p>';
+      return;
+    }
+    var records = grades.filter(function(g){ return g.sid === sid; });
+    if (records.length === 0){
+      result.innerHTML = '<p class="query-empty">目前查不到學號「' + sid + '」的成績，可能是小老師還沒登錄，或學號打錯了。</p>';
+      return;
+    }
+    var name = records[records.length - 1].name;
+    var scored = records.filter(function(r){ return r.score !== null && r.score !== undefined; });
+    var avgText = scored.length > 0
+      ? '平均 ' + (scored.reduce(function(s, r){ return s + r.score; }, 0) / scored.length).toFixed(1) + ' 分'
+      : '尚無有效成績';
+    var rows = records.slice().reverse().map(function(r){
+      return '<tr><td class="mono">' + r.date + '</td><td>' + r.exam + '</td><td class="mono">' + scoreCell(r.score) + '</td></tr>';
+    }).join('');
+    result.innerHTML =
+      '<div class="query-card">' +
+        '<h4>' + name + '（學號 ' + sid + '）</h4>' +
+        '<table class="ledger"><thead><tr><th>日期</th><th>考試</th><th>分數</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+        '<div class="avg">' + avgText + '（共 ' + records.length + ' 筆，含缺考 ' + (records.length - scored.length) + ' 筆）</div>' +
+      '</div>';
+  }
+  var adminQueryBtn = document.getElementById('adminQueryBtn');
+  var adminQueryInput = document.getElementById('adminQueryInput');
+  if (adminQueryBtn){
+    adminQueryBtn.addEventListener('click', function(){ runQueryInto(adminQueryInput.value.trim(), 'adminQueryResult'); });
+    adminQueryInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') runQueryInto(adminQueryInput.value.trim(), 'adminQueryResult'); });
+  }
+
+  /* ---- accounts & permissions panel (admin only) ---- */
+  function renderAccountsTable(){
+    var tbody = document.getElementById('accountsBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    Object.keys(roster).forEach(function(cls){
+      roster[cls].forEach(function(stu){
+        var u = accounts[stu.sid] || { isMonitor:false };
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td>' + cls + '</td>' +
+          '<td class="mono">' + stu.sid + '</td>' +
+          '<td>' + stu.name + '</td>' +
+          '<td style="text-align:center;"><input type="checkbox" class="monitor-check" data-sid="' + stu.sid + '"' + (u.isMonitor ? ' checked' : '') + '></td>' +
+          '<td><button type="button" class="del-btn reset-pw-btn" data-sid="' + stu.sid + '">重設密碼為學號</button></td>';
+        tbody.appendChild(tr);
+      });
+    });
+  }
+  var accountsBody = document.getElementById('accountsBody');
+  if (accountsBody){
+    accountsBody.addEventListener('change', function(e){
+      if (!e.target.classList.contains('monitor-check')) return;
+      var sid = e.target.getAttribute('data-sid');
+      accounts[sid].isMonitor = e.target.checked;
+      saveAccounts(accounts);
+      if (currentAccount === sid) applySession();
+    });
+    accountsBody.addEventListener('click', function(e){
+      var btn = e.target.closest('.reset-pw-btn');
+      if (!btn) return;
+      var sid = btn.getAttribute('data-sid');
+      accounts[sid].password = sid;
+      saveAccounts(accounts);
+      var original = btn.textContent;
+      btn.textContent = '已重設';
+      setTimeout(function(){ btn.textContent = original; }, 1500);
+    });
+  }
+
+  /* ---- link management panel (admin only) ---- */
+  var linkCategorySel = document.getElementById('linkCategory');
+  var linkBookSel = document.getElementById('linkBook');
+  var linkChapterSel = document.getElementById('linkChapter');
+  var linkSectionSel = document.getElementById('linkSection');
+  var linkUrlInput = document.getElementById('linkUrl');
+  var linkStatus = document.getElementById('linkStatus');
+
+  if (linkBookSel){
+    CURRICULUM.forEach(function(b, i){
+      var opt = document.createElement('option');
+      opt.value = i; opt.textContent = b.name;
+      linkBookSel.appendChild(opt);
+    });
+    function populateLinkChapters(){
+      var bIdx = parseInt(linkBookSel.value, 10);
+      linkChapterSel.innerHTML = '';
+      CURRICULUM[bIdx].chapters.forEach(function(ch, i){
+        var opt = document.createElement('option');
+        opt.value = i; opt.textContent = ch.title;
+        linkChapterSel.appendChild(opt);
+      });
+      populateLinkSections();
+    }
+    function populateLinkSections(){
+      var bIdx = parseInt(linkBookSel.value, 10);
+      var cIdx = parseInt(linkChapterSel.value, 10);
+      linkSectionSel.innerHTML = '';
+      CURRICULUM[bIdx].chapters[cIdx].sections.forEach(function(s, i){
+        var opt = document.createElement('option');
+        opt.value = i; opt.textContent = s;
+        linkSectionSel.appendChild(opt);
+      });
+    }
+    linkBookSel.addEventListener('change', populateLinkChapters);
+    linkChapterSel.addEventListener('change', populateLinkSections);
+    populateLinkChapters();
+  }
+
+  function renderLinksTable(){
+    var tbody = document.getElementById('linksBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    ['notes', 'workbook'].forEach(function(cat){
+      Object.keys(linksStore[cat] || {}).forEach(function(key){
+        var parts = key.split('-').map(Number);
+        var book = CURRICULUM[parts[0]];
+        if (!book) return;
+        var ch = book.chapters[parts[1]];
+        var sec = ch.sections[parts[2]];
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td>' + (cat === 'notes' ? '課堂筆記' : '習作解析') + '</td>' +
+          '<td>' + book.name + ' › ' + ch.title + ' › ' + sec + '</td>' +
+          '<td class="mono" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + linksStore[cat][key] + '</td>' +
+          '<td><button type="button" class="del-btn" data-cat="' + cat + '" data-key="' + key + '">移除</button></td>';
+        tbody.appendChild(tr);
+      });
+    });
+    if (!tbody.children.length){
+      var tr = document.createElement('tr');
+      tr.className = 'empty-row';
+      tr.innerHTML = '<td colspan="4">目前還沒有設定任何連結。</td>';
+      tbody.appendChild(tr);
+    }
+  }
+  var saveLinkBtn = document.getElementById('saveLinkBtn');
+  if (saveLinkBtn){
+    saveLinkBtn.addEventListener('click', function(){
+      var category = linkCategorySel.value;
+      var bIdx = parseInt(linkBookSel.value, 10);
+      var cIdx = parseInt(linkChapterSel.value, 10);
+      var sIdx = parseInt(linkSectionSel.value, 10);
+      var url = linkUrlInput.value.trim();
+      if (!url){
+        linkStatus.textContent = '請貼上連結網址。';
+        linkStatus.className = 'roster-status is-error';
+        return;
+      }
+      linksStore[category][linkKey(bIdx, cIdx, sIdx)] = url;
+      saveLinks(linksStore);
+      buildDirectory('notesDirectory', 'notes');
+      buildDirectory('workbookDirectory', 'workbook');
+      renderLinksTable();
+      linkUrlInput.value = '';
+      linkStatus.textContent = '已設定連結。';
+      linkStatus.className = 'roster-status';
+    });
+  }
+  var linksBody = document.getElementById('linksBody');
+  if (linksBody){
+    linksBody.addEventListener('click', function(e){
+      var btn = e.target.closest('button[data-key]');
+      if (!btn) return;
+      delete linksStore[btn.getAttribute('data-cat')][btn.getAttribute('data-key')];
+      saveLinks(linksStore);
+      buildDirectory('notesDirectory', 'notes');
+      buildDirectory('workbookDirectory', 'workbook');
+      renderLinksTable();
+    });
+  }
+
+  /* ---- admin tab switching ---- */
+  function setAdminTab(tab){
+    Array.prototype.forEach.call(document.querySelectorAll('#adminTabs button'), function(b){
+      b.setAttribute('aria-pressed', b.getAttribute('data-tab') === tab ? 'true' : 'false');
+    });
+    document.getElementById('entryPanel').hidden = (tab !== 'entry');
+    document.getElementById('accountsPanel').hidden = (tab !== 'accounts');
+    document.getElementById('linksPanel').hidden = (tab !== 'links');
+    if (tab === 'accounts') renderAccountsTable();
+    if (tab === 'links') renderLinksTable();
+    if (tab === 'entry'){ renderRoster(); renderLedger(); }
+  }
+  var adminTabsEl = document.getElementById('adminTabs');
+  if (adminTabsEl){
+    adminTabsEl.addEventListener('click', function(e){
+      var btn = e.target.closest('button[data-tab]');
+      if (!btn) return;
+      setAdminTab(btn.getAttribute('data-tab'));
+    });
+  }
+
+  /* ---- session / login / logout / password ---- */
+  function roleLabel(u){
+    if (u.role === 'admin') return '管理者';
+    if (u.isMonitor) return '小老師・' + u.className;
+    return '學生・' + u.className;
+  }
+
+  function setupEntryForRole(u){
+    if (!examClassSelect) return;
+    if (u.role === 'admin'){
+      examClassSelect.disabled = false;
+      if (!examClassSelect.value) examClassSelect.value = '高一忠班';
+    } else {
+      examClassSelect.value = u.className;
+      examClassSelect.disabled = true;
+    }
+    renderRoster();
+    renderLedger();
+  }
+
+  function applySession(){
+    var loginGate = document.getElementById('loginGate');
+    var loggedInArea = document.getElementById('loggedInArea');
+    if (!currentAccount || !accounts[currentAccount]){
+      currentAccount = null;
+      loginGate.hidden = false;
+      loggedInArea.hidden = true;
+      return;
+    }
+    var u = accounts[currentAccount];
+    loginGate.hidden = true;
+    loggedInArea.hidden = false;
+    document.getElementById('sessionInfo').textContent = '已登入：' + u.name + '（' + roleLabel(u) + '）';
+
+    var isAdmin = u.role === 'admin';
+    var isMonitor = u.role === 'student' && !!u.isMonitor;
+    var isPlainStudent = u.role === 'student' && !u.isMonitor;
+
+    document.getElementById('adminTabs').hidden = !isAdmin;
+    document.getElementById('studentQueryPanel').hidden = !isPlainStudent;
+
+    if (isAdmin){
+      document.getElementById('accountsPanel').hidden = true;
+      document.getElementById('linksPanel').hidden = true;
+      setupEntryForRole(u);
+      setAdminTab('entry');
+    } else if (isMonitor){
+      document.getElementById('entryPanel').hidden = false;
+      document.getElementById('accountsPanel').hidden = true;
+      document.getElementById('linksPanel').hidden = true;
+      setupEntryForRole(u);
+    } else {
+      document.getElementById('entryPanel').hidden = true;
+      document.getElementById('accountsPanel').hidden = true;
+      document.getElementById('linksPanel').hidden = true;
+    }
+
+    if (isPlainStudent){
+      runQueryInto(currentAccount, 'studentQueryResult');
+    }
+
+    document.getElementById('pwPanel').hidden = true;
+  }
+
+  var loginForm = document.getElementById('loginForm');
+  var loginError = document.getElementById('loginError');
+  if (loginForm){
+    loginForm.addEventListener('submit', function(e){
+      e.preventDefault();
+      var accVal = document.getElementById('loginAccount').value.trim();
+      var pwVal = document.getElementById('loginPassword').value;
+      var u = accounts[accVal];
+      if (!u || u.password !== pwVal){
+        loginError.textContent = '帳號或密碼錯誤，請確認學號與密碼（預設密碼與學號相同）。';
+        return;
+      }
+      loginError.textContent = '';
+      currentAccount = accVal;
+      saveSession(accVal);
+      loginForm.reset();
+      applySession();
+    });
+  }
+
+  var logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn){
+    logoutBtn.addEventListener('click', function(){
+      currentAccount = null;
+      saveSession(null);
+      if (loginError) loginError.textContent = '';
+      applySession();
+    });
+  }
+
+  var togglePwBtn = document.getElementById('togglePwBtn');
+  if (togglePwBtn){
+    togglePwBtn.addEventListener('click', function(){
+      var panel = document.getElementById('pwPanel');
+      panel.hidden = !panel.hidden;
+    });
+  }
+
+  var pwForm = document.getElementById('pwForm');
+  if (pwForm){
+    pwForm.addEventListener('submit', function(e){
+      e.preventDefault();
+      var pwStatus = document.getElementById('pwStatus');
+      var oldPw = document.getElementById('pwOld').value;
+      var newPw = document.getElementById('pwNew').value;
+      var confirmPw = document.getElementById('pwConfirm').value;
+      var u = accounts[currentAccount];
+      if (!u || oldPw !== u.password){
+        pwStatus.textContent = '目前密碼不正確。';
+        pwStatus.className = 'roster-status is-error';
+        return;
+      }
+      if (newPw.length < 4){
+        pwStatus.textContent = '新密碼至少需要 4 碼。';
+        pwStatus.className = 'roster-status is-error';
+        return;
+      }
+      if (newPw !== confirmPw){
+        pwStatus.textContent = '兩次輸入的新密碼不一致。';
+        pwStatus.className = 'roster-status is-error';
+        return;
+      }
+      u.password = newPw;
+      saveAccounts(accounts);
+      pwStatus.textContent = '密碼已更新。';
+      pwStatus.className = 'roster-status';
+      pwForm.reset();
+    });
+  }
+
+  applySession();
+
+})();
+</script>
