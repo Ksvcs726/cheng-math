@@ -124,6 +124,8 @@
   nav.tabs a:nth-child(4){border-left-color:var(--teal);}
   nav.tabs a:nth-child(5){border-left-color:var(--red);}
   nav.tabs a:nth-child(6){border-left-color:var(--indigo);}
+  nav.tabs a:nth-child(7){border-left-color:var(--teal);}
+  nav.tabs a:nth-child(8){border-left-color:var(--red);}
   nav.tabs a.is-active{background:var(--surface-2);color:var(--ink);font-weight:700;}
 
   .sidebar-foot{margin-top:auto;padding:16px 22px 2px;border-top:1px solid var(--border);}
@@ -283,6 +285,19 @@
   .mock-actions a{font-size:.82rem;font-weight:500;text-decoration:none;color:var(--ink-soft);border:1px solid var(--border);padding:7px 12px;border-radius:3px;}
   .mock-actions a.primary{color:var(--surface);background:var(--teal);border-color:var(--teal);}
 
+  /* ---------- good links ---------- */
+  .goodlink-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;}
+  .goodlink-card{
+    background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:20px;
+    box-shadow:0 1px 2px var(--shadow);
+  }
+  .goodlink-card h3{font-size:1rem;}
+  .goodlink-card p{color:var(--ink-soft);font-size:.86rem;margin-top:6px;line-height:1.5;}
+  .goodlink-card a{
+    display:inline-block;margin-top:14px;font-size:.82rem;font-weight:500;text-decoration:none;
+    color:var(--surface);background:var(--indigo);border:1px solid var(--indigo);padding:7px 12px;border-radius:3px;
+  }
+
   /* ---------- animation demos ---------- */
   .demo-shell{
     background:var(--surface);border:1px solid var(--border);border-radius:6px;
@@ -343,6 +358,14 @@
     background:var(--surface);color:var(--ink-soft);font-size:.86rem;font-weight:500;cursor:pointer;
   }
   .role-switch button[aria-pressed="true"]{background:var(--indigo);border-color:var(--indigo);color:var(--surface);}
+
+  .demo-nav{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px;}
+  .demo-nav button{
+    padding:10px 16px;border-radius:3px;border:1px solid var(--border);
+    background:var(--surface);color:var(--ink-soft);font-size:.9rem;font-weight:500;cursor:pointer;
+  }
+  .demo-nav button:hover{background:var(--surface-2);}
+  .demo-nav button[aria-pressed="true"]{background:var(--indigo);border-color:var(--indigo);color:var(--surface);}
 
   .login-hint{color:var(--ink-soft);font-size:.84rem;margin-bottom:16px;}
   .session-bar{
@@ -430,8 +453,10 @@
       <a href="#workbook">習作解析</a>
       <a href="#exams">考卷解答</a>
       <a href="#mocks">模擬考卷</a>
+      <a href="#pastexams">歷屆統測試題</a>
       <a href="#grades">小考成績</a>
       <a href="#demos">互動動畫</a>
+      <a href="#goodlinks">好站連結</a>
     </nav>
     <div class="sidebar-foot">
       <button type="button" class="theme-toggle" id="themeToggle" aria-label="切換深色／淺色模式">
@@ -477,7 +502,7 @@
 
       <div class="content-gate" id="notesLoginGate" hidden>
         <strong>登入後才能查看課堂筆記</strong>
-        內容僅開放給本班學生與程老師，請先登入小考成績帳號。
+        內容僅開放給本班學生與程老師，請先登入小考成績帳號（帳號＝學號）。
         <a class="btn btn-primary" href="#grades">前往登入</a>
       </div>
       <div class="book-list" id="notesDirectory"></div>
@@ -542,6 +567,27 @@
       </div>
       <div class="mock-grid" id="mocksContent">
         <p class="query-empty">目前還沒有上傳模擬考卷，之後新增後會顯示在這裡。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PAST EXAMS (統測) ================= -->
+  <section class="block" id="pastexams">
+    <div class="page">
+      <div class="block-head">
+        <div>
+          <h2>歷屆統測試題</h2>
+          <p class="block-desc">按年度整理歷屆統測考古題與詳解。</p>
+        </div>
+        <span class="block-tag">登入制</span>
+      </div>
+      <div class="content-gate" id="pastexamsLoginGate" hidden>
+        <strong>登入後才能查看歷屆統測試題</strong>
+        內容僅開放給本班學生與程老師，請先登入小考成績帳號（帳號＝學號）。
+        <a class="btn btn-primary" href="#grades">前往登入</a>
+      </div>
+      <div id="pastexamsContent">
+        <p class="query-empty">目前還沒有上傳歷屆統測試題，之後新增後會顯示在這裡。</p>
       </div>
     </div>
   </section>
@@ -723,8 +769,13 @@
         <span class="block-tag">可操作原型</span>
       </div>
 
+      <div class="demo-nav" id="demoNav">
+        <button type="button" data-demo="trig" aria-pressed="true">三角函數圖形機</button>
+        <button type="button" data-demo="lp" aria-pressed="false">線性規劃：可行域與最佳解</button>
+      </div>
+
       <!-- Trig demo -->
-      <div class="demo-shell">
+      <div class="demo-shell" data-demo-panel="trig">
         <div class="demo-head">
           <h3>三角函數圖形機</h3>
           <span class="badge">y = A · f(Bx + Cπ) + D</span>
@@ -761,7 +812,7 @@
       </div>
 
       <!-- LP demo -->
-      <div class="demo-shell">
+      <div class="demo-shell" data-demo-panel="lp" hidden>
         <div class="demo-head">
           <h3>線性規劃：可行域與最佳解</h3>
           <span class="badge">maximize Z = 4x + 3y</span>
@@ -788,6 +839,41 @@
         </div>
       </div>
 
+    </div>
+  </section>
+
+  <!-- ================= GOOD LINKS ================= -->
+  <section class="block" id="goodlinks">
+    <div class="page">
+      <div class="block-head">
+        <div>
+          <h2>好站連結</h2>
+          <p class="block-desc">推薦幾個練習數學、畫函數圖形很好用的免費網站，公開瀏覽，不需要登入。</p>
+        </div>
+        <span class="block-tag">公開</span>
+      </div>
+      <div class="goodlink-grid">
+        <div class="goodlink-card">
+          <h3>GeoGebra</h3>
+          <p>動態數學軟體，可以畫函數圖形、幾何圖形，也能自己拉滑桿觀察變化。</p>
+          <a href="https://www.geogebra.org/" target="_blank" rel="noopener">前往網站 →</a>
+        </div>
+        <div class="goodlink-card">
+          <h3>Desmos 線上繪圖計算機</h3>
+          <p>介面簡單好上手的線上繪圖計算機，很適合拿來驗算、畫圖檢查答案。</p>
+          <a href="https://www.desmos.com/calculator" target="_blank" rel="noopener">前往網站 →</a>
+        </div>
+        <div class="goodlink-card">
+          <h3>均一教育平台</h3>
+          <p>中文教學影片與練習題，涵蓋國高中數學各單元，適合自學複習。</p>
+          <a href="https://www.junyiacademy.org/" target="_blank" rel="noopener">前往網站 →</a>
+        </div>
+        <div class="goodlink-card">
+          <h3>Khan Academy（可汗學院）</h3>
+          <p>免費線上課程與練習，數學單元非常完整，也有中文化內容。</p>
+          <a href="https://www.khanacademy.org/" target="_blank" rel="noopener">前往網站 →</a>
+        </div>
+      </div>
     </div>
   </section>
     </main>
@@ -836,7 +922,7 @@
   }
 
   /* ============ View switching (sidebar acts like page navigation, no scrolling) ============ */
-  var VIEW_IDS = ['notes', 'workbook', 'exams', 'mocks', 'grades', 'demos'];
+  var VIEW_IDS = ['notes', 'workbook', 'exams', 'mocks', 'pastexams', 'grades', 'demos', 'goodlinks'];
   var heroEl = document.querySelector('.hero');
 
   function switchView(id){
@@ -1254,7 +1340,8 @@
     { gateId: 'notesLoginGate', contentId: 'notesDirectory' },
     { gateId: 'workbookLoginGate', contentId: 'workbookDirectory' },
     { gateId: 'examsLoginGate', contentId: 'examsContent' },
-    { gateId: 'mocksLoginGate', contentId: 'mocksContent' }
+    { gateId: 'mocksLoginGate', contentId: 'mocksContent' },
+    { gateId: 'pastexamsLoginGate', contentId: 'pastexamsContent' }
   ];
   function updateContentGates(){
     var loggedIn = !!currentUser;
@@ -1825,6 +1912,27 @@
       var btn = e.target.closest('button[data-tab]');
       if (!btn) return;
       setAdminTab(btn.getAttribute('data-tab'));
+    });
+  }
+
+  /* ---- 互動動畫子選單切換（之後新增動畫，只要在 HTML 多加一顆 button[data-demo] 跟一個 [data-demo-panel] 就好）---- */
+  function setDemoPanel(key){
+    var navEl = document.getElementById('demoNav');
+    if (navEl){
+      Array.prototype.forEach.call(navEl.querySelectorAll('button[data-demo]'), function(b){
+        b.setAttribute('aria-pressed', b.getAttribute('data-demo') === key ? 'true' : 'false');
+      });
+    }
+    Array.prototype.forEach.call(document.querySelectorAll('[data-demo-panel]'), function(panel){
+      panel.hidden = (panel.getAttribute('data-demo-panel') !== key);
+    });
+  }
+  var demoNavEl = document.getElementById('demoNav');
+  if (demoNavEl){
+    demoNavEl.addEventListener('click', function(e){
+      var btn = e.target.closest('button[data-demo]');
+      if (!btn) return;
+      setDemoPanel(btn.getAttribute('data-demo'));
     });
   }
 
