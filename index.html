@@ -536,7 +536,7 @@
         內容僅開放給本班學生與程老師，請先登入小考成績帳號（帳號＝學號）。
         <a class="btn btn-primary" href="#grades">前往登入</a>
       </div>
-      <div class="resource-grid" id="examsContent">
+      <div class="book-list" id="examsContent">
         <p class="query-empty">目前還沒有上傳考卷解答，之後新增後會顯示在這裡。</p>
       </div>
     </div>
@@ -557,7 +557,7 @@
         內容僅開放給本班學生與程老師，請先登入小考成績帳號（帳號＝學號）。
         <a class="btn btn-primary" href="#grades">前往登入</a>
       </div>
-      <div class="resource-grid" id="mocksContent">
+      <div class="book-list" id="mocksContent">
         <p class="query-empty">目前還沒有上傳模擬考卷，之後新增後會顯示在這裡。</p>
       </div>
     </div>
@@ -578,7 +578,7 @@
         內容僅開放給本班學生與程老師，請先登入小考成績帳號（帳號＝學號）。
         <a class="btn btn-primary" href="#grades">前往登入</a>
       </div>
-      <div class="resource-grid" id="pastexamsContent">
+      <div class="book-list" id="pastexamsContent">
         <p class="query-empty">目前還沒有上傳歷屆統測試題，之後新增後會顯示在這裡。</p>
       </div>
     </div>
@@ -714,7 +714,7 @@
         <!-- links panel: admin only -->
         <div class="demo-shell" id="linksPanel" hidden>
           <div class="demo-head"><h3>檔案連結管理</h3></div>
-          <p class="block-desc" style="margin-bottom:16px;">「課堂筆記」「習作解析」選好冊/章/小節後貼上連結存檔，對應小節的「敬請期待」就會換成真正的連結；「考卷解答」「模擬考卷」「歷屆統測試題」「好站連結」則是自由新增項目，填標題（檔名）跟連結即可，可以之後再編輯或刪除。請用雲端硬碟「取得連結」的分享網址，並把權限設為「知道連結的使用者」——這樣學生點連結會直接在瀏覽器開啟 PDF 預覽畫面，不需要另外下載；如果權限沒開，學生點了會看到「沒有存取權」。</p>
+          <p class="block-desc" style="margin-bottom:16px;">「課堂筆記」「習作解析」選好冊/章/小節後貼上連結存檔，對應小節的「敬請期待」就會換成真正的連結；「考卷解答」「模擬考卷」「歷屆統測試題」「好站連結」則是自由新增項目，填標題（檔名）跟連結即可，可以之後再編輯或刪除——「考卷解答」多一個「冊」的分類，「模擬考卷」「歷屆統測試題」多一個「年份」，網頁上會依冊別/年份自動分組、年份新的排前面，檔案一多也能很快找到；「好站連結」的「分類」是選填，用來把同類型的網站放在一起，不填就會歸在「其他」。請用雲端硬碟「取得連結」的分享網址，並把權限設為「知道連結的使用者」——這樣學生點連結會直接在瀏覽器開啟 PDF 預覽畫面，不需要另外下載；如果權限沒開，學生點了會看到「沒有存取權」。</p>
           <div class="exam-meta">
             <label>分類
               <select id="linkCategory">
@@ -731,6 +731,13 @@
             <label>冊<select id="linkBook"></select></label>
             <label>章<select id="linkChapter"></select></label>
             <label>小節<select id="linkSection"></select></label>
+          </div>
+          <div class="exam-meta" id="linkGroupFieldWrap" hidden>
+            <label style="flex:1;">
+              <span id="linkGroupLabelText">分類</span>
+              <select id="linkGroupSelect" hidden></select>
+              <input type="text" id="linkGroupInput" hidden>
+            </label>
           </div>
           <div class="exam-meta">
             <label style="flex:2;"><span id="linkLabelText">連結顯示文字（選填）</span><input type="text" id="linkLabelInput" placeholder="留空則顯示預設文字"></label>
@@ -854,7 +861,7 @@
         </div>
         <span class="block-tag">公開</span>
       </div>
-      <div class="resource-grid" id="goodlinksContent">
+      <div class="book-list" id="goodlinksContent">
         <p class="query-empty">目前還沒有新增好站連結。</p>
       </div>
     </div>
@@ -1245,6 +1252,62 @@
     goodlinks: '目前還沒有新增好站連結。'
   };
   function isResourceCategory(cat){ return RESOURCE_CATEGORIES.indexOf(cat) !== -1; }
+
+  // 考卷解答固定分「冊」；模擬考卷／歷屆統測試題自由填「年份」；好站連結自由填「分類」（選填）。
+  var RESOURCE_GROUP_CONFIG = {
+    exams: { type:'select', label:'冊', options:['第一冊','第二冊','第三冊','第四冊'], required:true },
+    mocks: { type:'text', label:'年份', placeholder:'例如：2026', required:true },
+    pastexams: { type:'text', label:'年份', placeholder:'例如：2026', required:true },
+    goodlinks: { type:'text', label:'分類（選填，例如：繪圖工具）', placeholder:'留空會歸在「其他」', required:false },
+  };
+  var EXAM_BOOK_ORDER = ['第一冊', '第二冊', '第三冊', '第四冊'];
+
+  function groupSortKey(category, groupVal){
+    if (category === 'exams'){
+      var idx = EXAM_BOOK_ORDER.indexOf(groupVal);
+      return idx === -1 ? EXAM_BOOK_ORDER.length : idx;
+    }
+    if (category === 'mocks' || category === 'pastexams'){
+      var n = parseInt(groupVal, 10);
+      return isNaN(n) ? Infinity : -n; // 年份新到舊；沒填年份的放最後
+    }
+    return 0;
+  }
+  function groupHeaderLabel(category, groupVal){
+    if (category === 'exams') return groupVal || '未分類';
+    if (category === 'mocks' || category === 'pastexams'){
+      if (!groupVal) return '年份未填';
+      return /^\d+$/.test(groupVal) ? (groupVal + ' 年度') : groupVal;
+    }
+    return groupVal || '其他';
+  }
+  // 把同一分類的資源依規則分組：考卷解答依冊別固定順序、模擬考卷/歷屆統測依年份新到舊、
+  // 好站連結依「分類」出現的先後順序分組，沒填分類的一律歸在最後的「其他」。
+  function groupResourceItems(category, items){
+    if (category === 'goodlinks'){
+      var order = [];
+      var buckets = {};
+      var untagged = [];
+      items.forEach(function(item){
+        var g = (item.group || '').trim();
+        if (!g){ untagged.push(item); return; }
+        if (!buckets[g]){ buckets[g] = []; order.push(g); }
+        buckets[g].push(item);
+      });
+      var groups = order.map(function(g){ return { key:g, label:g, items:buckets[g] }; });
+      if (untagged.length) groups.push({ key:'__other__', label:'其他', items:untagged });
+      return groups;
+    }
+    var map = {};
+    var keys = [];
+    items.forEach(function(item){
+      var g = (item.group || '').trim();
+      if (!map[g]){ map[g] = []; keys.push(g); }
+      map[g].push(item);
+    });
+    keys.sort(function(a, b){ return groupSortKey(category, a) - groupSortKey(category, b); });
+    return keys.map(function(g){ return { key:g, label: groupHeaderLabel(category, g), items: map[g] }; });
+  }
   // 課堂筆記／習作解析：切換冊/章/小節時，如果那個小節已經有連結/顯示文字，
   // 就先帶入表單，管理者只想改「顯示文字」時不用重新貼一次網址。
   function populateCurriculumLinkFields(){
@@ -1288,17 +1351,34 @@
       container.appendChild(empty);
       return;
     }
-    items.forEach(function(item){
-      var card = document.createElement('div');
-      card.className = 'resource-card';
-      var h3 = document.createElement('h3');
-      h3.textContent = item.title;
-      var a = document.createElement('a');
-      a.href = item.url; a.target = '_blank'; a.rel = 'noopener';
-      a.textContent = '開啟連結 →';
-      card.appendChild(h3);
-      card.appendChild(a);
-      container.appendChild(card);
+    var groups = groupResourceItems(category, items);
+    groups.forEach(function(grp, gi){
+      var details = document.createElement('details');
+      details.className = 'book';
+      if (gi === 0) details.setAttribute('open', '');
+      var summary = document.createElement('summary');
+      var tag = document.createElement('span');
+      tag.className = 'book-tag';
+      tag.textContent = grp.label;
+      summary.appendChild(tag);
+      summary.appendChild(document.createTextNode(' 共 ' + grp.items.length + ' 筆'));
+      details.appendChild(summary);
+      var body = document.createElement('div');
+      body.className = 'book-body';
+      grp.items.forEach(function(item){
+        var card = document.createElement('div');
+        card.className = 'resource-card';
+        var h3 = document.createElement('h3');
+        h3.textContent = item.title;
+        var a = document.createElement('a');
+        a.href = item.url; a.target = '_blank'; a.rel = 'noopener';
+        a.textContent = '開啟連結 →';
+        card.appendChild(h3);
+        card.appendChild(a);
+        body.appendChild(card);
+      });
+      details.appendChild(body);
+      container.appendChild(details);
     });
   }
   function renderAllResourceSections(){
@@ -1846,18 +1926,59 @@
   var linkUrlInput = document.getElementById('linkUrl');
   var linkStatus = document.getElementById('linkStatus');
   var cancelLinkEditBtn = document.getElementById('cancelLinkEditBtn');
+  var linkGroupFieldWrap = document.getElementById('linkGroupFieldWrap');
+  var linkGroupLabelText = document.getElementById('linkGroupLabelText');
+  var linkGroupSelect = document.getElementById('linkGroupSelect');
+  var linkGroupInput = document.getElementById('linkGroupInput');
   var resourceEditId = null; // 目前正在編輯的資源 id（自由清單用），null 表示新增模式
 
   function applyLinkFormModeUI(){
-    var resourceMode = isResourceCategory(linkCategorySel.value);
+    var cat = linkCategorySel.value;
+    var resourceMode = isResourceCategory(cat);
     if (linkCurriculumFields) linkCurriculumFields.hidden = resourceMode;
     if (linkLabelText) linkLabelText.textContent = resourceMode ? '標題（檔名）' : '連結顯示文字（選填）';
     if (linkLabelInput) linkLabelInput.placeholder = resourceMode ? '例如：2026-03 第一次期中考解答' : '留空則顯示預設文字，例如「查看筆記 →」';
+
+    var groupCfg = RESOURCE_GROUP_CONFIG[cat];
+    if (linkGroupFieldWrap) linkGroupFieldWrap.hidden = !groupCfg;
+    if (groupCfg && linkGroupLabelText){
+      linkGroupLabelText.textContent = groupCfg.label;
+      if (groupCfg.type === 'select'){
+        linkGroupSelect.hidden = false;
+        linkGroupInput.hidden = true;
+        if (linkGroupSelect.getAttribute('data-cat') !== cat){
+          linkGroupSelect.innerHTML = '';
+          groupCfg.options.forEach(function(opt){
+            var o = document.createElement('option');
+            o.value = opt; o.textContent = opt;
+            linkGroupSelect.appendChild(o);
+          });
+          linkGroupSelect.setAttribute('data-cat', cat);
+        }
+      } else {
+        linkGroupSelect.hidden = true;
+        linkGroupInput.hidden = false;
+        linkGroupInput.placeholder = groupCfg.placeholder || '';
+      }
+    }
+  }
+  function currentGroupValue(){
+    var cfg = RESOURCE_GROUP_CONFIG[linkCategorySel.value];
+    if (!cfg) return '';
+    return (cfg.type === 'select' ? linkGroupSelect.value : linkGroupInput.value).trim();
+  }
+  function setGroupValue(v){
+    var cfg = RESOURCE_GROUP_CONFIG[linkCategorySel.value];
+    if (!cfg) return;
+    if (cfg.type === 'select') linkGroupSelect.value = v || (cfg.options && cfg.options[0]) || '';
+    else linkGroupInput.value = v || '';
   }
   function resetResourceEditState(){
     resourceEditId = null;
     if (linkLabelInput) linkLabelInput.value = '';
     if (linkUrlInput) linkUrlInput.value = '';
+    if (linkGroupInput) linkGroupInput.value = '';
+    if (linkGroupSelect && linkGroupSelect.options.length) linkGroupSelect.selectedIndex = 0;
     if (cancelLinkEditBtn) cancelLinkEditBtn.hidden = true;
     if (saveLinkBtnEl) saveLinkBtnEl.textContent = '儲存連結';
     if (linkStatus){ linkStatus.textContent = ''; linkStatus.className = 'roster-status'; }
@@ -1934,7 +2055,7 @@
         var catCell = document.createElement('td');
         catCell.textContent = categoryLabel(cat);
         var titleCell = document.createElement('td');
-        titleCell.textContent = item.title;
+        titleCell.textContent = (item.group ? '[' + item.group + '] ' : '') + item.title;
         var urlCell = document.createElement('td');
         urlCell.className = 'mono';
         urlCell.style.cssText = 'max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
@@ -1968,6 +2089,8 @@
       if (isResourceCategory(category)){
         var title = linkLabelInput.value.trim();
         var resUrl = linkUrlInput.value.trim();
+        var groupCfg = RESOURCE_GROUP_CONFIG[category];
+        var groupVal = currentGroupValue();
         if (!title){
           linkStatus.textContent = '請輸入標題（檔名）。';
           linkStatus.className = 'roster-status is-error';
@@ -1978,10 +2101,15 @@
           linkStatus.className = 'roster-status is-error';
           return;
         }
+        if (groupCfg && groupCfg.required && !groupVal){
+          linkStatus.textContent = '請填「' + groupCfg.label + '」。';
+          linkStatus.className = 'roster-status is-error';
+          return;
+        }
         saveLinkBtn.disabled = true;
         callApi('saveResource', {
           actorAccount: currentUser.account, actorPassword: currentPassword,
-          id: resourceEditId, category: category, title: title, url: resUrl
+          id: resourceEditId, category: category, title: title, url: resUrl, group: groupVal
         }).then(function(res){
           saveLinkBtn.disabled = false;
           if (!res.ok){
@@ -2047,6 +2175,7 @@
           applyLinkFormModeUI();
           linkLabelInput.value = editItem.title;
           linkUrlInput.value = editItem.url;
+          setGroupValue(editItem.group || '');
           resourceEditId = editId;
           cancelLinkEditBtn.hidden = false;
           saveLinkBtn.textContent = '更新連結';
