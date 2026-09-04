@@ -3,7 +3,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;700&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
-  /* 有些元件（例如 .role-switch、.book-list、.mock-grid）自己設定了 display，
+  /* 有些元件（例如 .role-switch、.book-list、.resource-grid）自己設定了 display，
      specificity 跟瀏覽器預設的 [hidden]{display:none} 相同時，後宣告的會贏，
      導致 JS 設定 el.hidden = true 卻沒有真的隱藏。用 !important 強制蓋掉，
      確保任何元素只要有 hidden 屬性，一律不顯示（登入權限判斷才會真的生效）。 */
@@ -33,7 +33,7 @@
       --surface:#1B222C;
       --surface-2:#161C24;
       --ink:#E7EAF0;
-      --ink-soft:#A6B0C3;
+      --ink-soft:#C3CADA;
       --indigo:#93A6E0;
       --indigo-strong:#B7C4EE;
       --indigo-tint:#26314A;
@@ -52,7 +52,7 @@
     --surface:#1B222C;
     --surface-2:#161C24;
     --ink:#E7EAF0;
-    --ink-soft:#A6B0C3;
+    --ink-soft:#C3CADA;
     --indigo:#93A6E0;
     --indigo-strong:#B7C4EE;
     --indigo-tint:#26314A;
@@ -273,30 +273,22 @@
     background:var(--red-tint);color:var(--red);font-weight:500;
   }
 
-  /* ---------- mock exam cards ---------- */
-  .mock-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;}
-  .mock-card{
+  /* ---------- 通用資源卡片（考卷解答／模擬考卷／歷屆統測試題／好站連結，管理者可直接新增/編輯） ---------- */
+  .resource-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;}
+  .resource-card{
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:20px;
     box-shadow:0 1px 2px var(--shadow);
   }
-  .mock-card .mono{color:var(--teal);font-size:.78rem;}
-  .mock-card h3{font-size:1rem;margin-top:6px;}
-  .mock-actions{display:flex;gap:10px;margin-top:16px;}
-  .mock-actions a{font-size:.82rem;font-weight:500;text-decoration:none;color:var(--ink-soft);border:1px solid var(--border);padding:7px 12px;border-radius:3px;}
-  .mock-actions a.primary{color:var(--surface);background:var(--teal);border-color:var(--teal);}
-
-  /* ---------- good links ---------- */
-  .goodlink-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;}
-  .goodlink-card{
-    background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:20px;
-    box-shadow:0 1px 2px var(--shadow);
-  }
-  .goodlink-card h3{font-size:1rem;}
-  .goodlink-card p{color:var(--ink-soft);font-size:.86rem;margin-top:6px;line-height:1.5;}
-  .goodlink-card a{
+  .resource-card h3{font-size:1rem;}
+  .resource-card a{
     display:inline-block;margin-top:14px;font-size:.82rem;font-weight:500;text-decoration:none;
     color:var(--surface);background:var(--indigo);border:1px solid var(--indigo);padding:7px 12px;border-radius:3px;
   }
+  .edit-btn{
+    background:none;border:none;color:var(--ink-soft);cursor:pointer;font-size:.82rem;
+    padding:2px 6px;text-decoration:underline;
+  }
+  .edit-btn:hover{color:var(--indigo);}
 
   /* ---------- animation demos ---------- */
   .demo-shell{
@@ -502,7 +494,7 @@
 
       <div class="content-gate" id="notesLoginGate" hidden>
         <strong>登入後才能查看課堂筆記</strong>
-        內容僅開放給本班學生與程老師，請先登入小考成績帳號。
+        內容僅開放給本班學生與程老師，請先登入小考成績帳號（帳號＝學號）。
         <a class="btn btn-primary" href="#grades">前往登入</a>
       </div>
       <div class="book-list" id="notesDirectory"></div>
@@ -544,7 +536,7 @@
         內容僅開放給本班學生與程老師，請先登入小考成績帳號（帳號＝學號）。
         <a class="btn btn-primary" href="#grades">前往登入</a>
       </div>
-      <div id="examsContent" style="overflow-x:auto;">
+      <div class="resource-grid" id="examsContent">
         <p class="query-empty">目前還沒有上傳考卷解答，之後新增後會顯示在這裡。</p>
       </div>
     </div>
@@ -565,7 +557,7 @@
         內容僅開放給本班學生與程老師，請先登入小考成績帳號（帳號＝學號）。
         <a class="btn btn-primary" href="#grades">前往登入</a>
       </div>
-      <div class="mock-grid" id="mocksContent">
+      <div class="resource-grid" id="mocksContent">
         <p class="query-empty">目前還沒有上傳模擬考卷，之後新增後會顯示在這裡。</p>
       </div>
     </div>
@@ -586,7 +578,7 @@
         內容僅開放給本班學生與程老師，請先登入小考成績帳號（帳號＝學號）。
         <a class="btn btn-primary" href="#grades">前往登入</a>
       </div>
-      <div id="pastexamsContent">
+      <div class="resource-grid" id="pastexamsContent">
         <p class="query-empty">目前還沒有上傳歷屆統測試題，之後新增後會顯示在這裡。</p>
       </div>
     </div>
@@ -722,26 +714,36 @@
         <!-- links panel: admin only -->
         <div class="demo-shell" id="linksPanel" hidden>
           <div class="demo-head"><h3>檔案連結管理</h3></div>
-          <p class="block-desc" style="margin-bottom:16px;">選好分類與小節，貼上 Google 雲端硬碟的分享連結存檔，「課堂筆記」／「習作解析」對應小節的「敬請期待」就會換成真正的連結。請用雲端硬碟「取得連結」的分享網址，並把權限設為「知道連結的使用者」——這樣學生點連結會直接在瀏覽器開啟 PDF 預覽畫面，不需要另外下載；如果權限沒開，學生點了會看到「沒有存取權」。</p>
+          <p class="block-desc" style="margin-bottom:16px;">「課堂筆記」「習作解析」選好冊/章/小節後貼上連結存檔，對應小節的「敬請期待」就會換成真正的連結；「考卷解答」「模擬考卷」「歷屆統測試題」「好站連結」則是自由新增項目，填標題（檔名）跟連結即可，可以之後再編輯或刪除。請用雲端硬碟「取得連結」的分享網址，並把權限設為「知道連結的使用者」——這樣學生點連結會直接在瀏覽器開啟 PDF 預覽畫面，不需要另外下載；如果權限沒開，學生點了會看到「沒有存取權」。</p>
           <div class="exam-meta">
             <label>分類
               <select id="linkCategory">
                 <option value="notes">課堂筆記</option>
                 <option value="workbook">習作解析</option>
+                <option value="exams">考卷解答</option>
+                <option value="mocks">模擬考卷</option>
+                <option value="pastexams">歷屆統測試題</option>
+                <option value="goodlinks">好站連結</option>
               </select>
             </label>
+          </div>
+          <div class="exam-meta" id="linkCurriculumFields">
             <label>冊<select id="linkBook"></select></label>
             <label>章<select id="linkChapter"></select></label>
             <label>小節<select id="linkSection"></select></label>
           </div>
           <div class="exam-meta">
+            <label style="flex:2;"><span id="linkLabelText">連結顯示文字（選填）</span><input type="text" id="linkLabelInput" placeholder="留空則顯示預設文字"></label>
             <label style="flex:3;">雲端硬碟連結網址<input type="url" id="linkUrl" placeholder="https://drive.google.com/..."></label>
-            <button type="button" class="btn btn-primary" id="saveLinkBtn" style="align-self:flex-end;">儲存連結</button>
           </div>
-          <span class="roster-status" id="linkStatus"></span>
+          <div class="roster-actions">
+            <button type="button" class="btn btn-primary" id="saveLinkBtn">儲存連結</button>
+            <button type="button" class="btn btn-ghost" id="cancelLinkEditBtn" hidden>取消編輯</button>
+            <span class="roster-status" id="linkStatus"></span>
+          </div>
           <div class="ledger-wrap" style="margin-top:16px;">
             <table class="ledger">
-              <thead><tr><th>分類</th><th>位置</th><th>連結</th><th></th></tr></thead>
+              <thead><tr><th>分類</th><th>位置／標題</th><th>連結</th><th></th></tr></thead>
               <tbody id="linksBody"></tbody>
             </table>
           </div>
@@ -852,27 +854,8 @@
         </div>
         <span class="block-tag">公開</span>
       </div>
-      <div class="goodlink-grid">
-        <div class="goodlink-card">
-          <h3>GeoGebra</h3>
-          <p>動態數學軟體，可以畫函數圖形、幾何圖形，也能自己拉滑桿觀察變化。</p>
-          <a href="https://www.geogebra.org/" target="_blank" rel="noopener">前往網站 →</a>
-        </div>
-        <div class="goodlink-card">
-          <h3>Desmos 線上繪圖計算機</h3>
-          <p>介面簡單好上手的線上繪圖計算機，很適合拿來驗算、畫圖檢查答案。</p>
-          <a href="https://www.desmos.com/calculator" target="_blank" rel="noopener">前往網站 →</a>
-        </div>
-        <div class="goodlink-card">
-          <h3>均一教育平台</h3>
-          <p>中文教學影片與練習題，涵蓋國高中數學各單元，適合自學複習。</p>
-          <a href="https://www.junyiacademy.org/" target="_blank" rel="noopener">前往網站 →</a>
-        </div>
-        <div class="goodlink-card">
-          <h3>Khan Academy（可汗學院）</h3>
-          <p>免費線上課程與練習，數學單元非常完整，也有中文化內容。</p>
-          <a href="https://www.khanacademy.org/" target="_blank" rel="noopener">前往網站 →</a>
-        </div>
+      <div class="resource-grid" id="goodlinksContent">
+        <p class="query-empty">目前還沒有新增好站連結。</p>
       </div>
     </div>
   </section>
@@ -1230,12 +1213,15 @@
   }
 
   var linksStore = { notes:{}, workbook:{} };
+  var linksLabelStore = { notes:{}, workbook:{} };
   function linkKey(bIdx, cIdx, sIdx){ return bIdx + '-' + cIdx + '-' + sIdx; }
   function applyLinksFromApi(links){
     linksStore = { notes:{}, workbook:{} };
+    linksLabelStore = { notes:{}, workbook:{} };
     (links || []).forEach(function(l){
       if (!linksStore[l.category]) return;
       linksStore[l.category][linkKey(l.bookIdx, l.chapterIdx, l.sectionIdx)] = l.url;
+      if (l.label) linksLabelStore[l.category][linkKey(l.bookIdx, l.chapterIdx, l.sectionIdx)] = l.label;
     });
   }
   function refreshLinksFromApi(){
@@ -1244,6 +1230,88 @@
         applyLinksFromApi(res.links);
         buildDirectory('notesDirectory', 'notes');
         buildDirectory('workbookDirectory', 'workbook');
+        populateCurriculumLinkFields();
+      }
+    });
+  }
+
+  /* ============ 自由清單資源（考卷解答／模擬考卷／歷屆統測試題／好站連結） ============ */
+  var RESOURCE_CATEGORIES = ['exams', 'mocks', 'pastexams', 'goodlinks'];
+  var resourcesStore = { exams:[], mocks:[], pastexams:[], goodlinks:[] };
+  var RESOURCE_EMPTY_TEXT = {
+    exams: '目前還沒有上傳考卷解答，之後新增後會顯示在這裡。',
+    mocks: '目前還沒有上傳模擬考卷，之後新增後會顯示在這裡。',
+    pastexams: '目前還沒有上傳歷屆統測試題，之後新增後會顯示在這裡。',
+    goodlinks: '目前還沒有新增好站連結。'
+  };
+  function isResourceCategory(cat){ return RESOURCE_CATEGORIES.indexOf(cat) !== -1; }
+  // 課堂筆記／習作解析：切換冊/章/小節時，如果那個小節已經有連結/顯示文字，
+  // 就先帶入表單，管理者只想改「顯示文字」時不用重新貼一次網址。
+  function populateCurriculumLinkFields(){
+    var categoryEl = document.getElementById('linkCategory');
+    var bookEl = document.getElementById('linkBook');
+    var chapterEl = document.getElementById('linkChapter');
+    var sectionEl = document.getElementById('linkSection');
+    var urlEl = document.getElementById('linkUrl');
+    var labelEl = document.getElementById('linkLabelInput');
+    if (!categoryEl || !bookEl || !chapterEl || !sectionEl || !urlEl || !labelEl) return;
+    var category = categoryEl.value;
+    if (isResourceCategory(category)) return;
+    var bIdx = parseInt(bookEl.value, 10);
+    var cIdx = parseInt(chapterEl.value, 10);
+    var sIdx = parseInt(sectionEl.value, 10);
+    if (isNaN(bIdx) || isNaN(cIdx) || isNaN(sIdx)) return;
+    var key = linkKey(bIdx, cIdx, sIdx);
+    urlEl.value = (linksStore[category] && linksStore[category][key]) || '';
+    labelEl.value = (linksLabelStore[category] && linksLabelStore[category][key]) || '';
+  }
+  function categoryLabel(cat){
+    var map = { notes:'課堂筆記', workbook:'習作解析', exams:'考卷解答', mocks:'模擬考卷', pastexams:'歷屆統測試題', goodlinks:'好站連結' };
+    return map[cat] || cat;
+  }
+  function applyResourcesFromApi(list){
+    resourcesStore = { exams:[], mocks:[], pastexams:[], goodlinks:[] };
+    (list || []).forEach(function(r){
+      if (!resourcesStore[r.category]) return;
+      resourcesStore[r.category].push(r);
+    });
+  }
+  function renderResourceSection(containerId, category){
+    var container = document.getElementById(containerId);
+    if (!container) return;
+    var items = resourcesStore[category] || [];
+    container.innerHTML = '';
+    if (!items.length){
+      var empty = document.createElement('p');
+      empty.className = 'query-empty';
+      empty.textContent = RESOURCE_EMPTY_TEXT[category] || '目前還沒有內容。';
+      container.appendChild(empty);
+      return;
+    }
+    items.forEach(function(item){
+      var card = document.createElement('div');
+      card.className = 'resource-card';
+      var h3 = document.createElement('h3');
+      h3.textContent = item.title;
+      var a = document.createElement('a');
+      a.href = item.url; a.target = '_blank'; a.rel = 'noopener';
+      a.textContent = '開啟連結 →';
+      card.appendChild(h3);
+      card.appendChild(a);
+      container.appendChild(card);
+    });
+  }
+  function renderAllResourceSections(){
+    renderResourceSection('examsContent', 'exams');
+    renderResourceSection('mocksContent', 'mocks');
+    renderResourceSection('pastexamsContent', 'pastexams');
+    renderResourceSection('goodlinksContent', 'goodlinks');
+  }
+  function refreshResourcesFromApi(){
+    return callApi('getResources', {}).then(function(res){
+      if (res.ok){
+        applyResourcesFromApi(res.resources);
+        renderAllResourceSections();
       }
     });
   }
@@ -1287,7 +1355,8 @@
             linkA.href = url;
             linkA.target = '_blank';
             linkA.rel = 'noopener';
-            linkA.textContent = (category === 'notes' ? '查看筆記' : '查看解析') + ' →';
+            var customLabel = linksLabelStore[category] ? linksLabelStore[category][linkKey(bIdx, cIdx, sIdx)] : '';
+            linkA.textContent = customLabel ? customLabel : ((category === 'notes' ? '查看筆記' : '查看解析') + ' →');
             li.appendChild(linkA);
           } else {
             var pending = document.createElement('span');
@@ -1771,8 +1840,40 @@
   var linkBookSel = document.getElementById('linkBook');
   var linkChapterSel = document.getElementById('linkChapter');
   var linkSectionSel = document.getElementById('linkSection');
+  var linkCurriculumFields = document.getElementById('linkCurriculumFields');
+  var linkLabelText = document.getElementById('linkLabelText');
+  var linkLabelInput = document.getElementById('linkLabelInput');
   var linkUrlInput = document.getElementById('linkUrl');
   var linkStatus = document.getElementById('linkStatus');
+  var cancelLinkEditBtn = document.getElementById('cancelLinkEditBtn');
+  var resourceEditId = null; // 目前正在編輯的資源 id（自由清單用），null 表示新增模式
+
+  function applyLinkFormModeUI(){
+    var resourceMode = isResourceCategory(linkCategorySel.value);
+    if (linkCurriculumFields) linkCurriculumFields.hidden = resourceMode;
+    if (linkLabelText) linkLabelText.textContent = resourceMode ? '標題（檔名）' : '連結顯示文字（選填）';
+    if (linkLabelInput) linkLabelInput.placeholder = resourceMode ? '例如：2026-03 第一次期中考解答' : '留空則顯示預設文字，例如「查看筆記 →」';
+  }
+  function resetResourceEditState(){
+    resourceEditId = null;
+    if (linkLabelInput) linkLabelInput.value = '';
+    if (linkUrlInput) linkUrlInput.value = '';
+    if (cancelLinkEditBtn) cancelLinkEditBtn.hidden = true;
+    if (saveLinkBtnEl) saveLinkBtnEl.textContent = '儲存連結';
+    if (linkStatus){ linkStatus.textContent = ''; linkStatus.className = 'roster-status'; }
+  }
+  var saveLinkBtnEl = document.getElementById('saveLinkBtn');
+  if (linkCategorySel){
+    linkCategorySel.addEventListener('change', function(){
+      applyLinkFormModeUI();
+      resetResourceEditState();
+      populateCurriculumLinkFields();
+    });
+    applyLinkFormModeUI();
+  }
+  if (cancelLinkEditBtn){
+    cancelLinkEditBtn.addEventListener('click', resetResourceEditState);
+  }
 
   if (linkBookSel){
     CURRICULUM.forEach(function(b, i){
@@ -1799,9 +1900,11 @@
         opt.value = i; opt.textContent = s;
         linkSectionSel.appendChild(opt);
       });
+      populateCurriculumLinkFields();
     }
     linkBookSel.addEventListener('change', populateLinkChapters);
     linkChapterSel.addEventListener('change', populateLinkSections);
+    linkSectionSel.addEventListener('change', populateCurriculumLinkFields);
     populateLinkChapters();
   }
 
@@ -1818,10 +1921,35 @@
         var sec = ch.sections[parts[2]];
         var tr = document.createElement('tr');
         tr.innerHTML =
-          '<td>' + (cat === 'notes' ? '課堂筆記' : '習作解析') + '</td>' +
+          '<td>' + categoryLabel(cat) + '</td>' +
           '<td>' + book.name + ' › ' + ch.title + ' › ' + sec + '</td>' +
           '<td class="mono" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + linksStore[cat][key] + '</td>' +
           '<td><button type="button" class="del-btn" data-cat="' + cat + '" data-key="' + key + '">移除</button></td>';
+        tbody.appendChild(tr);
+      });
+    });
+    RESOURCE_CATEGORIES.forEach(function(cat){
+      (resourcesStore[cat] || []).forEach(function(item){
+        var tr = document.createElement('tr');
+        var catCell = document.createElement('td');
+        catCell.textContent = categoryLabel(cat);
+        var titleCell = document.createElement('td');
+        titleCell.textContent = item.title;
+        var urlCell = document.createElement('td');
+        urlCell.className = 'mono';
+        urlCell.style.cssText = 'max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+        urlCell.textContent = item.url;
+        var actionCell = document.createElement('td');
+        actionCell.style.whiteSpace = 'nowrap';
+        var editBtn = document.createElement('button');
+        editBtn.type = 'button'; editBtn.className = 'edit-btn'; editBtn.textContent = '編輯';
+        editBtn.setAttribute('data-res-edit', item.id);
+        var delBtn = document.createElement('button');
+        delBtn.type = 'button'; delBtn.className = 'del-btn'; delBtn.textContent = '刪除';
+        delBtn.setAttribute('data-res-id', item.id);
+        actionCell.appendChild(editBtn);
+        actionCell.appendChild(delBtn);
+        tr.appendChild(catCell); tr.appendChild(titleCell); tr.appendChild(urlCell); tr.appendChild(actionCell);
         tbody.appendChild(tr);
       });
     });
@@ -1836,10 +1964,44 @@
   if (saveLinkBtn){
     saveLinkBtn.addEventListener('click', function(){
       var category = linkCategorySel.value;
+
+      if (isResourceCategory(category)){
+        var title = linkLabelInput.value.trim();
+        var resUrl = linkUrlInput.value.trim();
+        if (!title){
+          linkStatus.textContent = '請輸入標題（檔名）。';
+          linkStatus.className = 'roster-status is-error';
+          return;
+        }
+        if (!resUrl){
+          linkStatus.textContent = '請貼上連結網址。';
+          linkStatus.className = 'roster-status is-error';
+          return;
+        }
+        saveLinkBtn.disabled = true;
+        callApi('saveResource', {
+          actorAccount: currentUser.account, actorPassword: currentPassword,
+          id: resourceEditId, category: category, title: title, url: resUrl
+        }).then(function(res){
+          saveLinkBtn.disabled = false;
+          if (!res.ok){
+            linkStatus.textContent = res.error || '儲存失敗，請再試一次。';
+            linkStatus.className = 'roster-status is-error';
+            return;
+          }
+          resetResourceEditState();
+          linkStatus.textContent = '已儲存。';
+          linkStatus.className = 'roster-status';
+          refreshResourcesFromApi().then(renderLinksTable);
+        });
+        return;
+      }
+
       var bIdx = parseInt(linkBookSel.value, 10);
       var cIdx = parseInt(linkChapterSel.value, 10);
       var sIdx = parseInt(linkSectionSel.value, 10);
       var url = linkUrlInput.value.trim();
+      var label = linkLabelInput.value.trim();
       if (!url){
         linkStatus.textContent = '請貼上連結網址。';
         linkStatus.className = 'roster-status is-error';
@@ -1848,7 +2010,7 @@
       saveLinkBtn.disabled = true;
       callApi('setLink', {
         actorAccount: currentUser.account, actorPassword: currentPassword,
-        category: category, bookIdx: bIdx, chapterIdx: cIdx, sectionIdx: sIdx, url: url
+        category: category, bookIdx: bIdx, chapterIdx: cIdx, sectionIdx: sIdx, url: url, label: label
       }).then(function(res){
         saveLinkBtn.disabled = false;
         if (!res.ok){
@@ -1856,11 +2018,15 @@
           linkStatus.className = 'roster-status is-error';
           return;
         }
+        if (!linksStore[category]) linksStore[category] = {};
         linksStore[category][linkKey(bIdx, cIdx, sIdx)] = url;
+        if (!linksLabelStore[category]) linksLabelStore[category] = {};
+        if (label){ linksLabelStore[category][linkKey(bIdx, cIdx, sIdx)] = label; }
+        else { delete linksLabelStore[category][linkKey(bIdx, cIdx, sIdx)]; }
         buildDirectory('notesDirectory', 'notes');
         buildDirectory('workbookDirectory', 'workbook');
         renderLinksTable();
-        linkUrlInput.value = '';
+        populateCurriculumLinkFields();
         linkStatus.textContent = '已設定連結。';
         linkStatus.className = 'roster-status';
       });
@@ -1869,6 +2035,39 @@
   var linksBody = document.getElementById('linksBody');
   if (linksBody){
     linksBody.addEventListener('click', function(e){
+      var editBtn = e.target.closest('button[data-res-edit]');
+      if (editBtn){
+        var editId = editBtn.getAttribute('data-res-edit');
+        var editItem = null;
+        RESOURCE_CATEGORIES.forEach(function(cat){
+          (resourcesStore[cat] || []).forEach(function(r){ if (r.id === editId) editItem = r; });
+        });
+        if (editItem){
+          linkCategorySel.value = editItem.category;
+          applyLinkFormModeUI();
+          linkLabelInput.value = editItem.title;
+          linkUrlInput.value = editItem.url;
+          resourceEditId = editId;
+          cancelLinkEditBtn.hidden = false;
+          saveLinkBtn.textContent = '更新連結';
+          linkStatus.textContent = '編輯中：' + editItem.title;
+          linkStatus.className = 'roster-status';
+        }
+        return;
+      }
+      var delResBtn = e.target.closest('button[data-res-id]');
+      if (delResBtn){
+        var resId = delResBtn.getAttribute('data-res-id');
+        delResBtn.disabled = true;
+        callApi('deleteResource', {
+          actorAccount: currentUser.account, actorPassword: currentPassword, id: resId
+        }).then(function(res){
+          delResBtn.disabled = false;
+          if (!res.ok){ showApiError(res.error || '刪除失敗。'); return; }
+          refreshResourcesFromApi().then(renderLinksTable);
+        });
+        return;
+      }
       var btn = e.target.closest('button[data-key]');
       if (!btn) return;
       var cat = btn.getAttribute('data-cat');
@@ -1882,9 +2081,11 @@
         btn.disabled = false;
         if (!res.ok){ showApiError(res.error || '移除連結失敗。'); return; }
         delete linksStore[cat][key];
+        if (linksLabelStore[cat]) delete linksLabelStore[cat][key];
         buildDirectory('notesDirectory', 'notes');
         buildDirectory('workbookDirectory', 'workbook');
         renderLinksTable();
+        populateCurriculumLinkFields();
       });
     });
   }
@@ -2073,6 +2274,7 @@
   updateContentGates();
   applySession();
   refreshLinksFromApi();
+  refreshResourcesFromApi();
 
 
 })();
