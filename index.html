@@ -731,7 +731,7 @@
         <!-- links panel: admin only -->
         <div class="demo-shell" id="linksPanel" hidden>
           <div class="demo-head"><h3>檔案連結管理</h3></div>
-          <p class="block-desc" style="margin-bottom:16px;">「課堂筆記」「習作解析」選好冊/章/小節後貼上連結存檔，對應小節的「敬請期待」就會換成真正的連結；「考卷解答」「模擬考卷」「歷屆統測試題」「好站連結」則是自由新增項目，填標題（檔名）跟連結即可，可以之後再編輯或刪除——「考卷解答」多選「冊」跟「卷別（學習卷/隨堂卷/其他卷類）」，網頁上會先依冊別、每一冊底下再依卷別分組收合；「模擬考卷」「歷屆統測試題」多填「年份」，依年份新到舊分組；「好站連結」的「分類」是選填，用來把同類型的網站放在一起，不填就會歸在「其他」。檔案一多也能很快找到。請用雲端硬碟「取得連結」的分享網址，並把權限設為「知道連結的使用者」——這樣學生點連結會直接在瀏覽器開啟 PDF 預覽畫面，不需要另外下載；如果權限沒開，學生點了會看到「沒有存取權」。</p>
+          <p class="block-desc" style="margin-bottom:16px;max-width:none;">「課堂筆記」「習作解析」選好冊/章/小節後貼上連結存檔，對應小節的「敬請期待」就會換成真正的連結；「考卷解答」「模擬考卷」「歷屆統測試題」「好站連結」則是自由新增項目，填標題（檔名）跟連結即可，可以之後再編輯或刪除——「考卷解答」多選「冊」跟「卷別（學習卷/隨堂卷/其他卷類）」，網頁上會先依冊別、每一冊底下再依卷別分組收合；「模擬考卷」「歷屆統測試題」多填「年份」，依年份新到舊分組；「好站連結」的「分類」是選填，用來把同類型的網站放在一起，不填就會歸在「其他」。檔案一多也能很快找到。請用雲端硬碟「取得連結」的分享網址，並把權限設為「知道連結的使用者」——這樣學生點連結會直接在瀏覽器開啟 PDF 預覽畫面，不需要另外下載；如果權限沒開，學生點了會看到「沒有存取權」。</p>
           <div class="exam-meta">
             <label>分類
               <select id="linkCategory">
@@ -1541,10 +1541,46 @@
 
   /* ============ 帳號 / 登入狀態（真實後端：Google Apps Script）============ */
   var currentUser = null;      // { role, account, sid, name, className }
-  var currentPassword = null;  // 只存在瀏覽器記憶體，重新整理網頁會清空，需要重新登入
+  var currentPassword = null;  // 登入密碼；同時鏡射一份到 sessionStorage，讓「重新整理」不用重新登入
   var adminClassList = [];     // 管理者登入後取得的班級清單
   var grades = [];             // 目前登入者權限範圍內看得到的成績（來自 API）
   var rosterCache = {};        // className -> [{sid,name,seat,isMonitor}]
+
+  // 分頁記憶：只用 sessionStorage（分頁/瀏覽器關掉就清空），不用 localStorage，
+  // 避免帳密長期留在裝置上；重新整理網頁時會用存起來的帳密重新呼叫一次 login 驗證，
+  // 確認密碼沒有被改過、帳號還在，才會恢復登入狀態。
+  var SESSION_STORAGE_KEY = 'mathsiteSession_v1';
+  function saveSessionToStorage(){
+    try {
+      if (currentUser && currentPassword != null){
+        sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
+          account: currentUser.account,
+          password: currentPassword
+        }));
+      }
+    } catch (e) { /* 瀏覽器不支援或被封鎖時直接略過，不影響其他功能 */ }
+  }
+  function clearSessionStorage(){
+    try { sessionStorage.removeItem(SESSION_STORAGE_KEY); } catch (e) {}
+  }
+  function tryRestoreSession(){
+    var stored = null;
+    try {
+      var raw = sessionStorage.getItem(SESSION_STORAGE_KEY);
+      if (raw) stored = JSON.parse(raw);
+    } catch (e) { stored = null; }
+    if (!stored || !stored.account || stored.password == null) return Promise.resolve();
+    return callApi('login', { account: stored.account, password: stored.password }).then(function(res){
+      if (res.ok){
+        currentUser = { role: res.role, account: res.account, sid: res.sid, name: res.name, className: res.className };
+        currentPassword = stored.password;
+        adminClassList = res.classes || [];
+        saveSessionToStorage();
+      } else {
+        clearSessionStorage();
+      }
+    }).catch(function(){ clearSessionStorage(); });
+  }
 
   function scoreCell(score){
     return (score === null || score === undefined || score === '') ? '<span class="absent-tag">缺考</span>' : score;
@@ -2468,6 +2504,7 @@
         currentUser = { role: res.role, account: res.account, sid: res.sid, name: res.name, className: res.className };
         currentPassword = pwVal;
         adminClassList = res.classes || [];
+        saveSessionToStorage();
         loginForm.reset();
         applySession();
       });
@@ -2481,6 +2518,7 @@
       currentPassword = null;
       adminClassList = [];
       grades = [];
+      clearSessionStorage();
       if (loginError) loginError.textContent = '';
       applySession();
     });
@@ -2522,6 +2560,7 @@
           return;
         }
         currentPassword = newPw;
+        saveSessionToStorage();
         pwStatus.textContent = '密碼已更新。';
         pwStatus.className = 'roster-status';
         pwForm.reset();
@@ -2530,7 +2569,7 @@
   }
 
   updateContentGates();
-  applySession();
+  tryRestoreSession().then(function(){ applySession(); });
   refreshLinksFromApi();
   refreshResourcesFromApi();
 
