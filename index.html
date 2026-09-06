@@ -239,6 +239,23 @@
     font-family:"JetBrains Mono",monospace;font-weight:600;font-size:.74rem;
     background:var(--indigo-tint);color:var(--indigo-strong);padding:3px 9px;border-radius:20px;flex-shrink:0;
   }
+  .book-body.subgroup-wrap{display:flex;flex-direction:column;gap:12px;padding:16px 20px 20px;}
+  details.subbook{
+    background:var(--surface-2);border:1px solid var(--border);border-radius:4px;
+  }
+  details.subbook summary{
+    list-style:none;cursor:pointer;padding:12px 16px;display:flex;align-items:center;gap:10px;
+    font-family:"Noto Sans TC",sans-serif;font-weight:600;font-size:.92rem;
+  }
+  details.subbook summary::-webkit-details-marker{display:none;}
+  details.subbook summary::after{
+    content:"+";margin-left:auto;color:var(--ink-soft);font-family:"JetBrains Mono",monospace;font-size:1rem;
+  }
+  details.subbook[open] summary::after{content:"–";}
+  .subbook-tag{
+    font-family:"JetBrains Mono",monospace;font-weight:600;font-size:.7rem;
+    background:var(--teal-tint);color:var(--teal);padding:2px 8px;border-radius:20px;flex-shrink:0;
+  }
   .book-body{
     padding:4px 20px 18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;
     border-top:1px solid var(--border);
@@ -714,7 +731,7 @@
         <!-- links panel: admin only -->
         <div class="demo-shell" id="linksPanel" hidden>
           <div class="demo-head"><h3>檔案連結管理</h3></div>
-          <p class="block-desc" style="margin-bottom:16px;">「課堂筆記」「習作解析」選好冊/章/小節後貼上連結存檔，對應小節的「敬請期待」就會換成真正的連結；「考卷解答」「模擬考卷」「歷屆統測試題」「好站連結」則是自由新增項目，填標題（檔名）跟連結即可，可以之後再編輯或刪除——「考卷解答」多一個「冊」的分類，「模擬考卷」「歷屆統測試題」多一個「年份」，網頁上會依冊別/年份自動分組、年份新的排前面，檔案一多也能很快找到；「好站連結」的「分類」是選填，用來把同類型的網站放在一起，不填就會歸在「其他」。請用雲端硬碟「取得連結」的分享網址，並把權限設為「知道連結的使用者」——這樣學生點連結會直接在瀏覽器開啟 PDF 預覽畫面，不需要另外下載；如果權限沒開，學生點了會看到「沒有存取權」。</p>
+          <p class="block-desc" style="margin-bottom:16px;">「課堂筆記」「習作解析」選好冊/章/小節後貼上連結存檔，對應小節的「敬請期待」就會換成真正的連結；「考卷解答」「模擬考卷」「歷屆統測試題」「好站連結」則是自由新增項目，填標題（檔名）跟連結即可，可以之後再編輯或刪除——「考卷解答」多選「冊」跟「卷別（學習卷/隨堂卷/其他卷類）」，網頁上會先依冊別、每一冊底下再依卷別分組收合；「模擬考卷」「歷屆統測試題」多填「年份」，依年份新到舊分組；「好站連結」的「分類」是選填，用來把同類型的網站放在一起，不填就會歸在「其他」。檔案一多也能很快找到。請用雲端硬碟「取得連結」的分享網址，並把權限設為「知道連結的使用者」——這樣學生點連結會直接在瀏覽器開啟 PDF 預覽畫面，不需要另外下載；如果權限沒開，學生點了會看到「沒有存取權」。</p>
           <div class="exam-meta">
             <label>分類
               <select id="linkCategory">
@@ -737,6 +754,11 @@
               <span id="linkGroupLabelText">分類</span>
               <select id="linkGroupSelect" hidden></select>
               <input type="text" id="linkGroupInput" hidden>
+            </label>
+            <label style="flex:1;" id="linkSubGroupFieldWrap" hidden>
+              <span id="linkSubGroupLabelText">卷別</span>
+              <select id="linkSubGroupSelect" hidden></select>
+              <input type="text" id="linkSubGroupInput" hidden>
             </label>
           </div>
           <div class="exam-meta">
@@ -1255,7 +1277,10 @@
 
   // 考卷解答固定分「冊」；模擬考卷／歷屆統測試題自由填「年份」；好站連結自由填「分類」（選填）。
   var RESOURCE_GROUP_CONFIG = {
-    exams: { type:'select', label:'冊', options:['第一冊','第二冊','第三冊','第四冊'], required:true },
+    exams: {
+      type:'select', label:'冊', options:['第一冊','第二冊','第三冊','第四冊'], required:true,
+      subGroup: { type:'select', label:'卷別', options:['學習卷','隨堂卷','其他卷類'], required:true },
+    },
     mocks: { type:'text', label:'年份', placeholder:'例如：2026', required:true },
     pastexams: { type:'text', label:'年份', placeholder:'例如：2026', required:true },
     goodlinks: { type:'text', label:'分類（選填，例如：繪圖工具）', placeholder:'留空會歸在「其他」', required:false },
@@ -1281,8 +1306,17 @@
     }
     return groupVal || '其他';
   }
-  // 把同一分類的資源依規則分組：考卷解答依冊別固定順序、模擬考卷/歷屆統測依年份新到舊、
-  // 好站連結依「分類」出現的先後順序分組，沒填分類的一律歸在最後的「其他」。
+  function subGroupSortKey(category, subVal){
+    var subCfg = RESOURCE_GROUP_CONFIG[category] && RESOURCE_GROUP_CONFIG[category].subGroup;
+    if (!subCfg || subCfg.type !== 'select') return 0;
+    var idx = subCfg.options.indexOf(subVal);
+    return idx === -1 ? subCfg.options.length : idx;
+  }
+  function subGroupHeaderLabel(category, subVal){
+    return subVal || '未分類卷別';
+  }
+  // 把同一分類的資源依規則分組：考卷解答依冊別固定順序（每一冊底下再依「學習卷/隨堂卷/其他卷類」細分）、
+  // 模擬考卷/歷屆統測依年份新到舊、好站連結依「分類」出現的先後順序分組，沒填分類的一律歸在最後的「其他」。
   function groupResourceItems(category, items){
     if (category === 'goodlinks'){
       var order = [];
@@ -1298,6 +1332,7 @@
       if (untagged.length) groups.push({ key:'__other__', label:'其他', items:untagged });
       return groups;
     }
+    var cfg = RESOURCE_GROUP_CONFIG[category];
     var map = {};
     var keys = [];
     items.forEach(function(item){
@@ -1306,7 +1341,26 @@
       map[g].push(item);
     });
     keys.sort(function(a, b){ return groupSortKey(category, a) - groupSortKey(category, b); });
-    return keys.map(function(g){ return { key:g, label: groupHeaderLabel(category, g), items: map[g] }; });
+    return keys.map(function(g){
+      var groupItems = map[g];
+      var node = { key:g, label: groupHeaderLabel(category, g) };
+      if (cfg && cfg.subGroup){
+        var subMap = {};
+        var subKeys = [];
+        groupItems.forEach(function(item){
+          var sg = (item.subgroup || '').trim();
+          if (!subMap[sg]){ subMap[sg] = []; subKeys.push(sg); }
+          subMap[sg].push(item);
+        });
+        subKeys.sort(function(a, b){ return subGroupSortKey(category, a) - subGroupSortKey(category, b); });
+        node.subgroups = subKeys.map(function(sg){
+          return { key:sg, label: subGroupHeaderLabel(category, sg), items: subMap[sg] };
+        });
+      } else {
+        node.items = groupItems;
+      }
+      return node;
+    });
   }
   // 課堂筆記／習作解析：切換冊/章/小節時，如果那個小節已經有連結/顯示文字，
   // 就先帶入表單，管理者只想改「顯示文字」時不用重新貼一次網址。
@@ -1339,6 +1393,21 @@
       resourcesStore[r.category].push(r);
     });
   }
+  // 把一組資源渲染成卡片格線，放進傳入的容器（.book-body）
+  function renderResourceCardsInto(bodyEl, items){
+    items.forEach(function(item){
+      var card = document.createElement('div');
+      card.className = 'resource-card';
+      var h3 = document.createElement('h3');
+      h3.textContent = item.title;
+      var a = document.createElement('a');
+      a.href = item.url; a.target = '_blank'; a.rel = 'noopener';
+      a.textContent = '開啟連結 →';
+      card.appendChild(h3);
+      card.appendChild(a);
+      bodyEl.appendChild(card);
+    });
+  }
   function renderResourceSection(containerId, category){
     var container = document.getElementById(containerId);
     if (!container) return;
@@ -1361,23 +1430,37 @@
       tag.className = 'book-tag';
       tag.textContent = grp.label;
       summary.appendChild(tag);
-      summary.appendChild(document.createTextNode(' 共 ' + grp.items.length + ' 筆'));
+      var totalCount = grp.items ? grp.items.length : grp.subgroups.reduce(function(sum, sg){ return sum + sg.items.length; }, 0);
+      summary.appendChild(document.createTextNode(' 共 ' + totalCount + ' 筆'));
       details.appendChild(summary);
-      var body = document.createElement('div');
-      body.className = 'book-body';
-      grp.items.forEach(function(item){
-        var card = document.createElement('div');
-        card.className = 'resource-card';
-        var h3 = document.createElement('h3');
-        h3.textContent = item.title;
-        var a = document.createElement('a');
-        a.href = item.url; a.target = '_blank'; a.rel = 'noopener';
-        a.textContent = '開啟連結 →';
-        card.appendChild(h3);
-        card.appendChild(a);
-        body.appendChild(card);
-      });
-      details.appendChild(body);
+
+      if (grp.subgroups){
+        var subWrap = document.createElement('div');
+        subWrap.className = 'book-body subgroup-wrap';
+        grp.subgroups.forEach(function(sub, si){
+          var subDetails = document.createElement('details');
+          subDetails.className = 'subbook';
+          if (si === 0) subDetails.setAttribute('open', '');
+          var subSummary = document.createElement('summary');
+          var subTag = document.createElement('span');
+          subTag.className = 'subbook-tag';
+          subTag.textContent = sub.label;
+          subSummary.appendChild(subTag);
+          subSummary.appendChild(document.createTextNode(' 共 ' + sub.items.length + ' 筆'));
+          subDetails.appendChild(subSummary);
+          var subBody = document.createElement('div');
+          subBody.className = 'book-body';
+          renderResourceCardsInto(subBody, sub.items);
+          subDetails.appendChild(subBody);
+          subWrap.appendChild(subDetails);
+        });
+        details.appendChild(subWrap);
+      } else {
+        var body = document.createElement('div');
+        body.className = 'book-body';
+        renderResourceCardsInto(body, grp.items);
+        details.appendChild(body);
+      }
       container.appendChild(details);
     });
   }
@@ -1930,8 +2013,22 @@
   var linkGroupLabelText = document.getElementById('linkGroupLabelText');
   var linkGroupSelect = document.getElementById('linkGroupSelect');
   var linkGroupInput = document.getElementById('linkGroupInput');
+  var linkSubGroupFieldWrap = document.getElementById('linkSubGroupFieldWrap');
+  var linkSubGroupLabelText = document.getElementById('linkSubGroupLabelText');
+  var linkSubGroupSelect = document.getElementById('linkSubGroupSelect');
+  var linkSubGroupInput = document.getElementById('linkSubGroupInput');
   var resourceEditId = null; // 目前正在編輯的資源 id（自由清單用），null 表示新增模式
 
+  function setupGroupSelectOptions(selectEl, cfg, cat){
+    if (selectEl.getAttribute('data-cat') === cat) return;
+    selectEl.innerHTML = '';
+    cfg.options.forEach(function(opt){
+      var o = document.createElement('option');
+      o.value = opt; o.textContent = opt;
+      selectEl.appendChild(o);
+    });
+    selectEl.setAttribute('data-cat', cat);
+  }
   function applyLinkFormModeUI(){
     var cat = linkCategorySel.value;
     var resourceMode = isResourceCategory(cat);
@@ -1946,19 +2043,26 @@
       if (groupCfg.type === 'select'){
         linkGroupSelect.hidden = false;
         linkGroupInput.hidden = true;
-        if (linkGroupSelect.getAttribute('data-cat') !== cat){
-          linkGroupSelect.innerHTML = '';
-          groupCfg.options.forEach(function(opt){
-            var o = document.createElement('option');
-            o.value = opt; o.textContent = opt;
-            linkGroupSelect.appendChild(o);
-          });
-          linkGroupSelect.setAttribute('data-cat', cat);
-        }
+        setupGroupSelectOptions(linkGroupSelect, groupCfg, cat);
       } else {
         linkGroupSelect.hidden = true;
         linkGroupInput.hidden = false;
         linkGroupInput.placeholder = groupCfg.placeholder || '';
+      }
+    }
+
+    var subCfg = groupCfg && groupCfg.subGroup;
+    if (linkSubGroupFieldWrap) linkSubGroupFieldWrap.hidden = !subCfg;
+    if (subCfg && linkSubGroupLabelText){
+      linkSubGroupLabelText.textContent = subCfg.label;
+      if (subCfg.type === 'select'){
+        linkSubGroupSelect.hidden = false;
+        linkSubGroupInput.hidden = true;
+        setupGroupSelectOptions(linkSubGroupSelect, subCfg, cat);
+      } else {
+        linkSubGroupSelect.hidden = true;
+        linkSubGroupInput.hidden = false;
+        linkSubGroupInput.placeholder = subCfg.placeholder || '';
       }
     }
   }
@@ -1973,12 +2077,27 @@
     if (cfg.type === 'select') linkGroupSelect.value = v || (cfg.options && cfg.options[0]) || '';
     else linkGroupInput.value = v || '';
   }
+  function currentSubGroupValue(){
+    var cfg = RESOURCE_GROUP_CONFIG[linkCategorySel.value];
+    var subCfg = cfg && cfg.subGroup;
+    if (!subCfg) return '';
+    return (subCfg.type === 'select' ? linkSubGroupSelect.value : linkSubGroupInput.value).trim();
+  }
+  function setSubGroupValue(v){
+    var cfg = RESOURCE_GROUP_CONFIG[linkCategorySel.value];
+    var subCfg = cfg && cfg.subGroup;
+    if (!subCfg) return;
+    if (subCfg.type === 'select') linkSubGroupSelect.value = v || (subCfg.options && subCfg.options[0]) || '';
+    else linkSubGroupInput.value = v || '';
+  }
   function resetResourceEditState(){
     resourceEditId = null;
     if (linkLabelInput) linkLabelInput.value = '';
     if (linkUrlInput) linkUrlInput.value = '';
     if (linkGroupInput) linkGroupInput.value = '';
     if (linkGroupSelect && linkGroupSelect.options.length) linkGroupSelect.selectedIndex = 0;
+    if (linkSubGroupInput) linkSubGroupInput.value = '';
+    if (linkSubGroupSelect && linkSubGroupSelect.options.length) linkSubGroupSelect.selectedIndex = 0;
     if (cancelLinkEditBtn) cancelLinkEditBtn.hidden = true;
     if (saveLinkBtnEl) saveLinkBtnEl.textContent = '儲存連結';
     if (linkStatus){ linkStatus.textContent = ''; linkStatus.className = 'roster-status'; }
@@ -2055,7 +2174,10 @@
         var catCell = document.createElement('td');
         catCell.textContent = categoryLabel(cat);
         var titleCell = document.createElement('td');
-        titleCell.textContent = (item.group ? '[' + item.group + '] ' : '') + item.title;
+        var groupPrefixParts = [];
+        if (item.group) groupPrefixParts.push(item.group);
+        if (item.subgroup) groupPrefixParts.push(item.subgroup);
+        titleCell.textContent = (groupPrefixParts.length ? '[' + groupPrefixParts.join('/') + '] ' : '') + item.title;
         var urlCell = document.createElement('td');
         urlCell.className = 'mono';
         urlCell.style.cssText = 'max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
@@ -2091,6 +2213,7 @@
         var resUrl = linkUrlInput.value.trim();
         var groupCfg = RESOURCE_GROUP_CONFIG[category];
         var groupVal = currentGroupValue();
+        var subGroupVal = currentSubGroupValue();
         if (!title){
           linkStatus.textContent = '請輸入標題（檔名）。';
           linkStatus.className = 'roster-status is-error';
@@ -2106,10 +2229,15 @@
           linkStatus.className = 'roster-status is-error';
           return;
         }
+        if (groupCfg && groupCfg.subGroup && groupCfg.subGroup.required && !subGroupVal){
+          linkStatus.textContent = '請填「' + groupCfg.subGroup.label + '」。';
+          linkStatus.className = 'roster-status is-error';
+          return;
+        }
         saveLinkBtn.disabled = true;
         callApi('saveResource', {
           actorAccount: currentUser.account, actorPassword: currentPassword,
-          id: resourceEditId, category: category, title: title, url: resUrl, group: groupVal
+          id: resourceEditId, category: category, title: title, url: resUrl, group: groupVal, subgroup: subGroupVal
         }).then(function(res){
           saveLinkBtn.disabled = false;
           if (!res.ok){
@@ -2176,6 +2304,7 @@
           linkLabelInput.value = editItem.title;
           linkUrlInput.value = editItem.url;
           setGroupValue(editItem.group || '');
+          setSubGroupValue(editItem.subgroup || '');
           resourceEditId = editId;
           cancelLinkEditBtn.hidden = false;
           saveLinkBtn.textContent = '更新連結';
