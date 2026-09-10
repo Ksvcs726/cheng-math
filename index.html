@@ -3,7 +3,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;700&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
-  /* 有些元件（例如 .role-switch、.book-list、.resource-grid）自己設定了 display，
+  /* 有些元件（例如 .role-switch、.book-list、.admin-sidebar）自己設定了 display，
      specificity 跟瀏覽器預設的 [hidden]{display:none} 相同時，後宣告的會贏，
      導致 JS 設定 el.hidden = true 卻沒有真的隱藏。用 !important 強制蓋掉，
      確保任何元素只要有 hidden 屬性，一律不顯示（登入權限判斷才會真的生效）。 */
@@ -126,6 +126,7 @@
   nav.tabs a:nth-child(6){border-left-color:var(--indigo);}
   nav.tabs a:nth-child(7){border-left-color:var(--teal);}
   nav.tabs a:nth-child(8){border-left-color:var(--red);}
+  nav.tabs a:nth-child(9){border-left-color:var(--indigo);}
   nav.tabs a.is-active{background:var(--surface-2);color:var(--ink);font-weight:700;}
 
   .sidebar-foot{margin-top:auto;padding:16px 22px 2px;border-top:1px solid var(--border);}
@@ -164,12 +165,42 @@
     .sidebar-backdrop.is-open{display:block;}
   }
 
-  /* ---------- proto banner ---------- */
-  .proto-banner{
+  /* ---------- 全站頂部列：首頁／登入（取代原本的「網站建置中」提示橫幅）---------- */
+  .topbar{
     background:var(--indigo-tint);color:var(--indigo-strong);
-    font-size:.82rem;text-align:center;padding:8px 16px;
     border-bottom:1px solid var(--border);
   }
+  .topbar-inner{
+    display:flex;align-items:center;justify-content:flex-end;gap:14px;flex-wrap:wrap;
+    padding:8px 16px;font-size:.84rem;
+  }
+  .topbar-home{
+    text-decoration:none;font-weight:700;color:var(--indigo-strong);
+    margin-right:auto;
+  }
+  .topbar-home:hover{text-decoration:underline;}
+  .topbar-auth{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .topbar-session{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .btn-sm{padding:6px 12px;font-size:.8rem;}
+
+  /* ---------- 登入／修改密碼彈出視窗 ---------- */
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(10,14,20,.5);
+    display:flex;align-items:center;justify-content:center;padding:20px;z-index:100;
+  }
+  .modal-box{
+    background:var(--surface);border:1px solid var(--border);border-radius:8px;
+    box-shadow:0 12px 40px var(--shadow);padding:24px;width:100%;max-width:420px;
+    max-height:90vh;overflow-y:auto;
+  }
+  .modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px;}
+  .modal-head h3{font-size:1.1rem;}
+  .modal-close{
+    background:none;border:none;color:var(--ink-soft);font-size:1.4rem;line-height:1;
+    cursor:pointer;padding:2px 6px;
+  }
+  .modal-close:hover{color:var(--ink);}
+  .modal-box .exam-meta{margin-bottom:0;}
 
   /* ---------- hero ---------- */
   .hero{padding:clamp(48px,8vw,96px) 0 clamp(40px,6vw,68px);}
@@ -290,8 +321,14 @@
     background:var(--red-tint);color:var(--red);font-weight:500;
   }
 
-  /* ---------- 通用資源卡片（考卷解答／模擬考卷／歷屆統測試題／好站連結，管理者可直接新增/編輯） ---------- */
-  .resource-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;}
+  /* ---------- 純連結類資源清單（考卷解答／模擬考卷／歷屆統測試題／好站連結）：
+     檔案一多，一筆一個大卡片會拉得很長，改成像雲端硬碟一樣一行一筆的緊湊清單，
+     沿用課堂筆記/習作解析小節列表同一套 ul.section-list 樣式，風格統一、找檔案更快。---------- */
+  .book-body.resource-list-body{display:block;padding:6px 20px 16px;}
+  .book-body.resource-list-body ul.section-list{gap:2px;}
+
+  /* ---------- YouTube 教學影片卡片：需要放內嵌播放器，維持卡片＋較寬的格線 ---------- */
+  .book-body.video-grid{grid-template-columns:repeat(auto-fit,minmax(300px,1fr));}
   .resource-card{
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:20px;
     box-shadow:0 1px 2px var(--shadow);
@@ -301,6 +338,10 @@
     display:inline-block;margin-top:14px;font-size:.82rem;font-weight:500;text-decoration:none;
     color:var(--surface);background:var(--indigo);border:1px solid var(--indigo);padding:7px 12px;border-radius:3px;
   }
+  .video-embed-wrap{
+    position:relative;padding-top:56.25%;margin-top:12px;border-radius:4px;overflow:hidden;background:var(--surface-2);
+  }
+  .video-embed-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}
   .edit-btn{
     background:none;border:none;color:var(--ink-soft);cursor:pointer;font-size:.82rem;
     padding:2px 6px;text-decoration:underline;
@@ -377,11 +418,26 @@
   .demo-nav button[aria-pressed="true"]{background:var(--indigo);border-color:var(--indigo);color:var(--surface);}
 
   .login-hint{color:var(--ink-soft);font-size:.84rem;margin-bottom:16px;}
-  .session-bar{
-    display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
-    padding:12px 16px;background:var(--indigo-tint);color:var(--indigo-strong);border-radius:4px;margin-bottom:20px;
+
+  /* ---------- 管理者側邊欄（小考成績登錄／帳號與權限管理／檔案連結管理）---------- */
+  .role-content-shell{display:flex;gap:24px;align-items:flex-start;}
+  .admin-sidebar{
+    display:flex;flex-direction:column;gap:2px;width:200px;flex-shrink:0;
+    background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px;
   }
-  .session-actions{display:flex;gap:8px;}
+  .admin-sidebar button{
+    text-align:left;padding:10px 14px;border-radius:4px;border:1px solid transparent;border-left:3px solid transparent;
+    background:transparent;color:var(--ink-soft);font-size:.88rem;font-weight:500;cursor:pointer;
+  }
+  .admin-sidebar button:hover{background:var(--surface-2);color:var(--ink);}
+  .admin-sidebar button[aria-pressed="true"]{
+    background:var(--indigo-tint);color:var(--indigo-strong);border-left-color:var(--indigo);font-weight:700;
+  }
+  .role-panels{flex:1;min-width:0;}
+  @media (max-width:760px){
+    .role-content-shell{flex-direction:column;}
+    .admin-sidebar{width:100%;flex-direction:row;flex-wrap:wrap;}
+  }
 
   .exam-meta{
     display:flex;gap:18px;flex-wrap:wrap;margin-bottom:20px;padding:14px 16px;
@@ -446,7 +502,53 @@
 })();
 </script>
 
-<div class="proto-banner">網站建置中——課堂筆記、考卷等內容陸續上傳中，「敬請期待」會逐步換成真正的連結。</div>
+<header class="topbar" id="topbar">
+  <div class="topbar-inner">
+    <a class="topbar-home" href="#notes">首頁</a>
+    <div class="topbar-auth">
+      <button type="button" class="btn btn-ghost btn-sm" id="topbarLoginBtn" data-open-login>登入</button>
+      <div class="topbar-session" id="topbarSession" hidden>
+        <span class="mono" id="topbarSessionInfo"></span>
+        <button type="button" class="btn btn-ghost btn-sm" id="topbarPwBtn">修改密碼</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="topbarLogoutBtn">登出</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- 登入視窗：點右上角「登入」或任何頁面裡的「前往登入」都會開這個，不用再跳去小考成績分頁 -->
+<div class="modal-overlay" id="loginModalOverlay" hidden>
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="loginModalTitle">
+    <div class="modal-head">
+      <h3 id="loginModalTitle">登入</h3>
+      <button type="button" class="modal-close" id="loginModalCloseBtn" aria-label="關閉">×</button>
+    </div>
+    <p class="login-hint">請輸入你的帳號密碼；忘記密碼請洽程老師或班上小老師協助重設。</p>
+    <form id="loginForm" class="exam-meta" style="align-items:flex-end;">
+      <label>帳號<input type="text" id="loginAccount" required placeholder="學號或管理者帳號"></label>
+      <label>密碼<input type="password" id="loginPassword" required placeholder="密碼"></label>
+      <button type="submit" class="btn btn-primary" id="loginSubmitBtn">登入</button>
+    </form>
+    <span class="roster-status is-error" id="loginError"></span>
+  </div>
+</div>
+
+<!-- 修改密碼視窗：登入後點右上角「修改密碼」開啟 -->
+<div class="modal-overlay" id="pwModalOverlay" hidden>
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="pwModalTitle">
+    <div class="modal-head">
+      <h3 id="pwModalTitle">修改密碼</h3>
+      <button type="button" class="modal-close" id="pwModalCloseBtn" aria-label="關閉">×</button>
+    </div>
+    <form id="pwForm" class="exam-meta" style="align-items:flex-end;">
+      <label>目前密碼<input type="password" id="pwOld" required></label>
+      <label>新密碼<input type="password" id="pwNew" required minlength="4"></label>
+      <label>確認新密碼<input type="password" id="pwConfirm" required minlength="4"></label>
+      <button type="submit" class="btn btn-primary">更新密碼</button>
+    </form>
+    <span class="roster-status" id="pwStatus"></span>
+  </div>
+</div>
 
 <div class="shell">
 
@@ -466,6 +568,7 @@
       <a href="#grades">小考成績</a>
       <a href="#demos">互動動畫</a>
       <a href="#goodlinks">好站連結</a>
+      <a href="#videos">YouTube教學影片</a>
     </nav>
     <div class="sidebar-foot">
       <button type="button" class="theme-toggle" id="themeToggle" aria-label="切換深色／淺色模式">
@@ -512,7 +615,7 @@
       <div class="content-gate" id="notesLoginGate" hidden>
         <strong>登入後才能查看課堂筆記</strong>
         內容僅開放給本班學生與程老師，請先登入小考成績帳號（帳號＝學號）。
-        <a class="btn btn-primary" href="#grades">前往登入</a>
+        <button type="button" class="btn btn-primary" data-open-login>前往登入</button>
       </div>
       <div class="book-list" id="notesDirectory"></div>
     </div>
@@ -532,7 +635,7 @@
       <div class="content-gate" id="workbookLoginGate" hidden>
         <strong>登入後才能查看習作解析</strong>
         內容僅開放給本班學生與程老師，請先登入小考成績帳號（帳號＝學號）。
-        <a class="btn btn-primary" href="#grades">前往登入</a>
+        <button type="button" class="btn btn-primary" data-open-login>前往登入</button>
       </div>
       <div class="book-list" id="workbookDirectory"></div>
     </div>
@@ -551,7 +654,7 @@
       <div class="content-gate" id="examsLoginGate" hidden>
         <strong>登入後才能查看考卷解答</strong>
         內容僅開放給本班學生與程老師，請先登入小考成績帳號（帳號＝學號）。
-        <a class="btn btn-primary" href="#grades">前往登入</a>
+        <button type="button" class="btn btn-primary" data-open-login>前往登入</button>
       </div>
       <div class="book-list" id="examsContent">
         <p class="query-empty">目前還沒有上傳考卷解答，之後新增後會顯示在這裡。</p>
@@ -572,7 +675,7 @@
       <div class="content-gate" id="mocksLoginGate" hidden>
         <strong>登入後才能查看模擬考卷</strong>
         內容僅開放給本班學生與程老師，請先登入小考成績帳號（帳號＝學號）。
-        <a class="btn btn-primary" href="#grades">前往登入</a>
+        <button type="button" class="btn btn-primary" data-open-login>前往登入</button>
       </div>
       <div class="book-list" id="mocksContent">
         <p class="query-empty">目前還沒有上傳模擬考卷，之後新增後會顯示在這裡。</p>
@@ -593,7 +696,7 @@
       <div class="content-gate" id="pastexamsLoginGate" hidden>
         <strong>登入後才能查看歷屆統測試題</strong>
         內容僅開放給本班學生與程老師，請先登入小考成績帳號（帳號＝學號）。
-        <a class="btn btn-primary" href="#grades">前往登入</a>
+        <button type="button" class="btn btn-primary" data-open-login>前往登入</button>
       </div>
       <div class="book-list" id="pastexamsContent">
         <p class="query-empty">目前還沒有上傳歷屆統測試題，之後新增後會顯示在這裡。</p>
@@ -614,46 +717,31 @@
 
       <div class="demo-note" id="apiStatusNote" hidden></div>
 
-      <!-- login gate -->
+      <!-- login gate: 未登入時的提示，實際登入請用右上角的「登入」按鈕 -->
       <div class="demo-shell" id="loginGate">
-        <div class="demo-head"><h3>登入</h3></div>
-        <p class="login-hint">請輸入你的帳號密碼；忘記密碼請洽程老師或班上小老師協助重設。</p>
-        <form id="loginForm" class="exam-meta" style="align-items:flex-end;">
-          <label>帳號<input type="text" id="loginAccount" required placeholder="學號或管理者帳號"></label>
-          <label>密碼<input type="password" id="loginPassword" required placeholder="密碼"></label>
-          <button type="submit" class="btn btn-primary" id="loginSubmitBtn">登入</button>
-        </form>
-        <span class="roster-status is-error" id="loginError"></span>
+        <div class="demo-head"><h3>尚未登入</h3></div>
+        <p class="login-hint">請點頁面右上角的「登入」輸入帳號密碼（帳號＝學號；忘記密碼請洽程老師或班上小老師協助重設）。</p>
+        <button type="button" class="btn btn-primary" data-open-login>前往登入</button>
       </div>
 
       <!-- logged-in area -->
       <div id="loggedInArea" hidden>
 
-        <div class="session-bar">
-          <span id="sessionInfo" class="mono"></span>
-          <div class="session-actions">
-            <button type="button" class="btn btn-ghost" id="togglePwBtn">修改密碼</button>
-            <button type="button" class="btn btn-ghost" id="logoutBtn">登出</button>
-          </div>
+        <!-- 小老師專用：成績輸入／成績查詢 兩個子功能切換 -->
+        <div class="role-switch" id="monitorTabs" hidden>
+          <button type="button" data-mtab="entry" aria-pressed="true">成績輸入</button>
+          <button type="button" data-mtab="query" aria-pressed="false">成績查詢</button>
         </div>
 
-        <div class="demo-shell" id="pwPanel" hidden>
-          <div class="demo-head"><h3>修改密碼</h3></div>
-          <form id="pwForm" class="exam-meta" style="align-items:flex-end;">
-            <label>目前密碼<input type="password" id="pwOld" required></label>
-            <label>新密碼<input type="password" id="pwNew" required minlength="4"></label>
-            <label>確認新密碼<input type="password" id="pwConfirm" required minlength="4"></label>
-            <button type="submit" class="btn btn-primary">更新密碼</button>
-          </form>
-          <span class="roster-status" id="pwStatus"></span>
-        </div>
+        <div class="role-content-shell" id="roleContentShell">
+          <!-- 管理者（程老師）專用側邊欄：以後管理者的各項功能都加在這裡就好 -->
+          <nav class="admin-sidebar" id="adminSidebarNav" hidden>
+            <button type="button" data-tab="entry" aria-pressed="true">小考成績登錄</button>
+            <button type="button" data-tab="accounts" aria-pressed="false">帳號與權限管理</button>
+            <button type="button" data-tab="links" aria-pressed="false">檔案連結管理</button>
+          </nav>
 
-        <!-- admin-only sub-tabs -->
-        <div class="role-switch" id="adminTabs" hidden>
-          <button type="button" data-tab="entry" aria-pressed="true">小考成績登錄</button>
-          <button type="button" data-tab="accounts" aria-pressed="false">帳號與權限管理</button>
-          <button type="button" data-tab="links" aria-pressed="false">檔案連結管理</button>
-        </div>
+          <div class="role-panels" id="rolePanels">
 
         <!-- entry panel: admin (any class) + monitor (own class only) -->
         <div class="demo-shell" id="entryPanel" hidden>
@@ -731,7 +819,7 @@
         <!-- links panel: admin only -->
         <div class="demo-shell" id="linksPanel" hidden>
           <div class="demo-head"><h3>檔案連結管理</h3></div>
-          <p class="block-desc" style="margin-bottom:16px;max-width:none;">「課堂筆記」「習作解析」選好冊/章/小節後貼上連結存檔，對應小節的「敬請期待」就會換成真正的連結；「考卷解答」「模擬考卷」「歷屆統測試題」「好站連結」則是自由新增項目，填標題（檔名）跟連結即可，可以之後再編輯或刪除——「考卷解答」多選「冊」跟「卷別（學習卷/隨堂卷/其他卷類）」，網頁上會先依冊別、每一冊底下再依卷別分組收合；「模擬考卷」「歷屆統測試題」多填「年份」，依年份新到舊分組；「好站連結」的「分類」是選填，用來把同類型的網站放在一起，不填就會歸在「其他」。檔案一多也能很快找到。請用雲端硬碟「取得連結」的分享網址，並把權限設為「知道連結的使用者」——這樣學生點連結會直接在瀏覽器開啟 PDF 預覽畫面，不需要另外下載；如果權限沒開，學生點了會看到「沒有存取權」。</p>
+          <p class="block-desc" style="margin-bottom:16px;max-width:none;">「課堂筆記」「習作解析」選好冊/章/小節後貼上連結存檔，對應小節的「敬請期待」就會換成真正的連結；「考卷解答」「模擬考卷」「歷屆統測試題」「好站連結」「YouTube教學影片」則是自由新增項目，填標題跟連結即可，可以之後再編輯或刪除——「考卷解答」多選「冊」跟「卷別（學習卷/隨堂卷/其他卷類）」，網頁上會先依冊別、每一冊底下再依卷別分組收合；「模擬考卷」「歷屆統測試題」多填「年份」，依年份新到舊分組；「好站連結」「YouTube教學影片」的「分類」是選填，用來把同類型的項目放在一起，不填就會歸在「其他」。前 4 種類別在網頁上會顯示成像雲端硬碟一樣一行一筆的清單，檔案一多也能很快找到；「YouTube教學影片」則會直接在網頁上嵌入播放器，貼 YouTube 的分享連結（watch/youtu.be/shorts 都可以）即可，不用另外剪輯或上傳檔案。文件類請用雲端硬碟「取得連結」的分享網址，並把權限設為「知道連結的使用者」——這樣學生點連結會直接在瀏覽器開啟 PDF 預覽畫面，不需要另外下載；如果權限沒開，學生點了會看到「沒有存取權」。</p>
           <div class="exam-meta">
             <label>分類
               <select id="linkCategory">
@@ -741,6 +829,7 @@
                 <option value="mocks">模擬考卷</option>
                 <option value="pastexams">歷屆統測試題</option>
                 <option value="goodlinks">好站連結</option>
+                <option value="videos">YouTube教學影片</option>
               </select>
             </label>
           </div>
@@ -763,7 +852,7 @@
           </div>
           <div class="exam-meta">
             <label style="flex:2;"><span id="linkLabelText">連結顯示文字（選填）</span><input type="text" id="linkLabelInput" placeholder="留空則顯示預設文字"></label>
-            <label style="flex:3;">雲端硬碟連結網址<input type="url" id="linkUrl" placeholder="https://drive.google.com/..."></label>
+            <label style="flex:3;"><span id="linkUrlLabelText">雲端硬碟連結網址</span><input type="url" id="linkUrl" placeholder="https://drive.google.com/..."></label>
           </div>
           <div class="roster-actions">
             <button type="button" class="btn btn-primary" id="saveLinkBtn">儲存連結</button>
@@ -778,10 +867,13 @@
           </div>
         </div>
 
-        <!-- student query panel: plain student only -->
+        <!-- student query panel: monitor + plain student -->
         <div class="demo-shell" id="studentQueryPanel" hidden>
           <div class="demo-head"><h3>我的小考成績</h3></div>
           <div class="query-result" id="studentQueryResult"></div>
+        </div>
+
+          </div>
         </div>
 
       </div>
@@ -888,6 +980,27 @@
       </div>
     </div>
   </section>
+
+  <!-- ================= YOUTUBE 教學影片 ================= -->
+  <section class="block" id="videos">
+    <div class="page">
+      <div class="block-head">
+        <div>
+          <h2>YouTube 教學影片</h2>
+          <p class="block-desc">上課補充、觀念講解影片，點開就能直接在網頁上播放，不用另外跳出去 YouTube。</p>
+        </div>
+        <span class="block-tag">登入制</span>
+      </div>
+      <div class="content-gate" id="videosLoginGate" hidden>
+        <strong>登入後才能觀看教學影片</strong>
+        內容僅開放給本班學生與程老師，請先登入。
+        <button type="button" class="btn btn-primary" data-open-login>前往登入</button>
+      </div>
+      <div class="book-list" id="videosContent">
+        <p class="query-empty">目前還沒有上傳教學影片，之後新增後會顯示在這裡。</p>
+      </div>
+    </div>
+  </section>
     </main>
 
     <footer class="site">
@@ -934,7 +1047,7 @@
   }
 
   /* ============ View switching (sidebar acts like page navigation, no scrolling) ============ */
-  var VIEW_IDS = ['notes', 'workbook', 'exams', 'mocks', 'pastexams', 'grades', 'demos', 'goodlinks'];
+  var VIEW_IDS = ['notes', 'workbook', 'exams', 'mocks', 'pastexams', 'grades', 'demos', 'goodlinks', 'videos'];
   var heroEl = document.querySelector('.hero');
 
   function switchView(id){
@@ -1265,13 +1378,14 @@
   }
 
   /* ============ 自由清單資源（考卷解答／模擬考卷／歷屆統測試題／好站連結） ============ */
-  var RESOURCE_CATEGORIES = ['exams', 'mocks', 'pastexams', 'goodlinks'];
-  var resourcesStore = { exams:[], mocks:[], pastexams:[], goodlinks:[] };
+  var RESOURCE_CATEGORIES = ['exams', 'mocks', 'pastexams', 'goodlinks', 'videos'];
+  var resourcesStore = { exams:[], mocks:[], pastexams:[], goodlinks:[], videos:[] };
   var RESOURCE_EMPTY_TEXT = {
     exams: '目前還沒有上傳考卷解答，之後新增後會顯示在這裡。',
     mocks: '目前還沒有上傳模擬考卷，之後新增後會顯示在這裡。',
     pastexams: '目前還沒有上傳歷屆統測試題，之後新增後會顯示在這裡。',
-    goodlinks: '目前還沒有新增好站連結。'
+    goodlinks: '目前還沒有新增好站連結。',
+    videos: '目前還沒有上傳教學影片，之後新增後會顯示在這裡。'
   };
   function isResourceCategory(cat){ return RESOURCE_CATEGORIES.indexOf(cat) !== -1; }
 
@@ -1284,6 +1398,7 @@
     mocks: { type:'text', label:'年份', placeholder:'例如：2026', required:true },
     pastexams: { type:'text', label:'年份', placeholder:'例如：2026', required:true },
     goodlinks: { type:'text', label:'分類（選填，例如：繪圖工具）', placeholder:'留空會歸在「其他」', required:false },
+    videos: { type:'text', label:'分類（選填，例如：三角函數）', placeholder:'留空會歸在「其他」', required:false },
   };
   var EXAM_BOOK_ORDER = ['第一冊', '第二冊', '第三冊', '第四冊'];
 
@@ -1316,9 +1431,9 @@
     return subVal || '未分類卷別';
   }
   // 把同一分類的資源依規則分組：考卷解答依冊別固定順序（每一冊底下再依「學習卷/隨堂卷/其他卷類」細分）、
-  // 模擬考卷/歷屆統測依年份新到舊、好站連結依「分類」出現的先後順序分組，沒填分類的一律歸在最後的「其他」。
+  // 模擬考卷/歷屆統測依年份新到舊、好站連結／YouTube教學影片依「分類」出現的先後順序分組，沒填分類的一律歸在最後的「其他」。
   function groupResourceItems(category, items){
-    if (category === 'goodlinks'){
+    if (category === 'goodlinks' || category === 'videos'){
       var order = [];
       var buckets = {};
       var untagged = [];
@@ -1383,30 +1498,106 @@
     labelEl.value = (linksLabelStore[category] && linksLabelStore[category][key]) || '';
   }
   function categoryLabel(cat){
-    var map = { notes:'課堂筆記', workbook:'習作解析', exams:'考卷解答', mocks:'模擬考卷', pastexams:'歷屆統測試題', goodlinks:'好站連結' };
+    var map = { notes:'課堂筆記', workbook:'習作解析', exams:'考卷解答', mocks:'模擬考卷', pastexams:'歷屆統測試題', goodlinks:'好站連結', videos:'YouTube教學影片' };
     return map[cat] || cat;
   }
   function applyResourcesFromApi(list){
-    resourcesStore = { exams:[], mocks:[], pastexams:[], goodlinks:[] };
+    resourcesStore = { exams:[], mocks:[], pastexams:[], goodlinks:[], videos:[] };
     (list || []).forEach(function(r){
       if (!resourcesStore[r.category]) return;
       resourcesStore[r.category].push(r);
     });
   }
-  // 把一組資源渲染成卡片格線，放進傳入的容器（.book-body）
-  function renderResourceCardsInto(bodyEl, items){
+
+  // 把 YouTube 連結（watch/youtu.be/shorts/embed/live，含可能夾帶的 t= 時間戳）轉成可以嵌入 iframe 的 embed 網址；
+  // 認不得的格式回傳空字串，畫面上會改用「開啟原始連結」的備援做法，不會整張卡片壞掉。
+  function parseYoutubeTimeParam(t){
+    if (/^\d+$/.test(t)) return parseInt(t, 10);
+    var m = /^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/.exec(t);
+    if (!m) return 0;
+    return (parseInt(m[1] || 0, 10) * 3600) + (parseInt(m[2] || 0, 10) * 60) + parseInt(m[3] || 0, 10);
+  }
+  function youtubeEmbedUrl(url){
+    if (!url) return '';
+    try {
+      var u = new URL(url, window.location.href);
+      var host = u.hostname.replace(/^www\./, '').replace(/^m\./, '');
+      var id = '';
+      if (host === 'youtu.be'){
+        id = u.pathname.split('/').filter(Boolean)[0] || '';
+      } else if (host === 'youtube.com' || host === 'youtube-nocookie.com'){
+        if (u.pathname === '/watch'){
+          id = u.searchParams.get('v') || '';
+        } else {
+          var m = u.pathname.match(/\/(embed|shorts|live)\/([^/?]+)/);
+          if (m) id = m[2];
+        }
+      }
+      if (!id) return '';
+      var embed = 'https://www.youtube.com/embed/' + id;
+      var t = u.searchParams.get('t') || u.searchParams.get('start');
+      if (t){
+        var secs = parseYoutubeTimeParam(t);
+        if (secs) embed += '?start=' + secs;
+      }
+      return embed;
+    } catch (e){ return ''; }
+  }
+
+  // 把一組資源渲染進傳入的容器（.book-body）：
+  // ——YouTube教學影片用卡片＋內嵌播放器（要有空間放影片）；
+  // ——其他純連結類（考卷解答／模擬考卷／歷屆統測試題／好站連結）改成像雲端硬碟一樣一行一筆的緊湊清單，
+  //    檔案一多的時候比每筆都是一個大方框的卡片省空間很多，找檔案也更快。
+  function renderResourceCardsInto(bodyEl, items, category){
+    if (category === 'videos'){
+      items.forEach(function(item){
+        var card = document.createElement('div');
+        card.className = 'resource-card video-card';
+        var h3 = document.createElement('h3');
+        h3.textContent = item.title;
+        card.appendChild(h3);
+        var embedUrl = youtubeEmbedUrl(item.url);
+        if (embedUrl){
+          var wrap = document.createElement('div');
+          wrap.className = 'video-embed-wrap';
+          var iframe = document.createElement('iframe');
+          iframe.src = embedUrl;
+          iframe.title = item.title;
+          iframe.loading = 'lazy';
+          iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+          iframe.setAttribute('allowfullscreen', '');
+          wrap.appendChild(iframe);
+          card.appendChild(wrap);
+        } else {
+          var warn = document.createElement('p');
+          warn.className = 'query-empty';
+          warn.style.cssText = 'margin:10px 0 0;font-size:.82rem;text-align:left;padding:0;';
+          warn.textContent = '無法辨識這個 YouTube 連結格式，請確認網址是否正確。';
+          card.appendChild(warn);
+          var a = document.createElement('a');
+          a.href = item.url; a.target = '_blank'; a.rel = 'noopener';
+          a.textContent = '開啟原始連結 →';
+          card.appendChild(a);
+        }
+        bodyEl.appendChild(card);
+      });
+      return;
+    }
+    var ul = document.createElement('ul');
+    ul.className = 'section-list';
     items.forEach(function(item){
-      var card = document.createElement('div');
-      card.className = 'resource-card';
-      var h3 = document.createElement('h3');
-      h3.textContent = item.title;
+      var li = document.createElement('li');
+      var span = document.createElement('span');
+      span.textContent = item.title;
+      li.appendChild(span);
       var a = document.createElement('a');
+      a.className = 'badge demo-badge';
       a.href = item.url; a.target = '_blank'; a.rel = 'noopener';
       a.textContent = '開啟連結 →';
-      card.appendChild(h3);
-      card.appendChild(a);
-      bodyEl.appendChild(card);
+      li.appendChild(a);
+      ul.appendChild(li);
     });
+    bodyEl.appendChild(ul);
   }
   function renderResourceSection(containerId, category){
     var container = document.getElementById(containerId);
@@ -1420,6 +1611,7 @@
       container.appendChild(empty);
       return;
     }
+    var bodyClass = 'book-body' + (category === 'videos' ? ' video-grid' : ' resource-list-body');
     var groups = groupResourceItems(category, items);
     groups.forEach(function(grp, gi){
       var details = document.createElement('details');
@@ -1449,16 +1641,16 @@
           subSummary.appendChild(document.createTextNode(' 共 ' + sub.items.length + ' 筆'));
           subDetails.appendChild(subSummary);
           var subBody = document.createElement('div');
-          subBody.className = 'book-body';
-          renderResourceCardsInto(subBody, sub.items);
+          subBody.className = bodyClass;
+          renderResourceCardsInto(subBody, sub.items, category);
           subDetails.appendChild(subBody);
           subWrap.appendChild(subDetails);
         });
         details.appendChild(subWrap);
       } else {
         var body = document.createElement('div');
-        body.className = 'book-body';
-        renderResourceCardsInto(body, grp.items);
+        body.className = bodyClass;
+        renderResourceCardsInto(body, grp.items, category);
         details.appendChild(body);
       }
       container.appendChild(details);
@@ -1469,6 +1661,7 @@
     renderResourceSection('mocksContent', 'mocks');
     renderResourceSection('pastexamsContent', 'pastexams');
     renderResourceSection('goodlinksContent', 'goodlinks');
+    renderResourceSection('videosContent', 'videos');
   }
   function refreshResourcesFromApi(){
     return callApi('getResources', {}).then(function(res){
@@ -1609,7 +1802,8 @@
     { gateId: 'workbookLoginGate', contentId: 'workbookDirectory' },
     { gateId: 'examsLoginGate', contentId: 'examsContent' },
     { gateId: 'mocksLoginGate', contentId: 'mocksContent' },
-    { gateId: 'pastexamsLoginGate', contentId: 'pastexamsContent' }
+    { gateId: 'pastexamsLoginGate', contentId: 'pastexamsContent' },
+    { gateId: 'videosLoginGate', contentId: 'videosContent' }
   ];
   function updateContentGates(){
     var loggedIn = !!currentUser;
@@ -2042,6 +2236,7 @@
   var linkCurriculumFields = document.getElementById('linkCurriculumFields');
   var linkLabelText = document.getElementById('linkLabelText');
   var linkLabelInput = document.getElementById('linkLabelInput');
+  var linkUrlLabelText = document.getElementById('linkUrlLabelText');
   var linkUrlInput = document.getElementById('linkUrl');
   var linkStatus = document.getElementById('linkStatus');
   var cancelLinkEditBtn = document.getElementById('cancelLinkEditBtn');
@@ -2069,8 +2264,10 @@
     var cat = linkCategorySel.value;
     var resourceMode = isResourceCategory(cat);
     if (linkCurriculumFields) linkCurriculumFields.hidden = resourceMode;
-    if (linkLabelText) linkLabelText.textContent = resourceMode ? '標題（檔名）' : '連結顯示文字（選填）';
-    if (linkLabelInput) linkLabelInput.placeholder = resourceMode ? '例如：2026-03 第一次期中考解答' : '留空則顯示預設文字，例如「查看筆記 →」';
+    if (linkLabelText) linkLabelText.textContent = cat === 'videos' ? '影片標題' : (resourceMode ? '標題（檔名）' : '連結顯示文字（選填）');
+    if (linkLabelInput) linkLabelInput.placeholder = cat === 'videos' ? '例如：三角函數觀念講解' : (resourceMode ? '例如：2026-03 第一次期中考解答' : '留空則顯示預設文字，例如「查看筆記 →」');
+    if (linkUrlLabelText) linkUrlLabelText.textContent = cat === 'videos' ? 'YouTube 連結網址' : '雲端硬碟連結網址';
+    if (linkUrlInput) linkUrlInput.placeholder = cat === 'videos' ? 'https://www.youtube.com/watch?v=... 或 https://youtu.be/...' : 'https://drive.google.com/...';
 
     var groupCfg = RESOURCE_GROUP_CONFIG[cat];
     if (linkGroupFieldWrap) linkGroupFieldWrap.hidden = !groupCfg;
@@ -2384,9 +2581,9 @@
     });
   }
 
-  /* ---- 管理者子頁籤切換 ---- */
+  /* ---- 管理者側邊欄切換（以後管理者新功能，就在 HTML 的 #adminSidebarNav 多加一顆按鈕、#rolePanels 多加一個面板即可）---- */
   function setAdminTab(tab){
-    Array.prototype.forEach.call(document.querySelectorAll('#adminTabs button'), function(b){
+    Array.prototype.forEach.call(document.querySelectorAll('#adminSidebarNav button'), function(b){
       b.setAttribute('aria-pressed', b.getAttribute('data-tab') === tab ? 'true' : 'false');
     });
     document.getElementById('entryPanel').hidden = (tab !== 'entry');
@@ -2401,12 +2598,35 @@
       });
     }
   }
-  var adminTabsEl = document.getElementById('adminTabs');
-  if (adminTabsEl){
-    adminTabsEl.addEventListener('click', function(e){
+  var adminSidebarNavEl = document.getElementById('adminSidebarNav');
+  if (adminSidebarNavEl){
+    adminSidebarNavEl.addEventListener('click', function(e){
       var btn = e.target.closest('button[data-tab]');
       if (!btn) return;
       setAdminTab(btn.getAttribute('data-tab'));
+    });
+  }
+
+  /* ---- 小老師子頁籤切換：成績輸入／成績查詢 ---- */
+  function setMonitorTab(tab){
+    Array.prototype.forEach.call(document.querySelectorAll('#monitorTabs button'), function(b){
+      b.setAttribute('aria-pressed', b.getAttribute('data-mtab') === tab ? 'true' : 'false');
+    });
+    document.getElementById('entryPanel').hidden = (tab !== 'entry');
+    document.getElementById('studentQueryPanel').hidden = (tab !== 'query');
+    if (tab === 'entry'){
+      loadRosterForCurrentClass();
+      refreshGrades();
+    } else {
+      runStudentSelfQuery();
+    }
+  }
+  var monitorTabsEl = document.getElementById('monitorTabs');
+  if (monitorTabsEl){
+    monitorTabsEl.addEventListener('click', function(e){
+      var btn = e.target.closest('button[data-mtab]');
+      if (!btn) return;
+      setMonitorTab(btn.getAttribute('data-mtab'));
     });
   }
 
@@ -2431,17 +2651,85 @@
     });
   }
 
-  /* ---- session / 登入 / 登出 / 修改密碼 ---- */
+  /* ---- session / 登入 / 登出 / 修改密碼（登入與修改密碼現在都是右上角的彈出視窗，不綁在特定頁面上）---- */
   function roleLabel(u){
     if (u.role === 'admin') return '管理者';
     if (u.role === 'monitor') return '小老師・' + u.className;
     return '學生・' + u.className;
   }
 
+  var loginModalOverlay = document.getElementById('loginModalOverlay');
+  var pwModalOverlay = document.getElementById('pwModalOverlay');
+  function openLoginModal(){
+    if (!loginModalOverlay) return;
+    var errEl = document.getElementById('loginError');
+    if (errEl) errEl.textContent = '';
+    loginModalOverlay.hidden = false;
+    var accEl = document.getElementById('loginAccount');
+    if (accEl) accEl.focus();
+  }
+  function closeLoginModal(){ if (loginModalOverlay) loginModalOverlay.hidden = true; }
+  function openPwModal(){
+    if (!pwModalOverlay || !currentUser) return;
+    var statusEl = document.getElementById('pwStatus');
+    if (statusEl){ statusEl.textContent = ''; statusEl.className = 'roster-status'; }
+    pwModalOverlay.hidden = false;
+    var oldEl = document.getElementById('pwOld');
+    if (oldEl) oldEl.focus();
+  }
+  function closePwModal(){ if (pwModalOverlay) pwModalOverlay.hidden = true; }
+
+  // 任何頁面上帶 data-open-login 的按鈕（內容門檻提示、小考成績「前往登入」等）都會開登入視窗
+  document.addEventListener('click', function(e){
+    if (e.target.closest('[data-open-login]')) openLoginModal();
+  });
+  var loginModalCloseBtn = document.getElementById('loginModalCloseBtn');
+  if (loginModalCloseBtn) loginModalCloseBtn.addEventListener('click', closeLoginModal);
+  if (loginModalOverlay){
+    loginModalOverlay.addEventListener('click', function(e){ if (e.target === loginModalOverlay) closeLoginModal(); });
+  }
+  var pwModalCloseBtn = document.getElementById('pwModalCloseBtn');
+  if (pwModalCloseBtn) pwModalCloseBtn.addEventListener('click', closePwModal);
+  if (pwModalOverlay){
+    pwModalOverlay.addEventListener('click', function(e){ if (e.target === pwModalOverlay) closePwModal(); });
+  }
+  document.addEventListener('keydown', function(e){
+    if (e.key !== 'Escape') return;
+    if (loginModalOverlay && !loginModalOverlay.hidden) closeLoginModal();
+    if (pwModalOverlay && !pwModalOverlay.hidden) closePwModal();
+  });
+
+  var topbarLoginBtn = document.getElementById('topbarLoginBtn');
+  var topbarSessionEl = document.getElementById('topbarSession');
+  var topbarSessionInfo = document.getElementById('topbarSessionInfo');
+  var topbarPwBtn = document.getElementById('topbarPwBtn');
+  var topbarLogoutBtn = document.getElementById('topbarLogoutBtn');
+  function syncTopbarAuth(){
+    var loggedIn = !!currentUser;
+    if (topbarLoginBtn) topbarLoginBtn.hidden = loggedIn;
+    if (topbarSessionEl) topbarSessionEl.hidden = !loggedIn;
+    if (loggedIn && topbarSessionInfo){
+      topbarSessionInfo.textContent = currentUser.name + '（' + roleLabel(currentUser) + '）';
+    }
+  }
+  if (topbarPwBtn) topbarPwBtn.addEventListener('click', openPwModal);
+  if (topbarLogoutBtn){
+    topbarLogoutBtn.addEventListener('click', function(){
+      currentUser = null;
+      currentPassword = null;
+      adminClassList = [];
+      grades = [];
+      clearSessionStorage();
+      closePwModal();
+      applySession();
+    });
+  }
+
   function applySession(){
     var loginGate = document.getElementById('loginGate');
     var loggedInArea = document.getElementById('loggedInArea');
     updateContentGates();
+    syncTopbarAuth();
 
     if (!currentUser){
       loginGate.hidden = false;
@@ -2450,38 +2738,31 @@
     }
     loginGate.hidden = true;
     loggedInArea.hidden = false;
-    document.getElementById('sessionInfo').textContent = '已登入：' + currentUser.name + '（' + roleLabel(currentUser) + '）';
 
     var isAdmin = currentUser.role === 'admin';
     var isMonitor = currentUser.role === 'monitor';
-    var isPlainStudent = currentUser.role === 'student';
 
-    document.getElementById('adminTabs').hidden = !isAdmin;
-    // 小老師也是學生身分，一樣要能查自己的成績
-    document.getElementById('studentQueryPanel').hidden = !(isPlainStudent || isMonitor);
+    document.getElementById('adminSidebarNav').hidden = !isAdmin;
+    document.getElementById('monitorTabs').hidden = !isMonitor;
     document.getElementById('exportPanel').hidden = !isAdmin;
 
     populateExamClassOptions();
 
+    // 每次都先把四個面板全部收起來，再由對應身分的分支決定要打開哪些，
+    // 避免同一頁面切換帳號登入時，殘留上一個身分打開過的面板。
+    document.getElementById('entryPanel').hidden = true;
+    document.getElementById('accountsPanel').hidden = true;
+    document.getElementById('linksPanel').hidden = true;
+    document.getElementById('studentQueryPanel').hidden = true;
+
     if (isAdmin){
-      document.getElementById('accountsPanel').hidden = true;
-      document.getElementById('linksPanel').hidden = true;
       setAdminTab('entry');
     } else if (isMonitor){
-      document.getElementById('entryPanel').hidden = false;
-      document.getElementById('accountsPanel').hidden = true;
-      document.getElementById('linksPanel').hidden = true;
-      loadRosterForCurrentClass();
-      refreshGrades();
-      runStudentSelfQuery();
+      setMonitorTab('entry');
     } else {
-      document.getElementById('entryPanel').hidden = true;
-      document.getElementById('accountsPanel').hidden = true;
-      document.getElementById('linksPanel').hidden = true;
+      document.getElementById('studentQueryPanel').hidden = false;
       runStudentSelfQuery();
     }
-
-    document.getElementById('pwPanel').hidden = true;
   }
 
   var loginForm = document.getElementById('loginForm');
@@ -2506,29 +2787,9 @@
         adminClassList = res.classes || [];
         saveSessionToStorage();
         loginForm.reset();
+        closeLoginModal();
         applySession();
       });
-    });
-  }
-
-  var logoutBtn = document.getElementById('logoutBtn');
-  if (logoutBtn){
-    logoutBtn.addEventListener('click', function(){
-      currentUser = null;
-      currentPassword = null;
-      adminClassList = [];
-      grades = [];
-      clearSessionStorage();
-      if (loginError) loginError.textContent = '';
-      applySession();
-    });
-  }
-
-  var togglePwBtn = document.getElementById('togglePwBtn');
-  if (togglePwBtn){
-    togglePwBtn.addEventListener('click', function(){
-      var panel = document.getElementById('pwPanel');
-      panel.hidden = !panel.hidden;
     });
   }
 
