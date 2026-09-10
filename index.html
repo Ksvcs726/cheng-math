@@ -3,7 +3,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;700&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
-  /* 有些元件（例如 .role-switch、.book-list、.admin-sidebar）自己設定了 display，
+  /* 有些元件（例如 .role-switch、.book-list、.sidebar-subnav）自己設定了 display，
      specificity 跟瀏覽器預設的 [hidden]{display:none} 相同時，後宣告的會贏，
      導致 JS 設定 el.hidden = true 卻沒有真的隱藏。用 !important 強制蓋掉，
      確保任何元素只要有 hidden 屬性，一律不顯示（登入權限判斷才會真的生效）。 */
@@ -118,16 +118,29 @@
     transition:color .15s ease, border-color .15s ease, background .15s ease;
   }
   nav.tabs a:hover{color:var(--ink); background:var(--surface-2);}
-  nav.tabs a:nth-child(1){border-left-color:var(--indigo);}
-  nav.tabs a:nth-child(2){border-left-color:var(--teal);}
-  nav.tabs a:nth-child(3){border-left-color:var(--red);}
-  nav.tabs a:nth-child(4){border-left-color:var(--teal);}
-  nav.tabs a:nth-child(5){border-left-color:var(--red);}
-  nav.tabs a:nth-child(6){border-left-color:var(--indigo);}
-  nav.tabs a:nth-child(7){border-left-color:var(--teal);}
-  nav.tabs a:nth-child(8){border-left-color:var(--red);}
-  nav.tabs a:nth-child(9){border-left-color:var(--indigo);}
+  nav.tabs a:nth-of-type(1){border-left-color:var(--indigo);}
+  nav.tabs a:nth-of-type(2){border-left-color:var(--teal);}
+  nav.tabs a:nth-of-type(3){border-left-color:var(--red);}
+  nav.tabs a:nth-of-type(4){border-left-color:var(--teal);}
+  nav.tabs a:nth-of-type(5){border-left-color:var(--red);}
+  nav.tabs a:nth-of-type(6){border-left-color:var(--indigo);}
+  nav.tabs a:nth-of-type(7){border-left-color:var(--teal);}
+  nav.tabs a:nth-of-type(8){border-left-color:var(--red);}
+  nav.tabs a:nth-of-type(9){border-left-color:var(--indigo);}
   nav.tabs a.is-active{background:var(--surface-2);color:var(--ink);font-weight:700;}
+
+  /* 管理者子選單（小考成績登錄／帳號與權限管理／檔案連結管理）：巢狀在左側主選單「小考成績」下方，
+     不佔用右側內容欄的寬度 */
+  .sidebar-subnav{display:flex;flex-direction:column;gap:1px;padding:2px 0 8px;}
+  .sidebar-subnav button{
+    text-align:left;width:100%;padding:9px 22px 9px 38px;border:none;border-left:3px solid transparent;
+    background:transparent;color:var(--ink-soft);font-size:.82rem;font-weight:500;cursor:pointer;
+    transition:color .15s ease, border-color .15s ease, background .15s ease;
+  }
+  .sidebar-subnav button:hover{background:var(--surface-2);color:var(--ink);}
+  .sidebar-subnav button[aria-pressed="true"]{
+    background:var(--indigo-tint);color:var(--indigo-strong);border-left-color:var(--indigo);font-weight:700;
+  }
 
   .sidebar-foot{margin-top:auto;padding:16px 22px 2px;border-top:1px solid var(--border);}
   .theme-toggle{
@@ -419,26 +432,6 @@
 
   .login-hint{color:var(--ink-soft);font-size:.84rem;margin-bottom:16px;}
 
-  /* ---------- 管理者側邊欄（小考成績登錄／帳號與權限管理／檔案連結管理）---------- */
-  .role-content-shell{display:flex;gap:24px;align-items:flex-start;}
-  .admin-sidebar{
-    display:flex;flex-direction:column;gap:2px;width:200px;flex-shrink:0;
-    background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px;
-  }
-  .admin-sidebar button{
-    text-align:left;padding:10px 14px;border-radius:4px;border:1px solid transparent;border-left:3px solid transparent;
-    background:transparent;color:var(--ink-soft);font-size:.88rem;font-weight:500;cursor:pointer;
-  }
-  .admin-sidebar button:hover{background:var(--surface-2);color:var(--ink);}
-  .admin-sidebar button[aria-pressed="true"]{
-    background:var(--indigo-tint);color:var(--indigo-strong);border-left-color:var(--indigo);font-weight:700;
-  }
-  .role-panels{flex:1;min-width:0;}
-  @media (max-width:760px){
-    .role-content-shell{flex-direction:column;}
-    .admin-sidebar{width:100%;flex-direction:row;flex-wrap:wrap;}
-  }
-
   .exam-meta{
     display:flex;gap:18px;flex-wrap:wrap;margin-bottom:20px;padding:14px 16px;
     background:var(--surface-2);border:1px solid var(--border);border-radius:4px;
@@ -504,7 +497,7 @@
 
 <header class="topbar" id="topbar">
   <div class="topbar-inner">
-    <a class="topbar-home" href="#notes">首頁</a>
+    <a class="topbar-home" href="#home">首頁</a>
     <div class="topbar-auth">
       <button type="button" class="btn btn-ghost btn-sm" id="topbarLoginBtn" data-open-login>登入</button>
       <div class="topbar-session" id="topbarSession" hidden>
@@ -566,6 +559,12 @@
       <a href="#mocks">模擬考卷</a>
       <a href="#pastexams">歷屆統測試題</a>
       <a href="#grades">小考成績</a>
+      <!-- 管理者（程老師）專用子選單：巢狀在「小考成績」下方，登入後由 JS 顯示；以後管理者的各項功能都加在這裡就好 -->
+      <div class="sidebar-subnav" id="adminSidebarNav" hidden>
+        <button type="button" data-tab="entry" aria-pressed="true">小考成績登錄</button>
+        <button type="button" data-tab="accounts" aria-pressed="false">帳號與權限管理</button>
+        <button type="button" data-tab="links" aria-pressed="false">檔案連結管理</button>
+      </div>
       <a href="#demos">互動動畫</a>
       <a href="#goodlinks">好站連結</a>
       <a href="#videos">YouTube教學影片</a>
@@ -733,15 +732,7 @@
           <button type="button" data-mtab="query" aria-pressed="false">成績查詢</button>
         </div>
 
-        <div class="role-content-shell" id="roleContentShell">
-          <!-- 管理者（程老師）專用側邊欄：以後管理者的各項功能都加在這裡就好 -->
-          <nav class="admin-sidebar" id="adminSidebarNav" hidden>
-            <button type="button" data-tab="entry" aria-pressed="true">小考成績登錄</button>
-            <button type="button" data-tab="accounts" aria-pressed="false">帳號與權限管理</button>
-            <button type="button" data-tab="links" aria-pressed="false">檔案連結管理</button>
-          </nav>
-
-          <div class="role-panels" id="rolePanels">
+        <div class="role-panels" id="rolePanels">
 
         <!-- entry panel: admin (any class) + monitor (own class only) -->
         <div class="demo-shell" id="entryPanel" hidden>
@@ -873,7 +864,6 @@
           <div class="query-result" id="studentQueryResult"></div>
         </div>
 
-          </div>
         </div>
 
       </div>
@@ -1048,15 +1038,16 @@
 
   /* ============ View switching (sidebar acts like page navigation, no scrolling) ============ */
   var VIEW_IDS = ['notes', 'workbook', 'exams', 'mocks', 'pastexams', 'grades', 'demos', 'goodlinks', 'videos'];
+  var ALL_VIEW_IDS = ['home'].concat(VIEW_IDS);
   var heroEl = document.querySelector('.hero');
 
   function switchView(id){
-    if (VIEW_IDS.indexOf(id) === -1) id = 'notes';
+    if (ALL_VIEW_IDS.indexOf(id) === -1) id = 'home';
     VIEW_IDS.forEach(function(v){
       var el = document.getElementById(v);
       if (el) el.hidden = (v !== id);
     });
-    if (heroEl) heroEl.hidden = (id !== 'notes');
+    if (heroEl) heroEl.hidden = (id !== 'home');
     Array.prototype.forEach.call(document.querySelectorAll('#sidebarNav a'), function(a){
       a.classList.toggle('is-active', a.getAttribute('href') === '#' + id);
     });
@@ -1069,14 +1060,14 @@
     var a = e.target.closest('a[href^="#"]');
     if (!a) return;
     var id = a.getAttribute('href').slice(1);
-    if (VIEW_IDS.indexOf(id) === -1) return;
+    if (ALL_VIEW_IDS.indexOf(id) === -1) return;
     e.preventDefault();
     switchView(id);
   });
 
-  var initialView = (location.hash && VIEW_IDS.indexOf(location.hash.slice(1)) !== -1)
+  var initialView = (location.hash && ALL_VIEW_IDS.indexOf(location.hash.slice(1)) !== -1)
     ? location.hash.slice(1)
-    : 'notes';
+    : 'home';
   switchView(initialView);
 
   /* ============ Theme toggle ============ */
@@ -2603,6 +2594,7 @@
     adminSidebarNavEl.addEventListener('click', function(e){
       var btn = e.target.closest('button[data-tab]');
       if (!btn) return;
+      if (document.getElementById('grades').hidden) switchView('grades');
       setAdminTab(btn.getAttribute('data-tab'));
     });
   }
