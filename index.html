@@ -127,6 +127,7 @@
   nav.tabs a:nth-of-type(7){border-left-color:var(--teal);}
   nav.tabs a:nth-of-type(8){border-left-color:var(--red);}
   nav.tabs a:nth-of-type(9){border-left-color:var(--indigo);}
+  nav.tabs a:nth-of-type(10){border-left-color:var(--teal);}
   nav.tabs a.is-active{background:var(--surface-2);color:var(--ink);font-weight:700;}
 
   /* 管理者子選單（小考成績登錄／帳號與權限管理／檔案連結管理）：巢狀在左側主選單「小考成績」下方，
@@ -340,7 +341,7 @@
   .book-body.resource-list-body{display:block;padding:6px 20px 16px;}
   .book-body.resource-list-body ul.section-list{gap:2px;}
 
-  /* ---------- YouTube 教學影片卡片：需要放內嵌播放器，維持卡片＋較寬的格線 ---------- */
+  /* ---------- 教學影片卡片：需要放內嵌播放器，維持卡片＋較寬的格線 ---------- */
   .book-body.video-grid{grid-template-columns:repeat(auto-fit,minmax(300px,1fr));}
   .resource-card{
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:20px;
@@ -563,11 +564,11 @@
       <div class="sidebar-subnav" id="adminSidebarNav" hidden>
         <button type="button" data-tab="entry" aria-pressed="true">小考成績登錄</button>
         <button type="button" data-tab="accounts" aria-pressed="false">帳號與權限管理</button>
-        <button type="button" data-tab="links" aria-pressed="false">檔案連結管理</button>
       </div>
+      <a href="#videos">教學影片</a>
       <a href="#demos">互動動畫</a>
       <a href="#goodlinks">好站連結</a>
-      <a href="#videos">YouTube教學影片</a>
+      <a href="#links" id="linksNavLink" hidden>檔案連結管理</a>
     </nav>
     <div class="sidebar-foot">
       <button type="button" class="theme-toggle" id="themeToggle" aria-label="切換深色／淺色模式">
@@ -807,57 +808,6 @@
           <div class="query-result" id="adminQueryResult"></div>
         </div>
 
-        <!-- links panel: admin only -->
-        <div class="demo-shell" id="linksPanel" hidden>
-          <div class="demo-head"><h3>檔案連結管理</h3></div>
-          <p class="block-desc" style="margin-bottom:16px;max-width:none;">「課堂筆記」「習作解析」選好冊/章/小節後貼上連結存檔，對應小節的「敬請期待」就會換成真正的連結；「考卷解答」「模擬考卷」「歷屆統測試題」「好站連結」「YouTube教學影片」則是自由新增項目，填標題跟連結即可，可以之後再編輯或刪除——「考卷解答」多選「冊」跟「卷別（學習卷/隨堂卷/其他卷類）」，網頁上會先依冊別、每一冊底下再依卷別分組收合；「模擬考卷」「歷屆統測試題」多填「年份」，依年份新到舊分組；「好站連結」「YouTube教學影片」的「分類」是選填，用來把同類型的項目放在一起，不填就會歸在「其他」。前 4 種類別在網頁上會顯示成像雲端硬碟一樣一行一筆的清單，檔案一多也能很快找到；「YouTube教學影片」則會直接在網頁上嵌入播放器，貼 YouTube 的分享連結（watch/youtu.be/shorts 都可以）即可，不用另外剪輯或上傳檔案。文件類請用雲端硬碟「取得連結」的分享網址，並把權限設為「知道連結的使用者」——這樣學生點連結會直接在瀏覽器開啟 PDF 預覽畫面，不需要另外下載；如果權限沒開，學生點了會看到「沒有存取權」。</p>
-          <div class="exam-meta">
-            <label>分類
-              <select id="linkCategory">
-                <option value="notes">課堂筆記</option>
-                <option value="workbook">習作解析</option>
-                <option value="exams">考卷解答</option>
-                <option value="mocks">模擬考卷</option>
-                <option value="pastexams">歷屆統測試題</option>
-                <option value="goodlinks">好站連結</option>
-                <option value="videos">YouTube教學影片</option>
-              </select>
-            </label>
-          </div>
-          <div class="exam-meta" id="linkCurriculumFields">
-            <label>冊<select id="linkBook"></select></label>
-            <label>章<select id="linkChapter"></select></label>
-            <label>小節<select id="linkSection"></select></label>
-          </div>
-          <div class="exam-meta" id="linkGroupFieldWrap" hidden>
-            <label style="flex:1;">
-              <span id="linkGroupLabelText">分類</span>
-              <select id="linkGroupSelect" hidden></select>
-              <input type="text" id="linkGroupInput" hidden>
-            </label>
-            <label style="flex:1;" id="linkSubGroupFieldWrap" hidden>
-              <span id="linkSubGroupLabelText">卷別</span>
-              <select id="linkSubGroupSelect" hidden></select>
-              <input type="text" id="linkSubGroupInput" hidden>
-            </label>
-          </div>
-          <div class="exam-meta">
-            <label style="flex:2;"><span id="linkLabelText">連結顯示文字（選填）</span><input type="text" id="linkLabelInput" placeholder="留空則顯示預設文字"></label>
-            <label style="flex:3;"><span id="linkUrlLabelText">雲端硬碟連結網址</span><input type="url" id="linkUrl" placeholder="https://drive.google.com/..."></label>
-          </div>
-          <div class="roster-actions">
-            <button type="button" class="btn btn-primary" id="saveLinkBtn">儲存連結</button>
-            <button type="button" class="btn btn-ghost" id="cancelLinkEditBtn" hidden>取消編輯</button>
-            <span class="roster-status" id="linkStatus"></span>
-          </div>
-          <div class="ledger-wrap" style="margin-top:16px;">
-            <table class="ledger">
-              <thead><tr><th>分類</th><th>位置／標題</th><th>連結</th><th></th></tr></thead>
-              <tbody id="linksBody"></tbody>
-            </table>
-          </div>
-        </div>
-
         <!-- student query panel: monitor + plain student -->
         <div class="demo-shell" id="studentQueryPanel" hidden>
           <div class="demo-head"><h3>我的小考成績</h3></div>
@@ -868,6 +818,27 @@
 
       </div>
 
+    </div>
+  </section>
+
+  <!-- ================= 教學影片 ================= -->
+  <section class="block" id="videos">
+    <div class="page">
+      <div class="block-head">
+        <div>
+          <h2>教學影片</h2>
+          <p class="block-desc">上課補充、觀念講解影片，點開就能直接在網頁上播放，不用另外跳出去 YouTube。</p>
+        </div>
+        <span class="block-tag">登入制</span>
+      </div>
+      <div class="content-gate" id="videosLoginGate" hidden>
+        <strong>登入後才能觀看教學影片</strong>
+        內容僅開放給本班學生與程老師，請先登入。
+        <button type="button" class="btn btn-primary" data-open-login>前往登入</button>
+      </div>
+      <div class="book-list" id="videosContent">
+        <p class="query-empty">目前還沒有上傳教學影片，之後新增後會顯示在這裡。</p>
+      </div>
     </div>
   </section>
 
@@ -971,23 +942,69 @@
     </div>
   </section>
 
-  <!-- ================= YOUTUBE 教學影片 ================= -->
-  <section class="block" id="videos">
+  <!-- ================= 檔案連結管理（管理者專用，獨立頁面） ================= -->
+  <section class="block" id="links">
     <div class="page">
       <div class="block-head">
         <div>
-          <h2>YouTube 教學影片</h2>
-          <p class="block-desc">上課補充、觀念講解影片，點開就能直接在網頁上播放，不用另外跳出去 YouTube。</p>
+          <h2>檔案連結管理</h2>
+          <p class="block-desc" style="max-width:none;">「課堂筆記」「習作解析」選好冊/章/小節後貼上連結存檔，對應小節的「敬請期待」就會換成真正的連結；「考卷解答」「模擬考卷」「歷屆統測試題」「好站連結」「教學影片」則是自由新增項目，填標題跟連結即可，可以之後再編輯或刪除——「考卷解答」多選「冊」跟「卷別（學習卷/隨堂卷/其他卷類）」，網頁上會先依冊別、每一冊底下再依卷別分組收合；「模擬考卷」「歷屆統測試題」多填「年份」，依年份新到舊分組；「好站連結」「教學影片」的「分類」是選填，用來把同類型的項目放在一起，不填就會歸在「其他」。前 4 種類別在網頁上會顯示成像雲端硬碟一樣一行一筆的清單，檔案一多也能很快找到；「教學影片」則會直接在網頁上嵌入播放器，貼 YouTube 的分享連結（watch/youtu.be/shorts 都可以）即可，不用另外剪輯或上傳檔案。文件類請用雲端硬碟「取得連結」的分享網址，並把權限設為「知道連結的使用者」——這樣學生點連結會直接在瀏覽器開啟 PDF 預覽畫面，不需要另外下載；如果權限沒開，學生點了會看到「沒有存取權」。</p>
         </div>
-        <span class="block-tag">登入制</span>
+        <span class="block-tag">管理者專用</span>
       </div>
-      <div class="content-gate" id="videosLoginGate" hidden>
-        <strong>登入後才能觀看教學影片</strong>
-        內容僅開放給本班學生與程老師，請先登入。
+
+      <div class="demo-shell" id="linksNotAdminGate" hidden>
+        <div class="demo-head"><h3>僅限管理者使用</h3></div>
+        <p class="login-hint">檔案連結管理僅開放給程老師（管理者）帳號使用，請先登入管理者帳號。</p>
         <button type="button" class="btn btn-primary" data-open-login>前往登入</button>
       </div>
-      <div class="book-list" id="videosContent">
-        <p class="query-empty">目前還沒有上傳教學影片，之後新增後會顯示在這裡。</p>
+
+      <div class="demo-shell" id="linksPanel" hidden>
+        <div class="exam-meta">
+          <label>分類
+            <select id="linkCategory">
+              <option value="notes">課堂筆記</option>
+              <option value="workbook">習作解析</option>
+              <option value="exams">考卷解答</option>
+              <option value="mocks">模擬考卷</option>
+              <option value="pastexams">歷屆統測試題</option>
+              <option value="goodlinks">好站連結</option>
+              <option value="videos">教學影片</option>
+            </select>
+          </label>
+        </div>
+        <div class="exam-meta" id="linkCurriculumFields">
+          <label>冊<select id="linkBook"></select></label>
+          <label>章<select id="linkChapter"></select></label>
+          <label>小節<select id="linkSection"></select></label>
+        </div>
+        <div class="exam-meta" id="linkGroupFieldWrap" hidden>
+          <label style="flex:1;">
+            <span id="linkGroupLabelText">分類</span>
+            <select id="linkGroupSelect" hidden></select>
+            <input type="text" id="linkGroupInput" hidden>
+          </label>
+          <label style="flex:1;" id="linkSubGroupFieldWrap" hidden>
+            <span id="linkSubGroupLabelText">卷別</span>
+            <select id="linkSubGroupSelect" hidden></select>
+            <input type="text" id="linkSubGroupInput" hidden>
+          </label>
+        </div>
+        <div class="exam-meta">
+          <label style="flex:2;"><span id="linkLabelText">連結顯示文字（選填）</span><input type="text" id="linkLabelInput" placeholder="留空則顯示預設文字"></label>
+          <label style="flex:3;"><span id="linkUrlLabelText">雲端硬碟連結網址</span><input type="url" id="linkUrl" placeholder="https://drive.google.com/..."></label>
+        </div>
+        <div class="roster-actions">
+          <button type="button" class="btn btn-primary" id="saveLinkBtn">儲存連結</button>
+          <button type="button" class="btn btn-ghost" id="cancelLinkEditBtn" hidden>取消編輯</button>
+          <span class="roster-status" id="linkStatus"></span>
+        </div>
+        <div class="ledger-wrap" style="margin-top:16px;">
+          <table class="ledger">
+            <thead><tr><th>分類</th><th>位置／標題</th><th>連結</th><th></th></tr></thead>
+            <tbody id="linksBody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
   </section>
@@ -1037,7 +1054,7 @@
   }
 
   /* ============ View switching (sidebar acts like page navigation, no scrolling) ============ */
-  var VIEW_IDS = ['notes', 'workbook', 'exams', 'mocks', 'pastexams', 'grades', 'demos', 'goodlinks', 'videos'];
+  var VIEW_IDS = ['notes', 'workbook', 'exams', 'mocks', 'pastexams', 'grades', 'videos', 'demos', 'goodlinks', 'links'];
   var ALL_VIEW_IDS = ['home'].concat(VIEW_IDS);
   var heroEl = document.querySelector('.hero');
 
@@ -1048,6 +1065,7 @@
       if (el) el.hidden = (v !== id);
     });
     if (heroEl) heroEl.hidden = (id !== 'home');
+    if (id === 'links') updateLinksAccess();
     Array.prototype.forEach.call(document.querySelectorAll('#sidebarNav a'), function(a){
       a.classList.toggle('is-active', a.getAttribute('href') === '#' + id);
     });
@@ -1422,7 +1440,7 @@
     return subVal || '未分類卷別';
   }
   // 把同一分類的資源依規則分組：考卷解答依冊別固定順序（每一冊底下再依「學習卷/隨堂卷/其他卷類」細分）、
-  // 模擬考卷/歷屆統測依年份新到舊、好站連結／YouTube教學影片依「分類」出現的先後順序分組，沒填分類的一律歸在最後的「其他」。
+  // 模擬考卷/歷屆統測依年份新到舊、好站連結／教學影片依「分類」出現的先後順序分組，沒填分類的一律歸在最後的「其他」。
   function groupResourceItems(category, items){
     if (category === 'goodlinks' || category === 'videos'){
       var order = [];
@@ -1489,7 +1507,7 @@
     labelEl.value = (linksLabelStore[category] && linksLabelStore[category][key]) || '';
   }
   function categoryLabel(cat){
-    var map = { notes:'課堂筆記', workbook:'習作解析', exams:'考卷解答', mocks:'模擬考卷', pastexams:'歷屆統測試題', goodlinks:'好站連結', videos:'YouTube教學影片' };
+    var map = { notes:'課堂筆記', workbook:'習作解析', exams:'考卷解答', mocks:'模擬考卷', pastexams:'歷屆統測試題', goodlinks:'好站連結', videos:'教學影片' };
     return map[cat] || cat;
   }
   function applyResourcesFromApi(list){
@@ -1536,7 +1554,7 @@
   }
 
   // 把一組資源渲染進傳入的容器（.book-body）：
-  // ——YouTube教學影片用卡片＋內嵌播放器（要有空間放影片）；
+  // ——教學影片用卡片＋內嵌播放器（要有空間放影片）；
   // ——其他純連結類（考卷解答／模擬考卷／歷屆統測試題／好站連結）改成像雲端硬碟一樣一行一筆的緊湊清單，
   //    檔案一多的時候比每筆都是一個大方框的卡片省空間很多，找檔案也更快。
   function renderResourceCardsInto(bodyEl, items, category){
@@ -2572,6 +2590,16 @@
     });
   }
 
+  /* ---- 檔案連結管理：獨立頁面（#links），僅管理者可用，登入狀態改變時要同步 ---- */
+  function updateLinksAccess(){
+    var isAdminNow = !!(currentUser && currentUser.role === 'admin');
+    var notAdminGate = document.getElementById('linksNotAdminGate');
+    var panel = document.getElementById('linksPanel');
+    if (notAdminGate) notAdminGate.hidden = isAdminNow;
+    if (panel) panel.hidden = !isAdminNow;
+    if (isAdminNow) renderLinksTable();
+  }
+
   /* ---- 管理者側邊欄切換（以後管理者新功能，就在 HTML 的 #adminSidebarNav 多加一顆按鈕、#rolePanels 多加一個面板即可）---- */
   function setAdminTab(tab){
     Array.prototype.forEach.call(document.querySelectorAll('#adminSidebarNav button'), function(b){
@@ -2579,9 +2607,7 @@
     });
     document.getElementById('entryPanel').hidden = (tab !== 'entry');
     document.getElementById('accountsPanel').hidden = (tab !== 'accounts');
-    document.getElementById('linksPanel').hidden = (tab !== 'links');
     if (tab === 'accounts') renderAccountsTable();
-    if (tab === 'links') renderLinksTable();
     if (tab === 'entry'){
       loadRosterForCurrentClass();
       refreshGrades().then(function(){
@@ -2726,6 +2752,8 @@
     if (!currentUser){
       loginGate.hidden = false;
       loggedInArea.hidden = true;
+      document.getElementById('linksNavLink').hidden = true;
+      updateLinksAccess();
       return;
     }
     loginGate.hidden = true;
@@ -2737,14 +2765,15 @@
     document.getElementById('adminSidebarNav').hidden = !isAdmin;
     document.getElementById('monitorTabs').hidden = !isMonitor;
     document.getElementById('exportPanel').hidden = !isAdmin;
+    document.getElementById('linksNavLink').hidden = !isAdmin;
+    updateLinksAccess();
 
     populateExamClassOptions();
 
-    // 每次都先把四個面板全部收起來，再由對應身分的分支決定要打開哪些，
+    // 每次都先把三個面板全部收起來，再由對應身分的分支決定要打開哪些，
     // 避免同一頁面切換帳號登入時，殘留上一個身分打開過的面板。
     document.getElementById('entryPanel').hidden = true;
     document.getElementById('accountsPanel').hidden = true;
-    document.getElementById('linksPanel').hidden = true;
     document.getElementById('studentQueryPanel').hidden = true;
 
     if (isAdmin){
