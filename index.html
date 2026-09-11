@@ -320,6 +320,20 @@
     border:1px solid transparent;
   }
   .demo-badge:hover{border-color:var(--teal);}
+  /* ---------- 課堂筆記／習作解析目錄（CH1-CH4 多欄窄格）專用：
+     欄位較窄時，小節文字＋連結徽章（尤其是老師自訂的長顯示文字）擠在同一行會讓
+     徽章本身斷成兩行、文字也擠成好幾行，很難看。改成用 flex-wrap：
+     短項目維持原本一行緊湊排列；放不下時徽章整個換到下一行、靠右對齊，
+     徽章本身用 nowrap＋省略號防止再斷成兩行（超長自訂文字滑鼠移過去有 title 提示全文）。---------- */
+  ul.section-list.chapter-list li{
+    flex-direction:column;align-items:flex-start;row-gap:6px;padding:7px 0;
+  }
+  ul.section-list.chapter-list li span:first-child{
+    flex:none;line-height:1.55;
+  }
+  ul.section-list.chapter-list li .badge{
+    align-self:flex-start;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;
+  }
 
   /* ---------- exam ledger ---------- */
   .ledger{width:100%;border-collapse:collapse;font-size:.9rem;}
@@ -1714,7 +1728,7 @@
         h4.textContent = ch.title;
         chDiv.appendChild(h4);
         var ul = document.createElement('ul');
-        ul.className = 'section-list';
+        ul.className = 'section-list chapter-list';
         ch.sections.forEach(function(secTitle, sIdx){
           var li = document.createElement('li');
           var span = document.createElement('span');
@@ -1735,6 +1749,7 @@
             linkA.rel = 'noopener';
             var customLabel = linksLabelStore[category] ? linksLabelStore[category][linkKey(bIdx, cIdx, sIdx)] : '';
             linkA.textContent = customLabel ? customLabel : ((category === 'notes' ? '查看筆記' : '查看解析') + ' →');
+            linkA.title = linkA.textContent;
             li.appendChild(linkA);
           } else {
             var pending = document.createElement('span');
