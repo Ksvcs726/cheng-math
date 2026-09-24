@@ -427,6 +427,12 @@
     font-family:"JetBrains Mono",monospace;font-size:.86rem;background:var(--indigo-tint);
     color:var(--indigo-strong);padding:10px 12px;border-radius:4px;overflow-x:auto;white-space:nowrap;
   }
+  .frac{
+    display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;
+    margin:0 2px;font-size:.82em;line-height:1.15;position:relative;top:.05em;
+  }
+  .frac .num{border-bottom:1px solid currentColor;padding:0 3px 1px;}
+  .frac .den{padding:1px 3px 0;}
   .lp-readout{font-size:.84rem;color:var(--ink-soft);}
   .lp-readout .mono{color:var(--red);font-weight:600;}
   .lp-vertex-list{list-style:none;margin:8px 0 0;padding:0;font-size:.8rem;}
@@ -908,6 +914,10 @@
               <label>頂點縱坐標 k <output id="outQk">0.0</output></label>
               <input type="range" id="quadK" min="-5" max="5" step="0.1" value="0">
             </div>
+            <div class="func-switch" id="quadNumFormatSwitch" style="max-width:220px;">
+              <button type="button" data-numfmt="decimal" aria-pressed="true">小數顯示</button>
+              <button type="button" data-numfmt="fraction" aria-pressed="false">分數顯示</button>
+            </div>
             <div class="formula" id="quadFormulaOut">y = 1.0(x－0.0)² + 0.0 = 1.0x² + 0.0x + 0.0</div>
             <ul class="lp-vertex-list" id="quadFacts">
               <li>(1) a 決定開口方向：<span id="quadFactDir">向上</span></li>
@@ -1147,6 +1157,31 @@
 
   var quadTrail = []; // 最近拖動過的頂點座標 {h,k}，用來畫出淡淡的平移軌跡
   var QUAD_TRAIL_MAX = 24;
+  var quadShowFraction = false; // 公式/頂點/對稱軸要用小數還是分數表示
+
+  // 把小數換算成最簡分數（滑桿都是 0.1 為單位，乘乘減減最多也只會到千分位，
+  // 所以固定用千分之一當基準去化簡，不用真的處理無限小數）。
+  function gcdInt(x, y){
+    x = Math.abs(Math.round(x)); y = Math.abs(Math.round(y));
+    while (y){ var t = y; y = x % y; x = t; }
+    return x || 1;
+  }
+  function toFraction(n){
+    var neg = n < 0;
+    var denom = 1000;
+    var num = Math.round(Math.abs(n) * denom);
+    var g = gcdInt(num, denom);
+    return { neg: neg, num: num / g, den: denom / g };
+  }
+  // 回傳可以直接塞進 innerHTML 的數字字串：小數模式就是 toFixed(1)，
+  // 分數模式如果分母不是 1（也就是不是整數）就畫成有橫線的上下分數。
+  function numHtml(n){
+    if (!quadShowFraction) return n.toFixed(1);
+    var f = toFraction(n);
+    var sign = f.neg ? '－' : '';
+    if (f.den === 1) return sign + f.num;
+    return sign + '<span class="frac"><span class="num">' + f.num + '</span><span class="den">' + f.den + '</span></span>';
+  }
 
   function redrawQuadTrail(){
     var group = document.getElementById('quadTrailGroup');
@@ -1176,20 +1211,21 @@
     // 展開成一般式 y = ax² + bx + c： a(x-h)² + k = ax² - 2ah·x + (ah²+k)
     var b = -2 * a * h;
     var c = a * h * h + k;
-    // 負號要正確顯示（例如 h=-1 時要寫成 (x + 1.0) 而不是 (x － -1.0)）
+    // 負號要正確顯示（例如 h=-1 時要寫成 (x + 1.0) 而不是 (x － -1.0)），
+    // numHtml() 依目前小數／分數模式輸出對應的數字字串（分數模式會畫出有橫線的上下分數）。
     function signedTerm(n, symbol){
-      return (n < 0 ? '－ ' : '+ ') + Math.abs(n).toFixed(1) + symbol;
+      return (n < 0 ? '－ ' : '+ ') + numHtml(Math.abs(n)) + symbol;
     }
-    document.getElementById('quadFormulaOut').textContent =
-      'y = ' + a.toFixed(1) + '(x ' + signedTerm(-h, '') + ')² ' + signedTerm(k, '') +
-      '  =  ' + a.toFixed(1) + 'x² ' + signedTerm(b, 'x') + ' ' + signedTerm(c, '');
+    document.getElementById('quadFormulaOut').innerHTML =
+      'y = ' + numHtml(a) + '(x ' + signedTerm(-h, '') + ')² ' + signedTerm(k, '') +
+      '  =  ' + numHtml(a) + 'x² ' + signedTerm(b, 'x') + ' ' + signedTerm(c, '');
 
     document.getElementById('quadFactDir').textContent = a > 0 ? '向上（開口朝上，有最小值）' : '向下（開口朝下，有最大值）';
     var widthLabel = Math.abs(a) > 1.3 ? '較窄（|a| 越大，開口越窄、圖形越瘦）'
       : (Math.abs(a) < 0.7 ? '較寬（|a| 越小，開口越寬、圖形越扁）' : '接近標準寬度（|a| ≈ 1）');
     document.getElementById('quadFactWidth').textContent = '|a| = ' + Math.abs(rawA).toFixed(1) + '，' + widthLabel;
-    document.getElementById('quadFactVertex').textContent = 'V(' + h.toFixed(1) + ', ' + k.toFixed(1) + ')';
-    document.getElementById('quadFactAxis').textContent = 'x = ' + h.toFixed(1);
+    document.getElementById('quadFactVertex').innerHTML = 'V(' + numHtml(h) + ', ' + numHtml(k) + ')';
+    document.getElementById('quadFactAxis').innerHTML = 'x = ' + numHtml(h);
 
     // 拋物線本體
     var samples = 200;
@@ -1229,6 +1265,18 @@
     quadTrailClearBtn.addEventListener('click', function(){
       quadTrail = [];
       redrawQuadTrail();
+    });
+  }
+  var quadNumFormatSwitch = document.getElementById('quadNumFormatSwitch');
+  if (quadNumFormatSwitch){
+    quadNumFormatSwitch.addEventListener('click', function(e){
+      var btn = e.target.closest('button[data-numfmt]');
+      if (!btn) return;
+      quadShowFraction = (btn.getAttribute('data-numfmt') === 'fraction');
+      Array.prototype.forEach.call(quadNumFormatSwitch.querySelectorAll('button'), function(b){
+        b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+      });
+      redrawQuad();
     });
   }
   redrawQuad();
