@@ -408,6 +408,7 @@
   .region{fill:var(--teal);fill-opacity:.18;stroke:var(--teal);stroke-width:1.6;}
   .constraint{fill:none;stroke:var(--ink-soft);stroke-width:1.2;stroke-dasharray:4 3;}
   .optpoint{fill:var(--red);}
+  .quad-trail-dot{fill:var(--red);}
   .axislabel{font-family:"JetBrains Mono",monospace;font-size:9px;fill:var(--ink-soft);}
 
   .controls{display:flex;flex-direction:column;gap:16px;}
@@ -621,7 +622,7 @@
     <div class="page">
       <span class="hero-eyebrow">— 高中數學 · 線上筆記本</span>
       <h1>把每一堂課，留在<br>找得到的地方</h1>
-      <p>課堂筆記、考卷詳解、模擬考卷，全部整理在同一個網站；三角函數、線性規劃這類需要「看得到變化」的主題，用互動圖形直接拖拖看。</p>
+      <p>課堂筆記、考卷詳解、模擬考卷，全部整理在同一個網站；二次函數這類需要「看得到變化」的主題，用互動圖形直接拖拖看。</p>
       <div class="hero-actions">
         <a class="btn btn-primary" href="#demos">前往互動動畫</a>
         <a class="btn btn-ghost" href="#grades">查詢小考成績</a>
@@ -875,76 +876,48 @@
       <div class="block-head">
         <div>
           <h2>互動動畫</h2>
-          <p class="block-desc">拖動下面的滑桿，圖形會即時重畫——這兩個示範完全用網頁本身的程式碼繪製，之後也可以換成嵌入 GeoGebra／Desmos 的教材。</p>
+          <p class="block-desc">拖動下面的滑桿，圖形會即時重畫——這個示範完全用網頁本身的程式碼繪製，之後也可以換成嵌入 GeoGebra／Desmos 的教材，或是繼續加入新的動畫。</p>
         </div>
         <span class="block-tag">可操作原型</span>
       </div>
 
       <div class="demo-nav" id="demoNav">
-        <button type="button" data-demo="trig" aria-pressed="true">三角函數圖形機</button>
-        <button type="button" data-demo="lp" aria-pressed="false">線性規劃：可行域與最佳解</button>
+        <button type="button" data-demo="quad" aria-pressed="true">二次函數：頂點式與平移</button>
       </div>
 
-      <!-- Trig demo -->
-      <div class="demo-shell" data-demo-panel="trig">
+      <!-- Quadratic function demo -->
+      <div class="demo-shell" data-demo-panel="quad">
         <div class="demo-head">
-          <h3>三角函數圖形機</h3>
-          <span class="badge">y = A · f(Bx + Cπ) + D</span>
+          <h3>二次函數：頂點式與平移</h3>
+          <span class="badge">y = a(x－h)² + k</span>
         </div>
         <div class="demo-body">
           <div class="graph-wrap">
-            <svg id="trigSvg" class="graph" viewBox="0 0 480 300" role="img" aria-label="三角函數圖形"></svg>
-          </div>
-          <div class="controls">
-            <div class="func-switch" id="funcSwitch">
-              <button data-fn="sin" aria-pressed="true">sin</button>
-              <button data-fn="cos" aria-pressed="false">cos</button>
-              <button data-fn="tan" aria-pressed="false">tan</button>
-            </div>
-            <div class="control-row">
-              <label>振幅 A <output id="outA">1.0</output></label>
-              <input type="range" id="ampA" min="0.2" max="3" step="0.1" value="1">
-            </div>
-            <div class="control-row">
-              <label>角頻率 B <output id="outB">1.0</output></label>
-              <input type="range" id="freqB" min="0.5" max="3" step="0.1" value="1">
-            </div>
-            <div class="control-row">
-              <label>相位 C（× π）<output id="outC">0.00</output></label>
-              <input type="range" id="phaseC" min="-1" max="1" step="0.05" value="0">
-            </div>
-            <div class="control-row">
-              <label>垂直位移 D <output id="outD">0.0</output></label>
-              <input type="range" id="shiftD" min="-2" max="2" step="0.1" value="0">
-            </div>
-            <div class="formula" id="formulaOut">y = 1.0 · sin(1.0x + 0.00π) + 0.0</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- LP demo -->
-      <div class="demo-shell" data-demo-panel="lp" hidden>
-        <div class="demo-head">
-          <h3>線性規劃：可行域與最佳解</h3>
-          <span class="badge">maximize Z = 4x + 3y</span>
-        </div>
-        <div class="demo-body">
-          <div class="graph-wrap">
-            <svg id="lpSvg" class="graph" viewBox="0 0 400 400" role="img" aria-label="線性規劃可行域"></svg>
+            <svg id="quadSvg" class="graph" viewBox="0 0 440 440" role="img" aria-label="二次函數圖形"></svg>
           </div>
           <div class="controls">
             <div class="control-row">
-              <label>限制 x + y ≤ a <output id="outLpA">10</output></label>
-              <input type="range" id="lpA" min="4" max="18" step="1" value="10">
+              <label>開口方向與大小 a <output id="outQa">1.0</output></label>
+              <input type="range" id="quadA" min="-3" max="3" step="0.1" value="1">
             </div>
             <div class="control-row">
-              <label>限制 2x + y ≤ b <output id="outLpB">16</output></label>
-              <input type="range" id="lpB" min="6" max="26" step="1" value="16">
+              <label>頂點橫坐標 h <output id="outQh">0.0</output></label>
+              <input type="range" id="quadH" min="-5" max="5" step="0.1" value="0">
             </div>
-            <div class="lp-readout">
-              目標函數在頂點 <span class="mono" id="lpOptPoint">(0,0)</span> 取得最大值
-              <span class="mono" id="lpOptZ">Z = 0</span>
-              <ul class="lp-vertex-list" id="lpVertexList"></ul>
+            <div class="control-row">
+              <label>頂點縱坐標 k <output id="outQk">0.0</output></label>
+              <input type="range" id="quadK" min="-5" max="5" step="0.1" value="0">
+            </div>
+            <div class="formula" id="quadFormulaOut">y = 1.0(x－0.0)² + 0.0 = 1.0x² + 0.0x + 0.0</div>
+            <ul class="lp-vertex-list" id="quadFacts">
+              <li>(1) a 決定開口方向：<span id="quadFactDir">向上</span></li>
+              <li>(2) |a| 決定開口大小：<span id="quadFactWidth">標準寬度</span></li>
+              <li>(3) 頂點 <span id="quadFactVertex">V(0.0, 0.0)</span></li>
+              <li>(4) 對稱軸 <span id="quadFactAxis">x = 0.0</span></li>
+            </ul>
+            <div class="roster-actions" style="margin:4px 0 0;">
+              <button type="button" class="btn btn-ghost" id="quadTrailClearBtn">清除平移軌跡</button>
+              <span class="roster-status" style="color:var(--ink-soft);">拖動 a、h、k 時，頂點會留下淡淡的移動軌跡，方便看出圖形怎麼平移／縮放。</span>
             </div>
           </div>
         </div>
@@ -1136,15 +1109,7 @@
     });
   }
 
-  /* ============ Trig grapher ============ */
-  var svg = document.getElementById('trigSvg');
-  var W = 480, H = 300, marginX = 36, marginY = 24;
-  var xMin = -2*Math.PI, xMax = 2*Math.PI;
-  var yMin = -4, yMax = 4;
-
-  function sx(x){ return marginX + (x - xMin) / (xMax - xMin) * (W - 2*marginX); }
-  function sy(y){ return H - marginY - (y - yMin) / (yMax - yMin) * (H - 2*marginY); }
-
+  /* ============ 共用 SVG 小工具 ============ */
   var ns = "http://www.w3.org/2000/svg";
   function el(tag, attrs){
     var e = document.createElementNS(ns, tag);
@@ -1152,200 +1117,121 @@
     return e;
   }
 
-  function buildTrigStatic(){
-    while (svg.firstChild) svg.removeChild(svg.firstChild);
-    // grid
-    for (var gx = -6; gx <= 6; gx++){
-      var xv = gx * Math.PI / 2;
-      if (xv < xMin || xv > xMax) continue;
-      svg.appendChild(el('line', {x1:sx(xv),y1:marginY,x2:sx(xv),y2:H-marginY, class:'gridline'}));
+  /* ============ 二次函數示範：頂點式 y = a(x-h)² + k，可拖 a／h／k，並留下頂點平移軌跡 ============ */
+  var quadSvg = document.getElementById('quadSvg');
+  var QW = 440, QH = 440, Qmargin = 30;
+  var qMin = -8, qMax = 8; // 同一個範圍同時當 x 軸與 y 軸（正方形座標系）
+  function qx(x){ return Qmargin + (x - qMin) / (qMax - qMin) * (QW - 2*Qmargin); }
+  function qy(y){ return QH - Qmargin - (y - qMin) / (qMax - qMin) * (QH - 2*Qmargin); }
+
+  function buildQuadStatic(){
+    while (quadSvg.firstChild) quadSvg.removeChild(quadSvg.firstChild);
+    for (var g = qMin; g <= qMax; g += 2){
+      quadSvg.appendChild(el('line', {x1:qx(g),y1:Qmargin,x2:qx(g),y2:QH-Qmargin, class:'gridline'}));
+      quadSvg.appendChild(el('line', {x1:Qmargin,y1:qy(g),x2:QW-Qmargin,y2:qy(g), class:'gridline'}));
     }
-    for (var gy = yMin; gy <= yMax; gy++){
-      svg.appendChild(el('line', {x1:marginX,y1:sy(gy),x2:W-marginX,y2:sy(gy), class:'gridline'}));
-    }
-    // axes
-    svg.appendChild(el('line', {x1:marginX,y1:sy(0),x2:W-marginX,y2:sy(0), class:'axis'}));
-    svg.appendChild(el('line', {x1:sx(0),y1:marginY,x2:sx(0),y2:H-marginY, class:'axis'}));
-    // x labels at -2pi,-pi,0,pi,2pi
-    var labels = [[-2*Math.PI,'-2π'],[-Math.PI,'-π'],[0,'0'],[Math.PI,'π'],[2*Math.PI,'2π']];
-    labels.forEach(function(L){
-      var t = el('text', {x:sx(L[0])+3, y:sy(0)-6, class:'axislabel'});
-      t.textContent = L[1];
-      svg.appendChild(t);
+    quadSvg.appendChild(el('line', {x1:Qmargin,y1:qy(0),x2:QW-Qmargin,y2:qy(0), class:'axis'}));
+    quadSvg.appendChild(el('line', {x1:qx(0),y1:Qmargin,x2:qx(0),y2:QH-Qmargin, class:'axis'}));
+    [-8,-6,-4,-2,2,4,6,8].forEach(function(v){
+      var t1 = el('text', {x:qx(v)+2, y:qy(0)+13, class:'axislabel'}); t1.textContent = v;
+      quadSvg.appendChild(t1);
+      var t2 = el('text', {x:qx(0)-16, y:qy(v)+3, class:'axislabel'}); t2.textContent = v;
+      quadSvg.appendChild(t2);
     });
-    var path = el('path', {class:'curve', id:'trigPath'});
-    svg.appendChild(path);
+    quadSvg.appendChild(el('g', {id:'quadTrailGroup'}));
+    quadSvg.appendChild(el('line', {id:'quadAxisLine', class:'constraint'}));
+    quadSvg.appendChild(el('path', {id:'quadCurve', class:'curve'}));
+    quadSvg.appendChild(el('circle', {id:'quadVertex', class:'optpoint', r:5}));
   }
-  buildTrigStatic();
+  buildQuadStatic();
 
-  var currentFn = 'sin';
-  var fnMap = {
-    sin: Math.sin,
-    cos: Math.cos,
-    tan: Math.tan
-  };
+  var quadTrail = []; // 最近拖動過的頂點座標 {h,k}，用來畫出淡淡的平移軌跡
+  var QUAD_TRAIL_MAX = 24;
 
-  function redrawTrig(){
-    var A = parseFloat(document.getElementById('ampA').value);
-    var B = parseFloat(document.getElementById('freqB').value);
-    var C = parseFloat(document.getElementById('phaseC').value);
-    var D = parseFloat(document.getElementById('shiftD').value);
-    document.getElementById('outA').textContent = A.toFixed(1);
-    document.getElementById('outB').textContent = B.toFixed(1);
-    document.getElementById('outC').textContent = C.toFixed(2);
-    document.getElementById('outD').textContent = D.toFixed(1);
-    document.getElementById('formulaOut').textContent =
-      'y = ' + A.toFixed(1) + ' · ' + currentFn + '(' + B.toFixed(1) + 'x + ' + C.toFixed(2) + 'π) + ' + D.toFixed(1);
+  function redrawQuadTrail(){
+    var group = document.getElementById('quadTrailGroup');
+    while (group.firstChild) group.removeChild(group.firstChild);
+    quadTrail.forEach(function(p, i){
+      var ratio = (i + 1) / quadTrail.length; // 越新的點越明顯
+      var dot = el('circle', {
+        cx: qx(p.h), cy: qy(p.k), r: 2 + ratio * 1.5,
+        class: 'quad-trail-dot', style: 'opacity:' + (0.08 + ratio * 0.35).toFixed(2)
+      });
+      group.appendChild(dot);
+    });
+  }
 
-    var fn = fnMap[currentFn];
-    var samples = 480;
+  function redrawQuad(){
+    var rawA = parseFloat(document.getElementById('quadA').value);
+    var h = parseFloat(document.getElementById('quadH').value);
+    var k = parseFloat(document.getElementById('quadK').value);
+    // a 不能真的等於 0（不然就不是二次函數了），滑桿滑到 0 附近時取一個很小的值，
+    // 圖形會變成幾乎水平的寬扁拋物線，仍然連續、不會整個消失或報錯。
+    var a = Math.abs(rawA) < 0.05 ? (rawA < 0 ? -0.05 : 0.05) : rawA;
+
+    document.getElementById('outQa').textContent = rawA.toFixed(1);
+    document.getElementById('outQh').textContent = h.toFixed(1);
+    document.getElementById('outQk').textContent = k.toFixed(1);
+
+    // 展開成一般式 y = ax² + bx + c： a(x-h)² + k = ax² - 2ah·x + (ah²+k)
+    var b = -2 * a * h;
+    var c = a * h * h + k;
+    // 負號要正確顯示（例如 h=-1 時要寫成 (x + 1.0) 而不是 (x － -1.0)）
+    function signedTerm(n, symbol){
+      return (n < 0 ? '－ ' : '+ ') + Math.abs(n).toFixed(1) + symbol;
+    }
+    document.getElementById('quadFormulaOut').textContent =
+      'y = ' + a.toFixed(1) + '(x ' + signedTerm(-h, '') + ')² ' + signedTerm(k, '') +
+      '  =  ' + a.toFixed(1) + 'x² ' + signedTerm(b, 'x') + ' ' + signedTerm(c, '');
+
+    document.getElementById('quadFactDir').textContent = a > 0 ? '向上（開口朝上，有最小值）' : '向下（開口朝下，有最大值）';
+    var widthLabel = Math.abs(a) > 1.3 ? '較窄（|a| 越大，開口越窄、圖形越瘦）'
+      : (Math.abs(a) < 0.7 ? '較寬（|a| 越小，開口越寬、圖形越扁）' : '接近標準寬度（|a| ≈ 1）');
+    document.getElementById('quadFactWidth').textContent = '|a| = ' + Math.abs(rawA).toFixed(1) + '，' + widthLabel;
+    document.getElementById('quadFactVertex').textContent = 'V(' + h.toFixed(1) + ', ' + k.toFixed(1) + ')';
+    document.getElementById('quadFactAxis').textContent = 'x = ' + h.toFixed(1);
+
+    // 拋物線本體
+    var samples = 200;
+    var span = 10; // 以頂點為中心，左右各畫 10 個單位，確保拖到邊界時曲線還夠長
     var d = '';
-    var prevY = null;
     for (var i = 0; i <= samples; i++){
-      var x = xMin + (xMax - xMin) * i / samples;
-      var raw = A * fn(B * x + C * Math.PI) + D;
-      var clipped = Math.max(yMin - 1, Math.min(yMax + 1, raw));
-      var jump = (prevY !== null) && (Math.abs(raw - prevY) > (yMax - yMin) * 0.9);
-      var cmd = (d === '' || jump) ? 'M' : 'L';
-      d += cmd + sx(x).toFixed(2) + ',' + sy(clipped).toFixed(2) + ' ';
-      prevY = raw;
+      var x = h - span + (2 * span) * i / samples;
+      var y = a * (x - h) * (x - h) + k;
+      var clipped = Math.max(qMin - 2, Math.min(qMax + 2, y));
+      var cmd = (i === 0) ? 'M' : 'L';
+      d += cmd + qx(x).toFixed(2) + ',' + qy(clipped).toFixed(2) + ' ';
     }
-    document.getElementById('trigPath').setAttribute('d', d.trim());
+    document.getElementById('quadCurve').setAttribute('d', d.trim());
+
+    // 對稱軸（虛線）與頂點
+    document.getElementById('quadAxisLine').setAttribute('x1', qx(h));
+    document.getElementById('quadAxisLine').setAttribute('y1', Qmargin);
+    document.getElementById('quadAxisLine').setAttribute('x2', qx(h));
+    document.getElementById('quadAxisLine').setAttribute('y2', QH - Qmargin);
+    document.getElementById('quadVertex').setAttribute('cx', qx(h));
+    document.getElementById('quadVertex').setAttribute('cy', qy(Math.max(qMin - 2, Math.min(qMax + 2, k))));
+
+    // 記錄頂點軌跡（同一個位置不用重複記錄）
+    var last = quadTrail[quadTrail.length - 1];
+    if (!last || last.h !== h || last.k !== k){
+      quadTrail.push({ h: h, k: k });
+      if (quadTrail.length > QUAD_TRAIL_MAX) quadTrail.shift();
+    }
+    redrawQuadTrail();
   }
 
-  ['ampA','freqB','phaseC','shiftD'].forEach(function(id){
-    document.getElementById(id).addEventListener('input', redrawTrig);
+  ['quadA','quadH','quadK'].forEach(function(id){
+    document.getElementById(id).addEventListener('input', redrawQuad);
   });
-  document.getElementById('funcSwitch').addEventListener('click', function(e){
-    var btn = e.target.closest('button[data-fn]');
-    if (!btn) return;
-    currentFn = btn.getAttribute('data-fn');
-    Array.prototype.forEach.call(this.querySelectorAll('button'), function(b){
-      b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+  var quadTrailClearBtn = document.getElementById('quadTrailClearBtn');
+  if (quadTrailClearBtn){
+    quadTrailClearBtn.addEventListener('click', function(){
+      quadTrail = [];
+      redrawQuadTrail();
     });
-    redrawTrig();
-  });
-  redrawTrig();
-
-  /* ============ Linear programming demo ============ */
-  var lpSvg = document.getElementById('lpSvg');
-  var LW = 400, LH = 400, Lmargin = 34;
-  var Lmax = 20; // axis 0..20
-  function lx(x){ return Lmargin + x / Lmax * (LW - 2*Lmargin); }
-  var lyDenom = LH - 2*Lmargin;
-  function ly(y){ return LH - Lmargin - y / Lmax * lyDenom; }
-
-  function buildLpStatic(){
-    while (lpSvg.firstChild) lpSvg.removeChild(lpSvg.firstChild);
-    for (var g = 0; g <= Lmax; g += 2){
-      lpSvg.appendChild(el('line', {x1:lx(g),y1:Lmargin,x2:lx(g),y2:LH-Lmargin, class:'gridline'}));
-      lpSvg.appendChild(el('line', {x1:Lmargin,y1:ly(g),x2:LW-Lmargin,y2:ly(g), class:'gridline'}));
-    }
-    lpSvg.appendChild(el('line', {x1:Lmargin,y1:ly(0),x2:LW-Lmargin,y2:ly(0), class:'axis'}));
-    lpSvg.appendChild(el('line', {x1:lx(0),y1:Lmargin,x2:lx(0),y2:LH-Lmargin, class:'axis'}));
-    [0,5,10,15,20].forEach(function(v){
-      var t1 = el('text', {x:lx(v)+2, y:ly(0)+13, class:'axislabel'}); t1.textContent = v;
-      lpSvg.appendChild(t1);
-      var t2 = el('text', {x:lx(0)-16, y:ly(v)+3, class:'axislabel'}); t2.textContent = v;
-      lpSvg.appendChild(t2);
-    });
-    lpSvg.appendChild(el('polygon', {id:'lpRegion', class:'region', points:''}));
-    lpSvg.appendChild(el('line', {id:'lpC1', class:'constraint'}));
-    lpSvg.appendChild(el('line', {id:'lpC2', class:'constraint'}));
-    lpSvg.appendChild(el('circle', {id:'lpOpt', class:'optpoint', r:5}));
   }
-  buildLpStatic();
-
-  function clipHalfPlane(poly, a, b, c){
-    // keep points where a*x + b*y <= c
-    var out = [];
-    for (var i = 0; i < poly.length; i++){
-      var cur = poly[i], prev = poly[(i - 1 + poly.length) % poly.length];
-      var curVal = a*cur.x + b*cur.y - c;
-      var prevVal = a*prev.x + b*prev.y - c;
-      var curIn = curVal <= 1e-9;
-      var prevIn = prevVal <= 1e-9;
-      if (curIn){
-        if (!prevIn){ out.push(intersect(prev, cur, a, b, c)); }
-        out.push(cur);
-      } else if (prevIn){
-        out.push(intersect(prev, cur, a, b, c));
-      }
-    }
-    return out;
-  }
-  function intersect(p1, p2, a, b, c){
-    var d1 = a*p1.x + b*p1.y - c;
-    var d2 = a*p2.x + b*p2.y - c;
-    var t = d1 / (d1 - d2);
-    return { x: p1.x + t*(p2.x - p1.x), y: p1.y + t*(p2.y - p1.y) };
-  }
-
-  function redrawLp(){
-    var a = parseFloat(document.getElementById('lpA').value);
-    var b = parseFloat(document.getElementById('lpB').value);
-    document.getElementById('outLpA').textContent = a;
-    document.getElementById('outLpB').textContent = b;
-
-    var box = [ {x:0,y:0}, {x:Lmax,y:0}, {x:Lmax,y:Lmax}, {x:0,y:Lmax} ];
-    var poly = clipHalfPlane(box, 1, 1, a);      // x + y <= a
-    poly = clipHalfPlane(poly, 2, 1, b);          // 2x + y <= b
-
-    var pts = poly.map(function(p){ return lx(p.x) + ',' + ly(p.y); }).join(' ');
-    document.getElementById('lpRegion').setAttribute('points', pts);
-
-    // constraint lines across the visible box (for reference, not clipped to region)
-    function lineForConstraint(coefX, coefY, c){
-      // solve for two boundary points within [0,Lmax]x[0,Lmax]
-      var candidates = [];
-      // x=0
-      if (coefY !== 0){ var y0 = c / coefY; if (y0 >= 0 && y0 <= Lmax) candidates.push({x:0,y:y0}); }
-      // x=Lmax
-      if (coefY !== 0){ var yM = (c - coefX*Lmax) / coefY; if (yM >= 0 && yM <= Lmax) candidates.push({x:Lmax,y:yM}); }
-      // y=0
-      if (coefX !== 0){ var x0 = c / coefX; if (x0 >= 0 && x0 <= Lmax) candidates.push({x:x0,y:0}); }
-      // y=Lmax
-      if (coefX !== 0){ var xM = (c - coefY*Lmax) / coefX; if (xM >= 0 && xM <= Lmax) candidates.push({x:xM,y:Lmax}); }
-      return candidates;
-    }
-    var c1pts = lineForConstraint(1,1,a);
-    if (c1pts.length >= 2){
-      document.getElementById('lpC1').setAttribute('x1', lx(c1pts[0].x));
-      document.getElementById('lpC1').setAttribute('y1', ly(c1pts[0].y));
-      document.getElementById('lpC1').setAttribute('x2', lx(c1pts[1].x));
-      document.getElementById('lpC1').setAttribute('y2', ly(c1pts[1].y));
-    }
-    var c2pts = lineForConstraint(2,1,b);
-    if (c2pts.length >= 2){
-      document.getElementById('lpC2').setAttribute('x1', lx(c2pts[0].x));
-      document.getElementById('lpC2').setAttribute('y1', ly(c2pts[0].y));
-      document.getElementById('lpC2').setAttribute('x2', lx(c2pts[1].x));
-      document.getElementById('lpC2').setAttribute('y2', ly(c2pts[1].y));
-    }
-
-    // objective Z = 4x + 3y, find best vertex
-    var best = null;
-    var list = document.getElementById('lpVertexList');
-    list.innerHTML = '';
-    poly.forEach(function(p){
-      var z = 4*p.x + 3*p.y;
-      var li = document.createElement('li');
-      li.textContent = '(' + p.x.toFixed(1) + ', ' + p.y.toFixed(1) + ')  →  Z = ' + z.toFixed(1);
-      list.appendChild(li);
-      if (!best || z > best.z){ best = { x:p.x, y:p.y, z:z }; }
-    });
-    if (best){
-      document.getElementById('lpOpt').setAttribute('cx', lx(best.x));
-      document.getElementById('lpOpt').setAttribute('cy', ly(best.y));
-      document.getElementById('lpOptPoint').textContent = '(' + best.x.toFixed(1) + ', ' + best.y.toFixed(1) + ')';
-      document.getElementById('lpOptZ').textContent = 'Z = ' + best.z.toFixed(1);
-    }
-  }
-
-  ['lpA','lpB'].forEach(function(id){
-    document.getElementById(id).addEventListener('input', redrawLp);
-  });
-  redrawLp();
+  redrawQuad();
 
   /* ============ Curriculum directories (課堂筆記 + 習作解析) ============ */
   var CURRICULUM = [
@@ -1372,7 +1258,7 @@
       { title:'CH3 統計', sections:['3-1 統計的基本概念','3-2 統計資料整理','3-3(1) 統計分析－表達集中趨勢的統計量','3-3(2) 統計分析－表達離散趨勢的統計量'] }
     ]}
   ];
-  var DEMO_LINKS = { '1-4 正弦、餘弦函數的圖形':'#demos', '3-3 線性規劃':'#demos' };
+  var DEMO_LINKS = { '1-3 二次函數':'#demos' };
 
   /* ============ 後端 API（Google Apps Script Web App） ============ */
   var API_URL = 'https://script.google.com/macros/s/AKfycbxFgZQxmhfpeyWRD_GgGJ16CLwK8sRO7uabEjs3IBCELcErqgo0hlRKRZiPQN4d9LNDmQ/exec';
