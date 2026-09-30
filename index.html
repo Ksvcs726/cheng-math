@@ -1669,13 +1669,11 @@
           span.textContent = secTitle;
           li.appendChild(span);
           var url = linksStore[category] ? linksStore[category][linkKey(bIdx, cIdx, sIdx)] : null;
-          if (category === 'notes' && DEMO_LINKS[secTitle]){
-            var demoA = document.createElement('a');
-            demoA.className = 'badge demo-badge';
-            demoA.href = DEMO_LINKS[secTitle];
-            demoA.textContent = '→ 互動動畫';
-            li.appendChild(demoA);
-          } else if (url){
+          var hasDemo = category === 'notes' && DEMO_LINKS[secTitle];
+          // 筆記連結（老師實際上傳的雲端硬碟連結）跟互動動畫是兩件不同的東西，
+          // 一個小節可能兩個都有（例如「1-3 二次函數」課本筆記已經上傳，同時也有互動動畫可以玩），
+          // 所以只要有真正的連結一定要顯示，不能被「這個小節有對應動畫」蓋掉；兩者都有就兩個徽章都顯示。
+          if (url){
             var linkA = document.createElement('a');
             linkA.className = 'badge demo-badge';
             linkA.href = url;
@@ -1685,11 +1683,18 @@
             linkA.textContent = customLabel ? customLabel : ((category === 'notes' ? '查看筆記' : '查看解析') + ' →');
             linkA.title = linkA.textContent;
             li.appendChild(linkA);
-          } else {
+          } else if (!hasDemo){
             var pending = document.createElement('span');
             pending.className = 'badge';
             pending.textContent = '敬請期待';
             li.appendChild(pending);
+          }
+          if (hasDemo){
+            var demoA = document.createElement('a');
+            demoA.className = 'badge demo-badge';
+            demoA.href = DEMO_LINKS[secTitle];
+            demoA.textContent = '→ 互動動畫';
+            li.appendChild(demoA);
           }
           ul.appendChild(li);
         });
