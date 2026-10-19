@@ -398,7 +398,13 @@
   .demo-shell + .demo-shell{margin-top:20px;}
   .demo-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
   .demo-head h3{font-size:1.05rem;}
-  .demo-body{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(220px,1fr);gap:24px;}
+  /* 互動動畫這一頁單獨放寬（一般內容頁維持 1180px 的易讀寬度），
+     讓圖形可以畫大一點，不要在寬螢幕上左右空一大塊。 */
+  #demos .page{max-width:1760px;}
+  .demo-body{
+    display:grid;grid-template-columns:minmax(360px,820px) minmax(300px,520px);
+    gap:32px;justify-content:center;
+  }
   @media (max-width:720px){.demo-body{grid-template-columns:1fr;}}
   .graph-wrap{background:var(--surface-2);border:1px solid var(--border);border-radius:4px;padding:10px;}
   svg.graph{width:100%;height:auto;display:block;}
@@ -494,6 +500,18 @@
   .sys-bound.is-b{stroke:var(--red);}
   .sys-vertex{fill:var(--teal);stroke:var(--surface);stroke-width:1.5;}
   .sys-empty{color:var(--red);}
+  /* 聯立不等式：圖形接近正方形，寬螢幕時不要被拉成巨大的方塊，
+     多出來的寬度拿去把兩個不等式面板並排，整體高度也比較短。 */
+  .demo-body-sys{grid-template-columns:minmax(340px,560px) minmax(320px,700px);}
+  .sys-constraints{display:grid;grid-template-columns:1fr;gap:16px;}
+  @media (min-width:1200px){
+    .sys-constraints{grid-template-columns:1fr 1fr;}
+  }
+  /* .demo-body-sys 寫在前面那條 720px 單欄規則的後面，優先權一樣時後寫的贏，
+     所以手機版要在這裡再把兩個示範一起壓回單欄，否則聯立不等式那個會撐破畫面。 */
+  @media (max-width:720px){
+    .demo-body,.demo-body-sys{grid-template-columns:1fr;}
+  }
 
   /* 手機版：主題標題列讓它自己換行，不要被右邊的小標籤擠成一行一個字 */
   @media (max-width:640px){
@@ -964,7 +982,7 @@
             </div>
             <div class="demo-body">
               <div class="graph-wrap">
-                <svg id="quadSvg" class="graph" viewBox="0 0 440 440" role="img" aria-label="二次函數圖形"></svg>
+                <svg id="quadSvg" class="graph" viewBox="0 0 636 444" role="img" aria-label="二次函數圖形"></svg>
               </div>
               <div class="controls">
                 <div class="control-row">
@@ -1013,7 +1031,7 @@
             </div>
             <div class="demo-body">
               <div class="graph-wrap">
-                <svg id="slopeSvg" class="graph" viewBox="0 0 440 440" role="img" aria-label="斜率與直線圖形"></svg>
+                <svg id="slopeSvg" class="graph" viewBox="0 0 648 438" role="img" aria-label="斜率與直線圖形"></svg>
               </div>
               <div class="controls">
                 <div class="control-row">
@@ -1065,7 +1083,7 @@
             </div>
             <div class="demo-body">
               <div class="graph-wrap">
-                <svg id="ineqSvg" class="graph" viewBox="0 0 440 440" role="img" aria-label="二元一次不等式解區域"></svg>
+                <svg id="ineqSvg" class="graph" viewBox="0 0 648 438" role="img" aria-label="二元一次不等式解區域"></svg>
               </div>
               <div class="controls">
                 <div class="control-row">
@@ -1123,15 +1141,16 @@
               <h3>二元一次聯立不等式：可行解區域</h3>
               <span class="badge">各不等式解區域的交集</span>
             </div>
-            <div class="demo-body">
+            <div class="demo-body demo-body-sys">
               <div class="graph-wrap">
-                <svg id="sysSvg" class="graph" viewBox="0 0 440 440" role="img" aria-label="聯立不等式可行解區域"></svg>
+                <svg id="sysSvg" class="graph" viewBox="0 0 519 438" role="img" aria-label="聯立不等式可行解區域"></svg>
               </div>
               <div class="controls">
                 <div class="demo-subpanel">
                   <label class="demo-check"><input type="checkbox" id="sysUseX" checked> 限制 x ≥ 0（只看 y 軸右邊）</label>
                   <label class="demo-check"><input type="checkbox" id="sysUseY" checked> 限制 y ≥ 0（只看 x 軸上面）</label>
                 </div>
+                <div class="sys-constraints">
                 <div class="demo-subpanel">
                   <label class="demo-check"><input type="checkbox" id="sysUse1" checked> 不等式①</label>
                   <div class="demo-subpanel-eq" id="sysEq1"></div>
@@ -1157,6 +1176,7 @@
                     <button type="button" data-rel="le" aria-pressed="true">≤ c₂</button>
                     <button type="button" data-rel="ge" aria-pressed="false">≥ c₂</button>
                   </div>
+                </div>
                 </div>
                 <div class="formula" id="sysFormulaOut"></div>
                 <ul class="lp-vertex-list" id="sysVertexList"></ul>
@@ -1519,7 +1539,7 @@
 
   /* ============ 動畫 1：二次函數（頂點式 y = a(x-h)² + k，含頂點平移軌跡）============ */
   var quadPlot = createPlot(document.getElementById('quadSvg'),
-    {w:440, h:440, margin:30, xMin:-8, xMax:8, yMin:-8, yMax:8, step:2, labelStep:2});
+    {w:636, h:444, margin:30, xMin:-12, xMax:12, yMin:-8, yMax:8, step:2, labelStep:2});
   var quadTrail = [];            // 最近拖動過的頂點座標 {h,k}
   var QUAD_TRAIL_MAX = 24;
 
@@ -1572,7 +1592,7 @@
       x2: quadPlot.sx(h), y2: quadPlot.sy(quadPlot.yMax), class: 'constraint'
     }));
     // 拋物線本體：以頂點為中心左右各畫 10 個單位，確保拖到邊界時曲線還夠長
-    var samples = 200, span = 10, d = '';
+    var samples = 240, span = 14, d = '';
     for (var i = 0; i <= samples; i++){
       var x = h - span + (2 * span) * i / samples;
       var y = a * (x - h) * (x - h) + k;
@@ -1601,7 +1621,7 @@
      重點：m =（y₂－y₁）/（x₂－x₁）；m 的正負決定往哪邊傾斜；
      |m| 越大代表越陡（傾斜程度越大），水平線 m=0、鉛直線 m 不存在。 */
   var slopePlot = createPlot(document.getElementById('slopeSvg'),
-    {w:440, h:440, margin:30, xMin:-9, xMax:9, yMin:-9, yMax:9, step:1, labelStep:3});
+    {w:648, h:438, margin:30, xMin:-14, xMax:14, yMin:-9, yMax:9, step:1, labelStep:3});
   var slopeFanSvg = document.getElementById('slopeFanSvg');
 
   // 右下角的小圖：一束不同斜率的參考線，把目前這條用紅色標出來，
@@ -1730,7 +1750,7 @@
      重點：ax+by+c>0 / <0 分別是直線的哪一側半平面；
      有「=」的畫實線（解含直線上的點），沒有「=」畫虛線（不含）。 */
   var ineqPlot = createPlot(document.getElementById('ineqSvg'),
-    {w:440, h:440, margin:30, xMin:-9, xMax:9, yMin:-9, yMax:9, step:1, labelStep:3});
+    {w:648, h:438, margin:30, xMin:-14, xMax:14, yMin:-9, yMax:9, step:1, labelStep:3});
   var ineqRel = 'gt';
   var INEQ_REL_TEXT = {gt:'> 0', ge:'≥ 0', lt:'< 0', le:'≤ 0'};
 
@@ -1826,7 +1846,7 @@
   /* ============ 動畫 4：二元一次聯立不等式的可行解區域（第3冊 3-3）============
      每個不等式各自的解區域用淡色鋪一層，重疊起來的交集就是可行解區域。 */
   var sysPlot = createPlot(document.getElementById('sysSvg'),
-    {w:440, h:440, margin:30, xMin:-3, xMax:11, yMin:-3, yMax:11, step:1, labelStep:2});
+    {w:519, h:438, margin:30, xMin:-3, xMax:14, yMin:-3, yMax:11, step:1, labelStep:3});
   var sysRel = {1:'le', 2:'le'};
 
   function sysReadRow(n){
