@@ -466,11 +466,13 @@
     display:flex;gap:12px;align-items:center;background:var(--surface-2);
     border:1px solid var(--border);border-radius:4px;padding:10px 12px;
   }
-  .slope-fan{width:130px;flex-shrink:0;}
-  .slope-fan-note{margin:0;font-size:.74rem;color:var(--ink-soft);line-height:1.6;}
+  /* 注意：svg.graph{width:100%} 的優先權（element+class）比單一 class 高，
+     所以這裡要寫成 svg.slope-fan 才壓得過，不然小圖會被撐成滿版、把旁邊的說明文字擠成一行一個字。 */
+  svg.slope-fan{flex:0 0 150px;width:150px;max-width:150px;}
+  .slope-fan-note{flex:1;min-width:0;margin:0;font-size:.74rem;color:var(--ink-soft);line-height:1.6;}
   .fan-ref{stroke:var(--border);stroke-width:1.4;}
   .fan-cur{stroke:var(--red);stroke-width:2.4;stroke-linecap:round;}
-  .fan-label{font-family:"JetBrains Mono",monospace;font-size:8px;fill:var(--ink-soft);}
+  .fan-label{font-family:"JetBrains Mono",monospace;font-size:12px;fill:var(--ink-soft);}
 
   /* 二元一次不等式 */
   .ineq-region{fill:var(--teal);fill-opacity:.22;stroke:none;}
@@ -500,7 +502,9 @@
     .demo-topic summary .subbook-tag{display:none;}
     .demo-topic-body{padding:14px 14px 18px;}
     .mini-row-3{grid-template-columns:1fr 1fr;}
-    .slope-fan-wrap{flex-direction:column;align-items:flex-start;}
+    .slope-fan-wrap{flex-direction:column;align-items:center;}
+    svg.slope-fan{flex:0 0 auto;width:150px;max-width:150px;}
+    .slope-fan-note{width:100%;}
   }
 
   /* ---------- content login gate (notes / workbook) ---------- */
@@ -1039,7 +1043,7 @@
                   <li>(3) 傾斜角（與 x 軸正向的夾角）：<span id="slopeFactAngle"></span></li>
                 </ul>
                 <div class="slope-fan-wrap">
-                  <svg id="slopeFanSvg" class="graph slope-fan" viewBox="0 0 170 170" role="img" aria-label="傾斜程度比較圖"></svg>
+                  <svg id="slopeFanSvg" class="graph slope-fan" viewBox="0 0 200 186" role="img" aria-label="傾斜程度比較圖"></svg>
                   <p class="slope-fan-note">紅線是目前的直線。愈接近鉛直線，|m| 愈大；愈接近水平線，|m| 愈小。</p>
                 </div>
               </div>
@@ -1604,16 +1608,16 @@
   // 讓學生直接看到「越接近鉛直 → |m| 越大」。
   function drawSlopeFan(m, vertical){
     while (slopeFanSvg.firstChild) slopeFanSvg.removeChild(slopeFanSvg.firstChild);
-    var cx = 85, cy = 85, r = 62;
+    var cx = 88, cy = 100, r = 60;
     [0, 1/3, 1, 3, -1/3, -1, -3].forEach(function(rm){
       var ang = Math.atan(rm);
       var dx = Math.cos(ang) * r, dy = Math.sin(ang) * r;
       slopeFanSvg.appendChild(el('line', {x1:cx - dx, y1:cy + dy, x2:cx + dx, y2:cy - dy, class:'fan-ref'}));
     });
     slopeFanSvg.appendChild(el('line', {x1:cx, y1:cy - r, x2:cx, y2:cy + r, class:'fan-ref'}));
-    var lv = el('text', {x:cx + 4, y:16, class:'fan-label'}); lv.textContent = 'm 不存在';
+    var lv = el('text', {x:cx - 26, y:24, class:'fan-label'}); lv.textContent = 'm 不存在';
     slopeFanSvg.appendChild(lv);
-    var lh = el('text', {x:cx + r - 24, y:cy - 5, class:'fan-label'}); lh.textContent = 'm=0';
+    var lh = el('text', {x:cx + r + 4, y:cy + 4, class:'fan-label'}); lh.textContent = 'm = 0';
     slopeFanSvg.appendChild(lh);
     if (vertical){
       slopeFanSvg.appendChild(el('line', {x1:cx, y1:cy - r, x2:cx, y2:cy + r, class:'fan-cur'}));
