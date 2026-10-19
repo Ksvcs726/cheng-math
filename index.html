@@ -438,6 +438,71 @@
   .lp-vertex-list{list-style:none;margin:8px 0 0;padding:0;font-size:.8rem;}
   .lp-vertex-list li{padding:3px 0;border-bottom:1px dashed var(--border);}
 
+  /* ---------- 互動動畫：可收摺的主題標籤（沿用考卷解答的收合清單外觀）---------- */
+  .demo-topic-body{display:block;padding:18px 20px 22px;}
+  /* 格線子項預設最小寬度是 min-content，裡面有 white-space:nowrap 的長公式時
+     會把整個格子撐寬、手機版就會跑版；設 min-width:0 讓它可以縮，公式自己橫向捲動。 */
+  .demo-body > *{min-width:0;}
+  .controls{min-width:0;}
+  .demo-topic summary .demo-topic-title{font-weight:700;}
+  .demo-subpanel{
+    background:var(--surface-2);border:1px solid var(--border);border-radius:4px;
+    padding:10px 12px;display:flex;flex-direction:column;gap:10px;
+  }
+  .demo-subpanel-title,.demo-subpanel-eq{font-family:"JetBrains Mono",monospace;font-size:.8rem;color:var(--indigo-strong);}
+  .demo-check{display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--ink);cursor:pointer;}
+  .demo-check input[type="checkbox"]{width:16px;height:16px;accent-color:var(--teal);cursor:pointer;flex-shrink:0;}
+  .mini-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .mini-row-3{grid-template-columns:repeat(3,minmax(0,1fr));}
+  .mini-row .control-row label{font-size:.74rem;margin-bottom:3px;justify-content:center;gap:6px;}
+
+  /* 斜率示範 */
+  .slope-line{fill:none;stroke:var(--indigo);stroke-width:2.4;stroke-linecap:round;}
+  .slope-rise-run{fill:none;stroke:var(--teal);stroke-width:1.4;stroke-dasharray:4 3;}
+  .slope-point{fill:var(--red);}
+  .slope-point-label{font-family:"JetBrains Mono",monospace;font-size:10px;fill:var(--ink);}
+  .slope-delta-label{font-family:"JetBrains Mono",monospace;font-size:10px;fill:var(--teal);}
+  .slope-fan-wrap{
+    display:flex;gap:12px;align-items:center;background:var(--surface-2);
+    border:1px solid var(--border);border-radius:4px;padding:10px 12px;
+  }
+  .slope-fan{width:130px;flex-shrink:0;}
+  .slope-fan-note{margin:0;font-size:.74rem;color:var(--ink-soft);line-height:1.6;}
+  .fan-ref{stroke:var(--border);stroke-width:1.4;}
+  .fan-cur{stroke:var(--red);stroke-width:2.4;stroke-linecap:round;}
+  .fan-label{font-family:"JetBrains Mono",monospace;font-size:8px;fill:var(--ink-soft);}
+
+  /* 二元一次不等式 */
+  .ineq-region{fill:var(--teal);fill-opacity:.22;stroke:none;}
+  .ineq-line{fill:none;stroke:var(--indigo);stroke-width:2.6;stroke-linecap:round;}
+  .ineq-line.is-dashed{stroke-dasharray:7 5;}
+  .ineq-test-point.is-in{fill:var(--teal);}
+  .ineq-test-point.is-out{fill:var(--red);}
+  .ineq-test-label{font-family:"JetBrains Mono",monospace;font-size:10px;fill:var(--ink);}
+  .ineq-verdict{font-size:.8rem;line-height:1.7;padding:10px 12px;border-radius:4px;}
+  .ineq-verdict.is-in{background:var(--teal-tint);color:var(--teal);}
+  .ineq-verdict.is-out{background:var(--red-tint);color:var(--red);}
+
+  /* 二元一次聯立不等式 */
+  .sys-half-a{fill:var(--indigo);fill-opacity:.12;stroke:none;}
+  .sys-half-b{fill:var(--red);fill-opacity:.1;stroke:none;}
+  .sys-feasible{fill:var(--teal);fill-opacity:.32;stroke:var(--teal);stroke-width:2;stroke-linejoin:round;}
+  .sys-bound{fill:none;stroke:var(--ink-soft);stroke-width:1.6;}
+  .sys-bound.is-a{stroke:var(--indigo);}
+  .sys-bound.is-b{stroke:var(--red);}
+  .sys-vertex{fill:var(--teal);stroke:var(--surface);stroke-width:1.5;}
+  .sys-empty{color:var(--red);}
+
+  /* 手機版：主題標題列讓它自己換行，不要被右邊的小標籤擠成一行一個字 */
+  @media (max-width:640px){
+    .demo-topic summary{gap:8px;}
+    .demo-topic summary .demo-topic-title{flex:1;min-width:0;}
+    .demo-topic summary .subbook-tag{display:none;}
+    .demo-topic-body{padding:14px 14px 18px;}
+    .mini-row-3{grid-template-columns:1fr 1fr;}
+    .slope-fan-wrap{flex-direction:column;align-items:flex-start;}
+  }
+
   /* ---------- content login gate (notes / workbook) ---------- */
   .content-gate{
     border:1px dashed var(--border);border-radius:6px;padding:48px 24px;text-align:center;
@@ -457,14 +522,6 @@
     background:var(--surface);color:var(--ink-soft);font-size:.86rem;font-weight:500;cursor:pointer;
   }
   .role-switch button[aria-pressed="true"]{background:var(--indigo);border-color:var(--indigo);color:var(--surface);}
-
-  .demo-nav{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px;}
-  .demo-nav button{
-    padding:10px 16px;border-radius:3px;border:1px solid var(--border);
-    background:var(--surface);color:var(--ink-soft);font-size:.9rem;font-weight:500;cursor:pointer;
-  }
-  .demo-nav button:hover{background:var(--surface-2);}
-  .demo-nav button[aria-pressed="true"]{background:var(--indigo);border-color:var(--indigo);color:var(--surface);}
 
   .login-hint{color:var(--ink-soft);font-size:.84rem;margin-bottom:16px;}
 
@@ -882,55 +939,228 @@
       <div class="block-head">
         <div>
           <h2>互動動畫</h2>
-          <p class="block-desc">拖動下面的滑桿，圖形會即時重畫——這個示範完全用網頁本身的程式碼繪製，之後也可以換成嵌入 GeoGebra／Desmos 的教材，或是繼續加入新的動畫。</p>
+          <p class="block-desc" style="max-width:none;">每個主題都是一個可以收合的標籤，點標題才會展開；展開後拖動滑桿，圖形會即時重畫。全部都是用網頁本身的程式碼繪製，之後也可以換成嵌入 GeoGebra／Desmos 的教材，或是繼續加入新的動畫。</p>
         </div>
         <span class="block-tag">可操作原型</span>
       </div>
 
-      <div class="demo-nav" id="demoNav">
-        <button type="button" data-demo="quad" aria-pressed="true">二次函數：頂點式與平移</button>
-      </div>
+      <div class="book-list" id="demoTopics">
 
-      <!-- Quadratic function demo -->
-      <div class="demo-shell" data-demo-panel="quad">
-        <div class="demo-head">
-          <h3>二次函數：頂點式與平移</h3>
-          <span class="badge">y = a(x－h)² + k</span>
-        </div>
-        <div class="demo-body">
-          <div class="graph-wrap">
-            <svg id="quadSvg" class="graph" viewBox="0 0 440 440" role="img" aria-label="二次函數圖形"></svg>
+        <!-- 二次函數（第1冊 1-3） -->
+        <details class="book demo-topic" id="topicQuad">
+          <summary>
+            <span class="book-tag">第1冊 1-3</span>
+            <span class="demo-topic-title">二次函數：頂點式與平移</span>
+            <span class="subbook-tag">拖 a、h、k</span>
+          </summary>
+          <div class="book-body demo-topic-body">
+            <div class="demo-head">
+              <h3>二次函數：頂點式與平移</h3>
+              <span class="badge">y = a(x－h)² + k</span>
+            </div>
+            <div class="demo-body">
+              <div class="graph-wrap">
+                <svg id="quadSvg" class="graph" viewBox="0 0 440 440" role="img" aria-label="二次函數圖形"></svg>
+              </div>
+              <div class="controls">
+                <div class="control-row">
+                  <label>開口方向與大小 a <output id="outQa">1.0</output></label>
+                  <input type="range" id="quadA" min="-3" max="3" step="0.1" value="1">
+                </div>
+                <div class="control-row">
+                  <label>頂點橫坐標 h <output id="outQh">0.0</output></label>
+                  <input type="range" id="quadH" min="-5" max="5" step="0.1" value="0">
+                </div>
+                <div class="control-row">
+                  <label>頂點縱坐標 k <output id="outQk">0.0</output></label>
+                  <input type="range" id="quadK" min="-5" max="5" step="0.1" value="0">
+                </div>
+                <div class="func-switch" data-numfmt-switch style="max-width:220px;">
+                  <button type="button" data-numfmt="decimal" aria-pressed="true">小數顯示</button>
+                  <button type="button" data-numfmt="fraction" aria-pressed="false">分數顯示</button>
+                </div>
+                <div class="formula" id="quadFormulaOut">y = 1.0(x－0.0)² + 0.0 = 1.0x² + 0.0x + 0.0</div>
+                <ul class="lp-vertex-list" id="quadFacts">
+                  <li>(1) a 決定開口方向：<span id="quadFactDir">向上</span></li>
+                  <li>(2) |a| 決定開口大小：<span id="quadFactWidth">標準寬度</span></li>
+                  <li>(3) 頂點 <span id="quadFactVertex">V(0.0, 0.0)</span></li>
+                  <li>(4) 對稱軸 <span id="quadFactAxis">x = 0.0</span></li>
+                </ul>
+                <div class="roster-actions" style="margin:4px 0 0;">
+                  <button type="button" class="btn btn-ghost" id="quadTrailClearBtn">清除平移軌跡</button>
+                  <span class="roster-status" style="color:var(--ink-soft);">拖動 a、h、k 時，頂點會留下淡淡的移動軌跡，方便看出圖形怎麼平移／縮放。</span>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="controls">
-            <div class="control-row">
-              <label>開口方向與大小 a <output id="outQa">1.0</output></label>
-              <input type="range" id="quadA" min="-3" max="3" step="0.1" value="1">
+        </details>
+
+        <!-- 斜率（第1冊 2-1，課本 P.57～P.58） -->
+        <details class="book demo-topic" id="topicSlope">
+          <summary>
+            <span class="book-tag">第1冊 2-1</span>
+            <span class="demo-topic-title">斜率：正負、大小與傾斜程度</span>
+            <span class="subbook-tag">拖 A、B 兩點</span>
+          </summary>
+          <div class="book-body demo-topic-body">
+            <div class="demo-head">
+              <h3>斜率：正負、大小與傾斜程度</h3>
+              <span class="badge">m = (y₂－y₁) ÷ (x₂－x₁)</span>
             </div>
-            <div class="control-row">
-              <label>頂點橫坐標 h <output id="outQh">0.0</output></label>
-              <input type="range" id="quadH" min="-5" max="5" step="0.1" value="0">
-            </div>
-            <div class="control-row">
-              <label>頂點縱坐標 k <output id="outQk">0.0</output></label>
-              <input type="range" id="quadK" min="-5" max="5" step="0.1" value="0">
-            </div>
-            <div class="func-switch" id="quadNumFormatSwitch" style="max-width:220px;">
-              <button type="button" data-numfmt="decimal" aria-pressed="true">小數顯示</button>
-              <button type="button" data-numfmt="fraction" aria-pressed="false">分數顯示</button>
-            </div>
-            <div class="formula" id="quadFormulaOut">y = 1.0(x－0.0)² + 0.0 = 1.0x² + 0.0x + 0.0</div>
-            <ul class="lp-vertex-list" id="quadFacts">
-              <li>(1) a 決定開口方向：<span id="quadFactDir">向上</span></li>
-              <li>(2) |a| 決定開口大小：<span id="quadFactWidth">標準寬度</span></li>
-              <li>(3) 頂點 <span id="quadFactVertex">V(0.0, 0.0)</span></li>
-              <li>(4) 對稱軸 <span id="quadFactAxis">x = 0.0</span></li>
-            </ul>
-            <div class="roster-actions" style="margin:4px 0 0;">
-              <button type="button" class="btn btn-ghost" id="quadTrailClearBtn">清除平移軌跡</button>
-              <span class="roster-status" style="color:var(--ink-soft);">拖動 a、h、k 時，頂點會留下淡淡的移動軌跡，方便看出圖形怎麼平移／縮放。</span>
+            <div class="demo-body">
+              <div class="graph-wrap">
+                <svg id="slopeSvg" class="graph" viewBox="0 0 440 440" role="img" aria-label="斜率與直線圖形"></svg>
+              </div>
+              <div class="controls">
+                <div class="control-row">
+                  <label>A 點 x₁ <output id="outSlopeAx">5</output></label>
+                  <input type="range" id="slopeAx" min="-8" max="8" step="1" value="5">
+                </div>
+                <div class="control-row">
+                  <label>A 點 y₁ <output id="outSlopeAy">5</output></label>
+                  <input type="range" id="slopeAy" min="-8" max="8" step="1" value="5">
+                </div>
+                <div class="control-row">
+                  <label>B 點 x₂ <output id="outSlopeBx">-2</output></label>
+                  <input type="range" id="slopeBx" min="-8" max="8" step="1" value="-2">
+                </div>
+                <div class="control-row">
+                  <label>B 點 y₂ <output id="outSlopeBy">-4</output></label>
+                  <input type="range" id="slopeBy" min="-8" max="8" step="1" value="-4">
+                </div>
+                <div class="func-switch" data-numfmt-switch style="max-width:220px;">
+                  <button type="button" data-numfmt="decimal" aria-pressed="true">小數顯示</button>
+                  <button type="button" data-numfmt="fraction" aria-pressed="false">分數顯示</button>
+                </div>
+                <div class="formula" id="slopeFormulaOut"></div>
+                <ul class="lp-vertex-list">
+                  <li>(1) 斜率的正負：<span id="slopeFactSign"></span></li>
+                  <li>(2) 傾斜程度與 |m|：<span id="slopeFactSteep"></span></li>
+                  <li>(3) 傾斜角（與 x 軸正向的夾角）：<span id="slopeFactAngle"></span></li>
+                </ul>
+                <div class="slope-fan-wrap">
+                  <svg id="slopeFanSvg" class="graph slope-fan" viewBox="0 0 170 170" role="img" aria-label="傾斜程度比較圖"></svg>
+                  <p class="slope-fan-note">紅線是目前的直線。愈接近鉛直線，|m| 愈大；愈接近水平線，|m| 愈小。</p>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        </details>
+
+        <!-- 二元一次不等式（第3冊 3-2，課本 P.67～P.71） -->
+        <details class="book demo-topic" id="topicIneq">
+          <summary>
+            <span class="book-tag">第3冊 3-2</span>
+            <span class="demo-topic-title">二元一次不等式：解區域與實線／虛線</span>
+            <span class="subbook-tag">含代點檢驗</span>
+          </summary>
+          <div class="book-body demo-topic-body">
+            <div class="demo-head">
+              <h3>二元一次不等式：解區域與實線／虛線</h3>
+              <span class="badge">ax + by + c ⋛ 0</span>
+            </div>
+            <div class="demo-body">
+              <div class="graph-wrap">
+                <svg id="ineqSvg" class="graph" viewBox="0 0 440 440" role="img" aria-label="二元一次不等式解區域"></svg>
+              </div>
+              <div class="controls">
+                <div class="control-row">
+                  <label>x 的係數 a <output id="outIneqA">1</output></label>
+                  <input type="range" id="ineqA" min="-6" max="6" step="1" value="1">
+                </div>
+                <div class="control-row">
+                  <label>y 的係數 b <output id="outIneqB">2</output></label>
+                  <input type="range" id="ineqB" min="-6" max="6" step="1" value="2">
+                </div>
+                <div class="control-row">
+                  <label>常數 c <output id="outIneqC">-4</output></label>
+                  <input type="range" id="ineqC" min="-12" max="12" step="1" value="-4">
+                </div>
+                <div class="func-switch" id="ineqRelSwitch" style="margin-top:2px;">
+                  <button type="button" data-rel="gt" aria-pressed="true">&gt; 0</button>
+                  <button type="button" data-rel="ge" aria-pressed="false">≥ 0</button>
+                  <button type="button" data-rel="lt" aria-pressed="false">&lt; 0</button>
+                  <button type="button" data-rel="le" aria-pressed="false">≤ 0</button>
+                </div>
+                <div class="formula" id="ineqFormulaOut"></div>
+                <ul class="lp-vertex-list">
+                  <li>(1) 邊界線：<span id="ineqFactLine"></span></li>
+                  <li>(2) 實線還是虛線：<span id="ineqFactDash"></span></li>
+                  <li>(3) 解區域的位置：<span id="ineqFactSide"></span></li>
+                </ul>
+                <div class="demo-subpanel">
+                  <div class="demo-subpanel-title">代點檢驗：把 P 點代進不等式看看</div>
+                  <div class="mini-row">
+                    <div class="control-row">
+                      <label>P 的 x <output id="outIneqPx">0</output></label>
+                      <input type="range" id="ineqPx" min="-8" max="8" step="1" value="0">
+                    </div>
+                    <div class="control-row">
+                      <label>P 的 y <output id="outIneqPy">0</output></label>
+                      <input type="range" id="ineqPy" min="-8" max="8" step="1" value="0">
+                    </div>
+                  </div>
+                  <div class="ineq-verdict" id="ineqVerdict"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <!-- 二元一次聯立不等式（第3冊 3-3） -->
+        <details class="book demo-topic" id="topicSys">
+          <summary>
+            <span class="book-tag">第3冊 3-3</span>
+            <span class="demo-topic-title">二元一次聯立不等式：可行解區域</span>
+            <span class="subbook-tag">可開關每個限制</span>
+          </summary>
+          <div class="book-body demo-topic-body">
+            <div class="demo-head">
+              <h3>二元一次聯立不等式：可行解區域</h3>
+              <span class="badge">各不等式解區域的交集</span>
+            </div>
+            <div class="demo-body">
+              <div class="graph-wrap">
+                <svg id="sysSvg" class="graph" viewBox="0 0 440 440" role="img" aria-label="聯立不等式可行解區域"></svg>
+              </div>
+              <div class="controls">
+                <div class="demo-subpanel">
+                  <label class="demo-check"><input type="checkbox" id="sysUseX" checked> 限制 x ≥ 0（只看 y 軸右邊）</label>
+                  <label class="demo-check"><input type="checkbox" id="sysUseY" checked> 限制 y ≥ 0（只看 x 軸上面）</label>
+                </div>
+                <div class="demo-subpanel">
+                  <label class="demo-check"><input type="checkbox" id="sysUse1" checked> 不等式①</label>
+                  <div class="demo-subpanel-eq" id="sysEq1"></div>
+                  <div class="mini-row mini-row-3">
+                    <div class="control-row"><label>a₁ <output id="outSysA1">1</output></label><input type="range" id="sysA1" min="-5" max="5" step="1" value="1"></div>
+                    <div class="control-row"><label>b₁ <output id="outSysB1">1</output></label><input type="range" id="sysB1" min="-5" max="5" step="1" value="1"></div>
+                    <div class="control-row"><label>c₁ <output id="outSysC1">6</output></label><input type="range" id="sysC1" min="-12" max="12" step="1" value="6"></div>
+                  </div>
+                  <div class="func-switch" data-sysrel="1">
+                    <button type="button" data-rel="le" aria-pressed="true">≤ c₁</button>
+                    <button type="button" data-rel="ge" aria-pressed="false">≥ c₁</button>
+                  </div>
+                </div>
+                <div class="demo-subpanel">
+                  <label class="demo-check"><input type="checkbox" id="sysUse2" checked> 不等式②</label>
+                  <div class="demo-subpanel-eq" id="sysEq2"></div>
+                  <div class="mini-row mini-row-3">
+                    <div class="control-row"><label>a₂ <output id="outSysA2">2</output></label><input type="range" id="sysA2" min="-5" max="5" step="1" value="2"></div>
+                    <div class="control-row"><label>b₂ <output id="outSysB2">1</output></label><input type="range" id="sysB2" min="-5" max="5" step="1" value="1"></div>
+                    <div class="control-row"><label>c₂ <output id="outSysC2">8</output></label><input type="range" id="sysC2" min="-12" max="12" step="1" value="8"></div>
+                  </div>
+                  <div class="func-switch" data-sysrel="2">
+                    <button type="button" data-rel="le" aria-pressed="true">≤ c₂</button>
+                    <button type="button" data-rel="ge" aria-pressed="false">≥ c₂</button>
+                  </div>
+                </div>
+                <div class="formula" id="sysFormulaOut"></div>
+                <ul class="lp-vertex-list" id="sysVertexList"></ul>
+              </div>
+            </div>
+          </div>
+        </details>
+
       </div>
 
     </div>
@@ -1119,7 +1349,7 @@
     });
   }
 
-  /* ============ 共用 SVG 小工具 ============ */
+  /* ============ 互動動畫共用小工具 ============ */
   var ns = "http://www.w3.org/2000/svg";
   function el(tag, attrs){
     var e = document.createElementNS(ns, tag);
@@ -1127,40 +1357,8 @@
     return e;
   }
 
-  /* ============ 二次函數示範：頂點式 y = a(x-h)² + k，可拖 a／h／k，並留下頂點平移軌跡 ============ */
-  var quadSvg = document.getElementById('quadSvg');
-  var QW = 440, QH = 440, Qmargin = 30;
-  var qMin = -8, qMax = 8; // 同一個範圍同時當 x 軸與 y 軸（正方形座標系）
-  function qx(x){ return Qmargin + (x - qMin) / (qMax - qMin) * (QW - 2*Qmargin); }
-  function qy(y){ return QH - Qmargin - (y - qMin) / (qMax - qMin) * (QH - 2*Qmargin); }
-
-  function buildQuadStatic(){
-    while (quadSvg.firstChild) quadSvg.removeChild(quadSvg.firstChild);
-    for (var g = qMin; g <= qMax; g += 2){
-      quadSvg.appendChild(el('line', {x1:qx(g),y1:Qmargin,x2:qx(g),y2:QH-Qmargin, class:'gridline'}));
-      quadSvg.appendChild(el('line', {x1:Qmargin,y1:qy(g),x2:QW-Qmargin,y2:qy(g), class:'gridline'}));
-    }
-    quadSvg.appendChild(el('line', {x1:Qmargin,y1:qy(0),x2:QW-Qmargin,y2:qy(0), class:'axis'}));
-    quadSvg.appendChild(el('line', {x1:qx(0),y1:Qmargin,x2:qx(0),y2:QH-Qmargin, class:'axis'}));
-    [-8,-6,-4,-2,2,4,6,8].forEach(function(v){
-      var t1 = el('text', {x:qx(v)+2, y:qy(0)+13, class:'axislabel'}); t1.textContent = v;
-      quadSvg.appendChild(t1);
-      var t2 = el('text', {x:qx(0)-16, y:qy(v)+3, class:'axislabel'}); t2.textContent = v;
-      quadSvg.appendChild(t2);
-    });
-    quadSvg.appendChild(el('g', {id:'quadTrailGroup'}));
-    quadSvg.appendChild(el('line', {id:'quadAxisLine', class:'constraint'}));
-    quadSvg.appendChild(el('path', {id:'quadCurve', class:'curve'}));
-    quadSvg.appendChild(el('circle', {id:'quadVertex', class:'optpoint', r:5}));
-  }
-  buildQuadStatic();
-
-  var quadTrail = []; // 最近拖動過的頂點座標 {h,k}，用來畫出淡淡的平移軌跡
-  var QUAD_TRAIL_MAX = 24;
-  var quadShowFraction = false; // 公式/頂點/對稱軸要用小數還是分數表示
-
-  // 把小數換算成最簡分數（滑桿都是 0.1 為單位，乘乘減減最多也只會到千分位，
-  // 所以固定用千分之一當基準去化簡，不用真的處理無限小數）。
+  // 數字顯示模式：小數 or 分數（所有互動動畫共用同一個設定，切一次全部跟著變）
+  var showFraction = false;
   function gcdInt(x, y){
     x = Math.abs(Math.round(x)); y = Math.abs(Math.round(y));
     while (y){ var t = y; y = x % y; x = t; }
@@ -1173,28 +1371,153 @@
     var g = gcdInt(num, denom);
     return { neg: neg, num: num / g, den: denom / g };
   }
-  // 回傳可以直接塞進 innerHTML 的數字字串：小數模式就是 toFixed(1)，
-  // 分數模式如果分母不是 1（也就是不是整數）就畫成有橫線的上下分數。
+  function fracSpan(neg, num, den){
+    var sign = neg ? '－' : '';
+    if (den === 1) return sign + num;
+    return sign + '<span class="frac"><span class="num">' + num + '</span><span class="den">' + den + '</span></span>';
+  }
+  // 小數模式就是 toFixed(1)；分數模式把小數換算成最簡分數（滑桿都是 0.1 為單位，
+  // 乘乘減減最多到千分位，所以固定用千分之一當基準化簡就夠）。
   function numHtml(n){
-    if (!quadShowFraction) return n.toFixed(1);
+    if (!showFraction) return n.toFixed(1);
     var f = toFraction(n);
-    var sign = f.neg ? '－' : '';
-    if (f.den === 1) return sign + f.num;
-    return sign + '<span class="frac"><span class="num">' + f.num + '</span><span class="den">' + f.den + '</span></span>';
+    return fracSpan(f.neg, f.num, f.den);
+  }
+  // 由「整數比」直接化簡（斜率用）：這樣 9/7 不會因為小數誤差變成 643/500。
+  function ratioHtml(num, den){
+    if (den === 0) return '不存在';
+    var neg = (num < 0) !== (den < 0);
+    num = Math.abs(num); den = Math.abs(den);
+    if (!showFraction){
+      var v = (neg ? -1 : 1) * num / den;
+      return String(Math.round(v * 100) / 100);
+    }
+    var g = gcdInt(num, den);
+    return fracSpan(neg, num / g, den / g);
+  }
+  function redrawAllDemos(){
+    redrawQuad();
+    redrawSlope();
+    redrawIneq();
+    redrawSystem();
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('[data-numfmt-switch]'), function(sw){
+    sw.addEventListener('click', function(e){
+      var btn = e.target.closest('button[data-numfmt]');
+      if (!btn) return;
+      showFraction = (btn.getAttribute('data-numfmt') === 'fraction');
+      Array.prototype.forEach.call(document.querySelectorAll('[data-numfmt-switch] button'), function(b){
+        b.setAttribute('aria-pressed', (b.getAttribute('data-numfmt') === 'fraction') === showFraction ? 'true' : 'false');
+      });
+      redrawAllDemos();
+    });
+  });
+
+  /* ---- 共用坐標平面：畫格線/坐標軸/刻度，並提供一個可重畫的動態圖層 ---- */
+  function createPlot(svgEl, cfg){
+    var W = cfg.w, H = cfg.h, M = cfg.margin;
+    var xMin = cfg.xMin, xMax = cfg.xMax, yMin = cfg.yMin, yMax = cfg.yMax;
+    var step = cfg.step || 1, labelStep = cfg.labelStep || 2;
+    function sx(x){ return M + (x - xMin) / (xMax - xMin) * (W - 2 * M); }
+    function sy(y){ return H - M - (y - yMin) / (yMax - yMin) * (H - 2 * M); }
+    var dynG = null;
+    var g;
+    while (svgEl.firstChild) svgEl.removeChild(svgEl.firstChild);
+    for (g = Math.ceil(xMin / step) * step; g <= xMax + 1e-9; g += step){
+      svgEl.appendChild(el('line', {x1:sx(g), y1:sy(yMin), x2:sx(g), y2:sy(yMax), class:'gridline'}));
+    }
+    for (g = Math.ceil(yMin / step) * step; g <= yMax + 1e-9; g += step){
+      svgEl.appendChild(el('line', {x1:sx(xMin), y1:sy(g), x2:sx(xMax), y2:sy(g), class:'gridline'}));
+    }
+    if (yMin <= 0 && yMax >= 0) svgEl.appendChild(el('line', {x1:sx(xMin), y1:sy(0), x2:sx(xMax), y2:sy(0), class:'axis'}));
+    if (xMin <= 0 && xMax >= 0) svgEl.appendChild(el('line', {x1:sx(0), y1:sy(yMin), x2:sx(0), y2:sy(yMax), class:'axis'}));
+    var baseY = (yMin <= 0 && yMax >= 0) ? 0 : yMin;
+    var baseX = (xMin <= 0 && xMax >= 0) ? 0 : xMin;
+    for (g = Math.ceil(xMin / labelStep) * labelStep; g <= xMax + 1e-9; g += labelStep){
+      if (Math.abs(g) < 1e-9) continue;
+      var t1 = el('text', {x:sx(g) + 2, y:sy(baseY) + 13, class:'axislabel'});
+      t1.textContent = g; svgEl.appendChild(t1);
+    }
+    for (g = Math.ceil(yMin / labelStep) * labelStep; g <= yMax + 1e-9; g += labelStep){
+      if (Math.abs(g) < 1e-9) continue;
+      var t2 = el('text', {x:sx(baseX) - 18, y:sy(g) + 3, class:'axislabel'});
+      t2.textContent = g; svgEl.appendChild(t2);
+    }
+    dynG = el('g', {});
+    svgEl.appendChild(dynG);
+    return {
+      sx: sx, sy: sy, xMin: xMin, xMax: xMax, yMin: yMin, yMax: yMax,
+      clear: function(){ while (dynG.firstChild) dynG.removeChild(dynG.firstChild); },
+      add: function(node){ dynG.appendChild(node); return node; },
+      rect: function(){ return [{x:xMin,y:yMin},{x:xMax,y:yMin},{x:xMax,y:yMax},{x:xMin,y:yMax}]; },
+      poly: function(pts){
+        return pts.map(function(p){ return sx(p.x).toFixed(2) + ',' + sy(p.y).toFixed(2); }).join(' ');
+      }
+    };
   }
 
-  function redrawQuadTrail(){
-    var group = document.getElementById('quadTrailGroup');
-    while (group.firstChild) group.removeChild(group.firstChild);
-    quadTrail.forEach(function(p, i){
-      var ratio = (i + 1) / quadTrail.length; // 越新的點越明顯
-      var dot = el('circle', {
-        cx: qx(p.h), cy: qy(p.k), r: 2 + ratio * 1.5,
-        class: 'quad-trail-dot', style: 'opacity:' + (0.08 + ratio * 0.35).toFixed(2)
-      });
-      group.appendChild(dot);
-    });
+  /* ---- 半平面裁切：留下 a*x + b*y + c ≥ 0 的部分，用來畫不等式的解區域 ---- */
+  function lerpPoint(p1, p2, f1, f2){
+    var t = f1 / (f1 - f2);
+    return { x: p1.x + t * (p2.x - p1.x), y: p1.y + t * (p2.y - p1.y) };
   }
+  function clipHalfPlane(poly, a, b, c){
+    var out = [];
+    for (var i = 0; i < poly.length; i++){
+      var cur = poly[i], prev = poly[(i - 1 + poly.length) % poly.length];
+      var fc = a * cur.x + b * cur.y + c;
+      var fp = a * prev.x + b * prev.y + c;
+      var cin = fc >= -1e-9, pin = fp >= -1e-9;
+      if (cin){
+        if (!pin) out.push(lerpPoint(prev, cur, fp, fc));
+        out.push(cur);
+      } else if (pin){
+        out.push(lerpPoint(prev, cur, fp, fc));
+      }
+    }
+    return out;
+  }
+  /* ---- 直線 a*x + b*y + c = 0 在可視範圍內的兩個端點 ---- */
+  function lineInView(a, b, c, plot){
+    var pts = [];
+    function push(x, y){
+      if (x < plot.xMin - 1e-6 || x > plot.xMax + 1e-6 || y < plot.yMin - 1e-6 || y > plot.yMax + 1e-6) return;
+      for (var i = 0; i < pts.length; i++){
+        if (Math.abs(pts[i].x - x) < 1e-6 && Math.abs(pts[i].y - y) < 1e-6) return;
+      }
+      pts.push({x:x, y:y});
+    }
+    if (Math.abs(b) > 1e-9){
+      push(plot.xMin, (-c - a * plot.xMin) / b);
+      push(plot.xMax, (-c - a * plot.xMax) / b);
+    }
+    if (Math.abs(a) > 1e-9){
+      push((-c - b * plot.yMin) / a, plot.yMin);
+      push((-c - b * plot.yMax) / a, plot.yMax);
+    }
+    return pts.slice(0, 2);
+  }
+  /* ---- 把 ax+by+c 排成好看的字串（處理正負號、係數 1 不寫出來）---- */
+  function termStr(coef, symbol, isFirst){
+    if (Math.abs(coef) < 1e-9) return '';
+    var sign = coef < 0 ? '－' : (isFirst ? '' : '＋');
+    var mag = Math.abs(coef);
+    var num = (symbol && Math.abs(mag - 1) < 1e-9) ? '' : String(mag);
+    return (isFirst ? sign : ' ' + sign + ' ') + num + symbol;
+  }
+  function linearExpr(a, b, c){
+    var s = '';
+    s += termStr(a, 'x', true);
+    s += termStr(b, 'y', s === '');
+    s += termStr(c, '', s === '');
+    return s === '' ? '0' : s;
+  }
+
+  /* ============ 動畫 1：二次函數（頂點式 y = a(x-h)² + k，含頂點平移軌跡）============ */
+  var quadPlot = createPlot(document.getElementById('quadSvg'),
+    {w:440, h:440, margin:30, xMin:-8, xMax:8, yMin:-8, yMax:8, step:2, labelStep:2});
+  var quadTrail = [];            // 最近拖動過的頂點座標 {h,k}
+  var QUAD_TRAIL_MAX = 24;
 
   function redrawQuad(){
     var rawA = parseFloat(document.getElementById('quadA').value);
@@ -1211,8 +1534,6 @@
     // 展開成一般式 y = ax² + bx + c： a(x-h)² + k = ax² - 2ah·x + (ah²+k)
     var b = -2 * a * h;
     var c = a * h * h + k;
-    // 負號要正確顯示（例如 h=-1 時要寫成 (x + 1.0) 而不是 (x － -1.0)），
-    // numHtml() 依目前小數／分數模式輸出對應的數字字串（分數模式會畫出有橫線的上下分數）。
     function signedTerm(n, symbol){
       return (n < 0 ? '－ ' : '+ ') + numHtml(Math.abs(n)) + symbol;
     }
@@ -1227,36 +1548,40 @@
     document.getElementById('quadFactVertex').innerHTML = 'V(' + numHtml(h) + ', ' + numHtml(k) + ')';
     document.getElementById('quadFactAxis').innerHTML = 'x = ' + numHtml(h);
 
-    // 拋物線本體
-    var samples = 200;
-    var span = 10; // 以頂點為中心，左右各畫 10 個單位，確保拖到邊界時曲線還夠長
-    var d = '';
+    quadPlot.clear();
+    // 頂點軌跡（同一個位置不重複記錄）
+    var last = quadTrail[quadTrail.length - 1];
+    if (!last || last.h !== h || last.k !== k){
+      quadTrail.push({h:h, k:k});
+      if (quadTrail.length > QUAD_TRAIL_MAX) quadTrail.shift();
+    }
+    quadTrail.forEach(function(p, i){
+      var ratio = (i + 1) / quadTrail.length; // 越新的點越明顯
+      quadPlot.add(el('circle', {
+        cx: quadPlot.sx(p.h), cy: quadPlot.sy(p.k), r: 2 + ratio * 1.5,
+        class: 'quad-trail-dot', style: 'opacity:' + (0.08 + ratio * 0.35).toFixed(2)
+      }));
+    });
+    // 對稱軸
+    quadPlot.add(el('line', {
+      x1: quadPlot.sx(h), y1: quadPlot.sy(quadPlot.yMin),
+      x2: quadPlot.sx(h), y2: quadPlot.sy(quadPlot.yMax), class: 'constraint'
+    }));
+    // 拋物線本體：以頂點為中心左右各畫 10 個單位，確保拖到邊界時曲線還夠長
+    var samples = 200, span = 10, d = '';
     for (var i = 0; i <= samples; i++){
       var x = h - span + (2 * span) * i / samples;
       var y = a * (x - h) * (x - h) + k;
-      var clipped = Math.max(qMin - 2, Math.min(qMax + 2, y));
-      var cmd = (i === 0) ? 'M' : 'L';
-      d += cmd + qx(x).toFixed(2) + ',' + qy(clipped).toFixed(2) + ' ';
+      var clipped = Math.max(quadPlot.yMin - 2, Math.min(quadPlot.yMax + 2, y));
+      d += (i === 0 ? 'M' : 'L') + quadPlot.sx(x).toFixed(2) + ',' + quadPlot.sy(clipped).toFixed(2) + ' ';
     }
-    document.getElementById('quadCurve').setAttribute('d', d.trim());
-
-    // 對稱軸（虛線）與頂點
-    document.getElementById('quadAxisLine').setAttribute('x1', qx(h));
-    document.getElementById('quadAxisLine').setAttribute('y1', Qmargin);
-    document.getElementById('quadAxisLine').setAttribute('x2', qx(h));
-    document.getElementById('quadAxisLine').setAttribute('y2', QH - Qmargin);
-    document.getElementById('quadVertex').setAttribute('cx', qx(h));
-    document.getElementById('quadVertex').setAttribute('cy', qy(Math.max(qMin - 2, Math.min(qMax + 2, k))));
-
-    // 記錄頂點軌跡（同一個位置不用重複記錄）
-    var last = quadTrail[quadTrail.length - 1];
-    if (!last || last.h !== h || last.k !== k){
-      quadTrail.push({ h: h, k: k });
-      if (quadTrail.length > QUAD_TRAIL_MAX) quadTrail.shift();
-    }
-    redrawQuadTrail();
+    quadPlot.add(el('path', {class:'curve', d:d.trim()}));
+    quadPlot.add(el('circle', {
+      cx: quadPlot.sx(h),
+      cy: quadPlot.sy(Math.max(quadPlot.yMin - 2, Math.min(quadPlot.yMax + 2, k))),
+      r: 5, class: 'optpoint'
+    }));
   }
-
   ['quadA','quadH','quadK'].forEach(function(id){
     document.getElementById(id).addEventListener('input', redrawQuad);
   });
@@ -1264,22 +1589,347 @@
   if (quadTrailClearBtn){
     quadTrailClearBtn.addEventListener('click', function(){
       quadTrail = [];
-      redrawQuadTrail();
-    });
-  }
-  var quadNumFormatSwitch = document.getElementById('quadNumFormatSwitch');
-  if (quadNumFormatSwitch){
-    quadNumFormatSwitch.addEventListener('click', function(e){
-      var btn = e.target.closest('button[data-numfmt]');
-      if (!btn) return;
-      quadShowFraction = (btn.getAttribute('data-numfmt') === 'fraction');
-      Array.prototype.forEach.call(quadNumFormatSwitch.querySelectorAll('button'), function(b){
-        b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
-      });
       redrawQuad();
     });
   }
-  redrawQuad();
+
+  /* ============ 動畫 2：斜率（第1冊 2-1，課本 P.57～P.58）============
+     重點：m =（y₂－y₁）/（x₂－x₁）；m 的正負決定往哪邊傾斜；
+     |m| 越大代表越陡（傾斜程度越大），水平線 m=0、鉛直線 m 不存在。 */
+  var slopePlot = createPlot(document.getElementById('slopeSvg'),
+    {w:440, h:440, margin:30, xMin:-9, xMax:9, yMin:-9, yMax:9, step:1, labelStep:3});
+  var slopeFanSvg = document.getElementById('slopeFanSvg');
+
+  // 右下角的小圖：一束不同斜率的參考線，把目前這條用紅色標出來，
+  // 讓學生直接看到「越接近鉛直 → |m| 越大」。
+  function drawSlopeFan(m, vertical){
+    while (slopeFanSvg.firstChild) slopeFanSvg.removeChild(slopeFanSvg.firstChild);
+    var cx = 85, cy = 85, r = 62;
+    [0, 1/3, 1, 3, -1/3, -1, -3].forEach(function(rm){
+      var ang = Math.atan(rm);
+      var dx = Math.cos(ang) * r, dy = Math.sin(ang) * r;
+      slopeFanSvg.appendChild(el('line', {x1:cx - dx, y1:cy + dy, x2:cx + dx, y2:cy - dy, class:'fan-ref'}));
+    });
+    slopeFanSvg.appendChild(el('line', {x1:cx, y1:cy - r, x2:cx, y2:cy + r, class:'fan-ref'}));
+    var lv = el('text', {x:cx + 4, y:16, class:'fan-label'}); lv.textContent = 'm 不存在';
+    slopeFanSvg.appendChild(lv);
+    var lh = el('text', {x:cx + r - 24, y:cy - 5, class:'fan-label'}); lh.textContent = 'm=0';
+    slopeFanSvg.appendChild(lh);
+    if (vertical){
+      slopeFanSvg.appendChild(el('line', {x1:cx, y1:cy - r, x2:cx, y2:cy + r, class:'fan-cur'}));
+    } else {
+      var a2 = Math.atan(m);
+      var dx2 = Math.cos(a2) * r, dy2 = Math.sin(a2) * r;
+      slopeFanSvg.appendChild(el('line', {x1:cx - dx2, y1:cy + dy2, x2:cx + dx2, y2:cy - dy2, class:'fan-cur'}));
+    }
+  }
+
+  function redrawSlope(){
+    var x1 = parseFloat(document.getElementById('slopeAx').value);
+    var y1 = parseFloat(document.getElementById('slopeAy').value);
+    var x2 = parseFloat(document.getElementById('slopeBx').value);
+    var y2 = parseFloat(document.getElementById('slopeBy').value);
+    document.getElementById('outSlopeAx').textContent = x1;
+    document.getElementById('outSlopeAy').textContent = y1;
+    document.getElementById('outSlopeBx').textContent = x2;
+    document.getElementById('outSlopeBy').textContent = y2;
+
+    var dx = x2 - x1, dy = y2 - y1;
+    var samePoint = (dx === 0 && dy === 0);
+    var vertical = (dx === 0 && !samePoint);
+    var m = vertical ? null : dy / dx;
+
+    var formulaEl = document.getElementById('slopeFormulaOut');
+    if (samePoint){
+      formulaEl.innerHTML = 'A、B 是同一點，沒辦法決定一條直線';
+    } else if (vertical){
+      formulaEl.innerHTML = 'm = (' + y2 + ' － ' + y1 + ') ÷ (' + x2 + ' － ' + x1 + ') = ' + dy + ' ÷ 0 → 斜率不存在';
+    } else {
+      // 被減數是負數才加括號，例如 5 －（-4），正數就直接寫 -4 － 5
+      var wrap = function(v){ return v < 0 ? '(' + v + ')' : String(v); };
+      formulaEl.innerHTML = 'm = <span class="frac"><span class="num">y₂ － y₁</span><span class="den">x₂ － x₁</span></span> = ' +
+        '<span class="frac"><span class="num">' + y2 + ' － ' + wrap(y1) + '</span><span class="den">' + x2 + ' － ' + wrap(x1) + '</span></span> = ' +
+        ratioHtml(dy, dx);
+    }
+
+    var signEl = document.getElementById('slopeFactSign');
+    var steepEl = document.getElementById('slopeFactSteep');
+    var angleEl = document.getElementById('slopeFactAngle');
+    if (samePoint){
+      signEl.textContent = '—'; steepEl.textContent = '—'; angleEl.textContent = '—';
+    } else if (vertical){
+      signEl.textContent = '斜率不存在（直線與 x 軸垂直，是一條鉛直線）';
+      steepEl.textContent = '鉛直線最陡，陡到沒辦法用數字表示斜率';
+      angleEl.textContent = '90°';
+    } else if (Math.abs(m) < 1e-9){
+      signEl.textContent = 'm = 0（直線與 x 軸平行，是一條水平線）';
+      steepEl.textContent = '水平線完全不傾斜，|m| = 0';
+      angleEl.textContent = '0°';
+    } else {
+      var cmp = Math.abs(m) > 1 ? '更陡（|m| > 1）' : (Math.abs(m) < 1 ? '更平（|m| < 1）' : '一樣（|m| = 1）');
+      if (m > 0){
+        signEl.textContent = 'm > 0（直線由左下向右上傾斜）';
+        steepEl.innerHTML = '|m| = ' + ratioHtml(Math.abs(dy), Math.abs(dx)) + '，比 45° 的直線' + cmp;
+        angleEl.textContent = (Math.atan(m) * 180 / Math.PI).toFixed(1) + '°';
+      } else {
+        signEl.textContent = 'm < 0（直線由左上向右下傾斜）';
+        steepEl.innerHTML = '|m| = ' + ratioHtml(Math.abs(dy), Math.abs(dx)) + '，比 135° 的直線' + cmp;
+        angleEl.textContent = (180 + Math.atan(m) * 180 / Math.PI).toFixed(1) + '°';
+      }
+    }
+
+    slopePlot.clear();
+    if (!samePoint){
+      // 直線本體：通過 A、B 的直線方程式為 dy·x － dx·y + (dx·y₁ － dy·x₁) = 0
+      var seg = vertical
+        ? [{x:x1, y:slopePlot.yMin}, {x:x1, y:slopePlot.yMax}]
+        : lineInView(dy, -dx, dx * y1 - dy * x1, slopePlot);
+      if (seg.length === 2){
+        slopePlot.add(el('line', {
+          x1:slopePlot.sx(seg[0].x), y1:slopePlot.sy(seg[0].y),
+          x2:slopePlot.sx(seg[1].x), y2:slopePlot.sy(seg[1].y), class:'slope-line'
+        }));
+      }
+      // 課本那個「水平跑 Δx、垂直升 Δy」的直角三角形
+      if (!vertical && dy !== 0){
+        slopePlot.add(el('path', {
+          class:'slope-rise-run',
+          d:'M' + slopePlot.sx(x1) + ',' + slopePlot.sy(y1) +
+            ' L' + slopePlot.sx(x2) + ',' + slopePlot.sy(y1) +
+            ' L' + slopePlot.sx(x2) + ',' + slopePlot.sy(y2)
+        }));
+        var tdx = el('text', {
+          x: slopePlot.sx((x1 + x2) / 2) - 16, y: slopePlot.sy(y1) + (dy > 0 ? 15 : -7), class:'slope-delta-label'
+        });
+        tdx.textContent = 'Δx = ' + dx;
+        slopePlot.add(tdx);
+        var tdy = el('text', {
+          x: slopePlot.sx(x2) + (dx > 0 ? 7 : -56), y: slopePlot.sy((y1 + y2) / 2), class:'slope-delta-label'
+        });
+        tdy.textContent = 'Δy = ' + dy;
+        slopePlot.add(tdy);
+      }
+    }
+    [[x1, y1, 'A'], [x2, y2, 'B']].forEach(function(p){
+      slopePlot.add(el('circle', {cx:slopePlot.sx(p[0]), cy:slopePlot.sy(p[1]), r:5, class:'slope-point'}));
+      var t = el('text', {x:slopePlot.sx(p[0]) + 8, y:slopePlot.sy(p[1]) - 8, class:'slope-point-label'});
+      t.textContent = p[2] + '(' + p[0] + ',' + p[1] + ')';
+      slopePlot.add(t);
+    });
+    drawSlopeFan((vertical || samePoint) ? 0 : m, vertical);
+  }
+  ['slopeAx','slopeAy','slopeBx','slopeBy'].forEach(function(id){
+    document.getElementById(id).addEventListener('input', redrawSlope);
+  });
+
+  /* ============ 動畫 3：二元一次不等式（第3冊 3-2，課本 P.67～P.71）============
+     重點：ax+by+c>0 / <0 分別是直線的哪一側半平面；
+     有「=」的畫實線（解含直線上的點），沒有「=」畫虛線（不含）。 */
+  var ineqPlot = createPlot(document.getElementById('ineqSvg'),
+    {w:440, h:440, margin:30, xMin:-9, xMax:9, yMin:-9, yMax:9, step:1, labelStep:3});
+  var ineqRel = 'gt';
+  var INEQ_REL_TEXT = {gt:'> 0', ge:'≥ 0', lt:'< 0', le:'≤ 0'};
+
+  function redrawIneq(){
+    var a = parseFloat(document.getElementById('ineqA').value);
+    var b = parseFloat(document.getElementById('ineqB').value);
+    var c = parseFloat(document.getElementById('ineqC').value);
+    var px = parseFloat(document.getElementById('ineqPx').value);
+    var py = parseFloat(document.getElementById('ineqPy').value);
+    document.getElementById('outIneqA').textContent = a;
+    document.getElementById('outIneqB').textContent = b;
+    document.getElementById('outIneqC').textContent = c;
+    document.getElementById('outIneqPx').textContent = px;
+    document.getElementById('outIneqPy').textContent = py;
+
+    var hasEqual = (ineqRel === 'ge' || ineqRel === 'le');
+    var wantPositive = (ineqRel === 'gt' || ineqRel === 'ge');
+    var expr = linearExpr(a, b, c);
+    document.getElementById('ineqFormulaOut').textContent = expr + ' ' + INEQ_REL_TEXT[ineqRel];
+
+    var lineEl = document.getElementById('ineqFactLine');
+    var dashEl = document.getElementById('ineqFactDash');
+    var sideEl = document.getElementById('ineqFactSide');
+    var verdictEl = document.getElementById('ineqVerdict');
+
+    ineqPlot.clear();
+    if (Math.abs(a) < 1e-9 && Math.abs(b) < 1e-9){
+      lineEl.textContent = 'a、b 不能同時是 0，這樣就不是二元一次不等式了';
+      dashEl.textContent = '—';
+      sideEl.textContent = '—';
+      verdictEl.className = 'ineq-verdict is-out';
+      verdictEl.textContent = '請把 a 或 b 調成不是 0 的數字。';
+      return;
+    }
+
+    // 解區域：把整個可視範圍裁成要的那一半
+    var sign = wantPositive ? 1 : -1;
+    var regionPoly = clipHalfPlane(ineqPlot.rect(), sign * a, sign * b, sign * c);
+    if (regionPoly.length >= 3){
+      ineqPlot.add(el('polygon', {class:'ineq-region', points:ineqPlot.poly(regionPoly)}));
+    }
+    // 邊界線：有等號畫實線，沒等號畫虛線
+    var seg = lineInView(a, b, c, ineqPlot);
+    if (seg.length === 2){
+      ineqPlot.add(el('line', {
+        x1:ineqPlot.sx(seg[0].x), y1:ineqPlot.sy(seg[0].y),
+        x2:ineqPlot.sx(seg[1].x), y2:ineqPlot.sy(seg[1].y),
+        class:'ineq-line' + (hasEqual ? '' : ' is-dashed')
+      }));
+    }
+    // 代點檢驗
+    var value = a * px + b * py + c;
+    var satisfied = hasEqual
+      ? (wantPositive ? value >= -1e-9 : value <= 1e-9)
+      : (wantPositive ? value > 1e-9 : value < -1e-9);
+    ineqPlot.add(el('circle', {
+      cx:ineqPlot.sx(px), cy:ineqPlot.sy(py), r:6,
+      class:'ineq-test-point ' + (satisfied ? 'is-in' : 'is-out')
+    }));
+    var pt = el('text', {x:ineqPlot.sx(px) + 9, y:ineqPlot.sy(py) - 9, class:'ineq-test-label'});
+    pt.textContent = 'P(' + px + ',' + py + ')';
+    ineqPlot.add(pt);
+
+    lineEl.textContent = expr + ' = 0';
+    dashEl.textContent = hasEqual
+      ? '實線（有「＝」，解包含直線上的點）'
+      : '虛線（沒有「＝」，解不包含直線上的點）';
+
+    var sideParts = [];
+    if (Math.abs(b) > 1e-9) sideParts.push('直線的' + (((b > 0) === wantPositive) ? '上方' : '下方') + '半平面');
+    if (Math.abs(a) > 1e-9) sideParts.push('也就是' + (((a > 0) === wantPositive) ? '右側' : '左側'));
+    sideEl.textContent = sideParts.join('，') + (hasEqual ? '，而且包含直線本身' : '，但不包含直線');
+
+    var valueStr = String(Math.round(value * 100) / 100);
+    verdictEl.className = 'ineq-verdict ' + (satisfied ? 'is-in' : 'is-out');
+    verdictEl.innerHTML = '把 P(' + px + ', ' + py + ') 代入 ' + expr + ' 得 ' + valueStr + ' ' +
+      (Math.abs(value) < 1e-9 ? '（P 剛好落在邊界線上）' : (value > 0 ? '＞ 0' : '＜ 0')) +
+      '<br>' + (satisfied ? '✓ 符合不等式 → P 在解區域裡' : '✗ 不符合不等式 → P 不在解區域裡');
+  }
+  ['ineqA','ineqB','ineqC','ineqPx','ineqPy'].forEach(function(id){
+    document.getElementById(id).addEventListener('input', redrawIneq);
+  });
+  document.getElementById('ineqRelSwitch').addEventListener('click', function(e){
+    var btn = e.target.closest('button[data-rel]');
+    if (!btn) return;
+    ineqRel = btn.getAttribute('data-rel');
+    Array.prototype.forEach.call(this.querySelectorAll('button'), function(b){
+      b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+    });
+    redrawIneq();
+  });
+
+  /* ============ 動畫 4：二元一次聯立不等式的可行解區域（第3冊 3-3）============
+     每個不等式各自的解區域用淡色鋪一層，重疊起來的交集就是可行解區域。 */
+  var sysPlot = createPlot(document.getElementById('sysSvg'),
+    {w:440, h:440, margin:30, xMin:-3, xMax:11, yMin:-3, yMax:11, step:1, labelStep:2});
+  var sysRel = {1:'le', 2:'le'};
+
+  function sysReadRow(n){
+    var a = parseFloat(document.getElementById('sysA' + n).value);
+    var b = parseFloat(document.getElementById('sysB' + n).value);
+    var c = parseFloat(document.getElementById('sysC' + n).value);
+    document.getElementById('outSysA' + n).textContent = a;
+    document.getElementById('outSysB' + n).textContent = b;
+    document.getElementById('outSysC' + n).textContent = c;
+    var le = (sysRel[n] === 'le');
+    // ax + by ≤ c 轉成 -(ax+by) + c ≥ 0；ax + by ≥ c 轉成 (ax+by) - c ≥ 0
+    var hp = le ? {a:-a, b:-b, c:c} : {a:a, b:b, c:-c};
+    var degenerate = (Math.abs(a) < 1e-9 && Math.abs(b) < 1e-9);
+    var text = linearExpr(a, b, 0) + (le ? ' ≤ ' : ' ≥ ') + c;
+    document.getElementById('sysEq' + n).textContent = degenerate ? 'a、b 不能同時是 0' : text;
+    return {
+      on: document.getElementById('sysUse' + n).checked && !degenerate,
+      hp: hp, text: text
+    };
+  }
+
+  function redrawSystem(){
+    var rows = [sysReadRow(1), sysReadRow(2)];
+    var halfPlanes = [];
+    if (document.getElementById('sysUseX').checked) halfPlanes.push({a:1, b:0, c:0, text:'x ≥ 0', cls:''});
+    if (document.getElementById('sysUseY').checked) halfPlanes.push({a:0, b:1, c:0, text:'y ≥ 0', cls:''});
+    rows.forEach(function(r, i){
+      if (r.on) halfPlanes.push({a:r.hp.a, b:r.hp.b, c:r.hp.c, text:r.text, cls:(i === 0 ? 'is-a' : 'is-b')});
+    });
+
+    sysPlot.clear();
+    // 先把兩個不等式各自的解區域淡淡鋪一層，讓學生看出「交集」的意思
+    rows.forEach(function(r, i){
+      if (!r.on) return;
+      var poly = clipHalfPlane(sysPlot.rect(), r.hp.a, r.hp.b, r.hp.c);
+      if (poly.length >= 3){
+        sysPlot.add(el('polygon', {class:(i === 0 ? 'sys-half-a' : 'sys-half-b'), points:sysPlot.poly(poly)}));
+      }
+    });
+
+    // 交集 = 可行解區域
+    var region = sysPlot.rect();
+    halfPlanes.forEach(function(hp){ region = clipHalfPlane(region, hp.a, hp.b, hp.c); });
+    if (region.length >= 3){
+      sysPlot.add(el('polygon', {class:'sys-feasible', points:sysPlot.poly(region)}));
+    }
+    halfPlanes.forEach(function(hp){
+      var seg = lineInView(hp.a, hp.b, hp.c, sysPlot);
+      if (seg.length === 2){
+        sysPlot.add(el('line', {
+          x1:sysPlot.sx(seg[0].x), y1:sysPlot.sy(seg[0].y),
+          x2:sysPlot.sx(seg[1].x), y2:sysPlot.sy(seg[1].y),
+          class:'sys-bound ' + hp.cls
+        }));
+      }
+    });
+
+    function fmtCoord(n){
+      var r = Math.round(n * 100) / 100;
+      return (Math.abs(r - Math.round(r)) < 1e-9) ? String(Math.round(r)) : String(r);
+    }
+    var listEl = document.getElementById('sysVertexList');
+    listEl.innerHTML = '';
+    if (region.length >= 3){
+      region.forEach(function(p){
+        sysPlot.add(el('circle', {cx:sysPlot.sx(p.x), cy:sysPlot.sy(p.y), r:4.5, class:'sys-vertex'}));
+      });
+      var head = document.createElement('li');
+      head.textContent = '可行解區域的頂點（共 ' + region.length + ' 個）：';
+      listEl.appendChild(head);
+      region.forEach(function(p){
+        var li = document.createElement('li');
+        li.textContent = '( ' + fmtCoord(p.x) + ' , ' + fmtCoord(p.y) + ' )';
+        listEl.appendChild(li);
+      });
+    } else {
+      var li0 = document.createElement('li');
+      li0.className = 'sys-empty';
+      li0.textContent = halfPlanes.length === 0
+        ? '目前沒有勾選任何限制，整個平面都是解。'
+        : '這組聯立不等式沒有共同的解區域（無解）。';
+      listEl.appendChild(li0);
+    }
+    var lines = halfPlanes.map(function(hp){ return hp.text; });
+    document.getElementById('sysFormulaOut').textContent =
+      lines.length ? ('聯立：' + lines.join('　，　')) : '（尚未勾選任何限制）';
+  }
+  ['sysA1','sysB1','sysC1','sysA2','sysB2','sysC2'].forEach(function(id){
+    document.getElementById(id).addEventListener('input', redrawSystem);
+  });
+  ['sysUseX','sysUseY','sysUse1','sysUse2'].forEach(function(id){
+    document.getElementById(id).addEventListener('change', redrawSystem);
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-sysrel]'), function(sw){
+    sw.addEventListener('click', function(e){
+      var btn = e.target.closest('button[data-rel]');
+      if (!btn) return;
+      sysRel[sw.getAttribute('data-sysrel')] = btn.getAttribute('data-rel');
+      Array.prototype.forEach.call(sw.querySelectorAll('button'), function(b){
+        b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+      });
+      redrawSystem();
+    });
+  });
+
+  redrawAllDemos();
+
 
   /* ============ Curriculum directories (課堂筆記 + 習作解析) ============ */
   var CURRICULUM = [
@@ -1306,7 +1956,12 @@
       { title:'CH3 統計', sections:['3-1 統計的基本概念','3-2 統計資料整理','3-3(1) 統計分析－表達集中趨勢的統計量','3-3(2) 統計分析－表達離散趨勢的統計量'] }
     ]}
   ];
-  var DEMO_LINKS = { '1-3 二次函數':'#demos' };
+  var DEMO_LINKS = {
+    '1-3 二次函數':'#demos',
+    '2-1 斜率':'#demos',
+    '3-2 二元一次不等式':'#demos',
+    '3-3 線性規劃':'#demos'
+  };
 
   /* ============ 後端 API（Google Apps Script Web App） ============ */
   var API_URL = 'https://script.google.com/macros/s/AKfycbxFgZQxmhfpeyWRD_GgGJ16CLwK8sRO7uabEjs3IBCELcErqgo0hlRKRZiPQN4d9LNDmQ/exec';
@@ -2697,26 +3352,10 @@
     });
   }
 
-  /* ---- 互動動畫子選單切換（之後新增動畫，只要在 HTML 多加一顆 button[data-demo] 跟一個 [data-demo-panel] 就好）---- */
-  function setDemoPanel(key){
-    var navEl = document.getElementById('demoNav');
-    if (navEl){
-      Array.prototype.forEach.call(navEl.querySelectorAll('button[data-demo]'), function(b){
-        b.setAttribute('aria-pressed', b.getAttribute('data-demo') === key ? 'true' : 'false');
-      });
-    }
-    Array.prototype.forEach.call(document.querySelectorAll('[data-demo-panel]'), function(panel){
-      panel.hidden = (panel.getAttribute('data-demo-panel') !== key);
-    });
-  }
-  var demoNavEl = document.getElementById('demoNav');
-  if (demoNavEl){
-    demoNavEl.addEventListener('click', function(e){
-      var btn = e.target.closest('button[data-demo]');
-      if (!btn) return;
-      setDemoPanel(btn.getAttribute('data-demo'));
-    });
-  }
+  /* ---- 互動動畫改成可收摺的主題標籤（#demoTopics 裡的 <details class="demo-topic">），
+         收合/展開由瀏覽器原生的 <details> 處理，不需要額外的 JS。
+         之後要新增動畫，只要在 #demoTopics 裡多加一個 <details class="book demo-topic">，
+         再寫一支對應的 redrawXxx() 並加進 redrawAllDemos() 就好。---- */
 
   /* ---- session / 登入 / 登出 / 修改密碼（登入與修改密碼現在都是右上角的彈出視窗，不綁在特定頁面上）---- */
   function roleLabel(u){
