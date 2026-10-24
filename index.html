@@ -500,6 +500,12 @@
   .sys-bound.is-b{stroke:var(--red);}
   .sys-vertex{fill:var(--teal);stroke:var(--surface);stroke-width:1.5;}
   .sys-empty{color:var(--red);}
+  .func-switch-4 button{font-size:.74rem;padding:6px 2px;}
+  .plot-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px;}
+  .plot-tools .btn{padding:6px 12px;font-size:.78rem;}
+  .plot-hint{font-size:.74rem;color:var(--ink-soft);}
+  .sys-note{color:var(--ink-soft);}
+  .sys-bound.is-strict{stroke-dasharray:7 5;}
   /* 聯立不等式：圖形接近正方形，寬螢幕時不要被拉成巨大的方塊，
      多出來的寬度拿去把兩個不等式面板並排，整體高度也比較短。 */
   .demo-body-sys{grid-template-columns:minmax(340px,560px) minmax(320px,700px);}
@@ -1142,8 +1148,17 @@
               <span class="badge">各不等式解區域的交集</span>
             </div>
             <div class="demo-body demo-body-sys">
-              <div class="graph-wrap">
-                <svg id="sysSvg" class="graph" viewBox="0 0 519 438" role="img" aria-label="聯立不等式可行解區域"></svg>
+              <div>
+                <div class="graph-wrap">
+                  <svg id="sysSvg" class="graph" viewBox="0 0 519 438" role="img" aria-label="聯立不等式可行解區域"></svg>
+                </div>
+                <div class="plot-tools">
+                  <button type="button" class="btn btn-ghost" id="sysZoomInBtn">＋ 放大</button>
+                  <button type="button" class="btn btn-ghost" id="sysZoomOutBtn">－ 縮小</button>
+                  <button type="button" class="btn btn-ghost" id="sysFitBtn">自動框住解區域</button>
+                  <button type="button" class="btn btn-ghost" id="sysResetViewBtn">回到預設範圍</button>
+                  <span class="plot-hint">在圖上按住拖曳可以平移，滾輪可以縮放</span>
+                </div>
               </div>
               <div class="controls">
                 <div class="demo-subpanel">
@@ -1155,26 +1170,30 @@
                   <label class="demo-check"><input type="checkbox" id="sysUse1" checked> 不等式①</label>
                   <div class="demo-subpanel-eq" id="sysEq1"></div>
                   <div class="mini-row mini-row-3">
-                    <div class="control-row"><label>a₁ <output id="outSysA1">1</output></label><input type="range" id="sysA1" min="-5" max="5" step="1" value="1"></div>
-                    <div class="control-row"><label>b₁ <output id="outSysB1">1</output></label><input type="range" id="sysB1" min="-5" max="5" step="1" value="1"></div>
-                    <div class="control-row"><label>c₁ <output id="outSysC1">6</output></label><input type="range" id="sysC1" min="-12" max="12" step="1" value="6"></div>
+                    <div class="control-row"><label>a₁ <output id="outSysA1">1</output></label><input type="range" id="sysA1" min="-12" max="12" step="1" value="1"></div>
+                    <div class="control-row"><label>b₁ <output id="outSysB1">1</output></label><input type="range" id="sysB1" min="-12" max="12" step="1" value="1"></div>
+                    <div class="control-row"><label>c₁ <output id="outSysC1">6</output></label><input type="range" id="sysC1" min="-60" max="60" step="1" value="6"></div>
                   </div>
-                  <div class="func-switch" data-sysrel="1">
+                  <div class="func-switch func-switch-4" data-sysrel="1">
+                    <button type="button" data-rel="lt" aria-pressed="false">&lt; c₁</button>
                     <button type="button" data-rel="le" aria-pressed="true">≤ c₁</button>
                     <button type="button" data-rel="ge" aria-pressed="false">≥ c₁</button>
+                    <button type="button" data-rel="gt" aria-pressed="false">&gt; c₁</button>
                   </div>
                 </div>
                 <div class="demo-subpanel">
                   <label class="demo-check"><input type="checkbox" id="sysUse2" checked> 不等式②</label>
                   <div class="demo-subpanel-eq" id="sysEq2"></div>
                   <div class="mini-row mini-row-3">
-                    <div class="control-row"><label>a₂ <output id="outSysA2">2</output></label><input type="range" id="sysA2" min="-5" max="5" step="1" value="2"></div>
-                    <div class="control-row"><label>b₂ <output id="outSysB2">1</output></label><input type="range" id="sysB2" min="-5" max="5" step="1" value="1"></div>
-                    <div class="control-row"><label>c₂ <output id="outSysC2">8</output></label><input type="range" id="sysC2" min="-12" max="12" step="1" value="8"></div>
+                    <div class="control-row"><label>a₂ <output id="outSysA2">2</output></label><input type="range" id="sysA2" min="-12" max="12" step="1" value="2"></div>
+                    <div class="control-row"><label>b₂ <output id="outSysB2">1</output></label><input type="range" id="sysB2" min="-12" max="12" step="1" value="1"></div>
+                    <div class="control-row"><label>c₂ <output id="outSysC2">8</output></label><input type="range" id="sysC2" min="-60" max="60" step="1" value="8"></div>
                   </div>
-                  <div class="func-switch" data-sysrel="2">
+                  <div class="func-switch func-switch-4" data-sysrel="2">
+                    <button type="button" data-rel="lt" aria-pressed="false">&lt; c₂</button>
                     <button type="button" data-rel="le" aria-pressed="true">≤ c₂</button>
                     <button type="button" data-rel="ge" aria-pressed="false">≥ c₂</button>
+                    <button type="button" data-rel="gt" aria-pressed="false">&gt; c₂</button>
                   </div>
                 </div>
                 </div>
@@ -1440,40 +1459,152 @@
   /* ---- 共用坐標平面：畫格線/坐標軸/刻度，並提供一個可重畫的動態圖層 ---- */
   function createPlot(svgEl, cfg){
     var W = cfg.w, H = cfg.h, M = cfg.margin;
-    var xMin = cfg.xMin, xMax = cfg.xMax, yMin = cfg.yMin, yMax = cfg.yMax;
-    var step = cfg.step || 1, labelStep = cfg.labelStep || 2;
-    function sx(x){ return M + (x - xMin) / (xMax - xMin) * (W - 2 * M); }
-    function sy(y){ return H - M - (y - yMin) / (yMax - yMin) * (H - 2 * M); }
+    var usableW = W - 2 * M, usableH = H - 2 * M;
+    var baseStep = cfg.step || 1, baseLabelStep = cfg.labelStep || 2;
+    var view = { xMin: cfg.xMin, xMax: cfg.xMax, yMin: cfg.yMin, yMax: cfg.yMax };
+    var defaults = { xMin: cfg.xMin, xMax: cfg.xMax, yMin: cfg.yMin, yMax: cfg.yMax };
     var dynG = null;
-    var g;
-    while (svgEl.firstChild) svgEl.removeChild(svgEl.firstChild);
-    for (g = Math.ceil(xMin / step) * step; g <= xMax + 1e-9; g += step){
-      svgEl.appendChild(el('line', {x1:sx(g), y1:sy(yMin), x2:sx(g), y2:sy(yMax), class:'gridline'}));
+
+    function xRange(){ return view.xMax - view.xMin; }
+    function yRange(){ return view.yMax - view.yMin; }
+    function sx(x){ return M + (x - view.xMin) / xRange() * usableW; }
+    function sy(y){ return H - M - (y - view.yMin) / yRange() * usableH; }
+
+    // 縮放後格線要跟著變粗細間距，不然放大時會畫出成千上萬條線
+    function niceStep(range, target){
+      var raw = range / target;
+      var mag = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10));
+      var n = raw / mag;
+      var mult = n <= 1 ? 1 : (n <= 2 ? 2 : (n <= 5 ? 5 : 10));
+      return mult * mag;
     }
-    for (g = Math.ceil(yMin / step) * step; g <= yMax + 1e-9; g += step){
-      svgEl.appendChild(el('line', {x1:sx(xMin), y1:sy(g), x2:sx(xMax), y2:sy(g), class:'gridline'}));
+    function fmtTick(v){
+      var r = Math.round(v * 1000) / 1000;
+      return (Math.abs(r - Math.round(r)) < 1e-9) ? String(Math.round(r)) : String(r);
     }
-    if (yMin <= 0 && yMax >= 0) svgEl.appendChild(el('line', {x1:sx(xMin), y1:sy(0), x2:sx(xMax), y2:sy(0), class:'axis'}));
-    if (xMin <= 0 && xMax >= 0) svgEl.appendChild(el('line', {x1:sx(0), y1:sy(yMin), x2:sx(0), y2:sy(yMax), class:'axis'}));
-    var baseY = (yMin <= 0 && yMax >= 0) ? 0 : yMin;
-    var baseX = (xMin <= 0 && xMax >= 0) ? 0 : xMin;
-    for (g = Math.ceil(xMin / labelStep) * labelStep; g <= xMax + 1e-9; g += labelStep){
-      if (Math.abs(g) < 1e-9) continue;
-      var t1 = el('text', {x:sx(g) + 2, y:sy(baseY) + 13, class:'axislabel'});
-      t1.textContent = g; svgEl.appendChild(t1);
+
+    function drawStatic(){
+      while (svgEl.firstChild) svgEl.removeChild(svgEl.firstChild);
+      var step = cfg.interactive ? niceStep(xRange(), 14) : baseStep;
+      var labelStep = cfg.interactive ? step * 2 : baseLabelStep;
+      var g;
+      for (g = Math.ceil(view.xMin / step) * step; g <= view.xMax + 1e-9; g += step){
+        svgEl.appendChild(el('line', {x1:sx(g), y1:sy(view.yMin), x2:sx(g), y2:sy(view.yMax), class:'gridline'}));
+      }
+      for (g = Math.ceil(view.yMin / step) * step; g <= view.yMax + 1e-9; g += step){
+        svgEl.appendChild(el('line', {x1:sx(view.xMin), y1:sy(g), x2:sx(view.xMax), y2:sy(g), class:'gridline'}));
+      }
+      if (view.yMin <= 0 && view.yMax >= 0) svgEl.appendChild(el('line', {x1:sx(view.xMin), y1:sy(0), x2:sx(view.xMax), y2:sy(0), class:'axis'}));
+      if (view.xMin <= 0 && view.xMax >= 0) svgEl.appendChild(el('line', {x1:sx(0), y1:sy(view.yMin), x2:sx(0), y2:sy(view.yMax), class:'axis'}));
+      var baseY = (view.yMin <= 0 && view.yMax >= 0) ? 0 : view.yMin;
+      var baseX = (view.xMin <= 0 && view.xMax >= 0) ? 0 : view.xMin;
+      for (g = Math.ceil(view.xMin / labelStep) * labelStep; g <= view.xMax + 1e-9; g += labelStep){
+        if (Math.abs(g) < 1e-9) continue;
+        var t1 = el('text', {x:sx(g) + 2, y:sy(baseY) + 13, class:'axislabel'});
+        t1.textContent = fmtTick(g); svgEl.appendChild(t1);
+      }
+      for (g = Math.ceil(view.yMin / labelStep) * labelStep; g <= view.yMax + 1e-9; g += labelStep){
+        if (Math.abs(g) < 1e-9) continue;
+        var t2 = el('text', {x:sx(baseX) - 20, y:sy(g) + 3, class:'axislabel'});
+        t2.textContent = fmtTick(g); svgEl.appendChild(t2);
+      }
+      dynG = el('g', {});
+      svgEl.appendChild(dynG);
     }
-    for (g = Math.ceil(yMin / labelStep) * labelStep; g <= yMax + 1e-9; g += labelStep){
-      if (Math.abs(g) < 1e-9) continue;
-      var t2 = el('text', {x:sx(baseX) - 18, y:sy(g) + 3, class:'axislabel'});
-      t2.textContent = g; svgEl.appendChild(t2);
+
+    // 換視野時維持 x、y 同比例（一格在螢幕上是正方形），以中心點為準重算
+    function applyView(cx, cy, unitsPerPx){
+      var xr = usableW * unitsPerPx, yr = usableH * unitsPerPx;
+      view.xMin = cx - xr / 2; view.xMax = cx + xr / 2;
+      view.yMin = cy - yr / 2; view.yMax = cy + yr / 2;
+      drawStatic();
+      if (cfg.onViewChange) cfg.onViewChange();
     }
-    dynG = el('g', {});
-    svgEl.appendChild(dynG);
+    function unitsPerPx(){ return xRange() / usableW; }
+    function clampUnits(u){ return Math.max(0.008, Math.min(1.6, u)); }
+
+    function zoomBy(factor, anchor){
+      var u = clampUnits(unitsPerPx() * factor);
+      var cx = (view.xMin + view.xMax) / 2, cy = (view.yMin + view.yMax) / 2;
+      if (anchor){
+        // 讓游標下的那個點保持不動
+        var ratio = u / unitsPerPx();
+        cx = anchor.x + (cx - anchor.x) * ratio;
+        cy = anchor.y + (cy - anchor.y) * ratio;
+      }
+      applyView(cx, cy, u);
+    }
+    function resetView(){
+      view.xMin = defaults.xMin; view.xMax = defaults.xMax;
+      view.yMin = defaults.yMin; view.yMax = defaults.yMax;
+      drawStatic();
+      if (cfg.onViewChange) cfg.onViewChange();
+    }
+    // 把一組點框進畫面（自動調整範圍用）
+    function fitTo(points){
+      if (!points || !points.length){ resetView(); return; }
+      var xs = points.map(function(p){ return p.x; }), ys = points.map(function(p){ return p.y; });
+      var x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs);
+      var y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys);
+      var cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+      var needX = Math.max(x1 - x0, 1) * 1.35, needY = Math.max(y1 - y0, 1) * 1.35;
+      var u = clampUnits(Math.max(needX / usableW, needY / usableH));
+      applyView(cx, cy, u);
+    }
+
+    drawStatic();
+
+    if (cfg.interactive){
+      svgEl.style.cursor = 'grab';
+      svgEl.style.touchAction = 'none';
+      var dragging = false, lastX = 0, lastY = 0;
+      function clientScale(){
+        var r = svgEl.getBoundingClientRect();
+        return { kx: (W / (r.width || W)) * (xRange() / usableW),
+                 ky: (H / (r.height || H)) * (yRange() / usableH), rect: r };
+      }
+      svgEl.addEventListener('pointerdown', function(e){
+        dragging = true; lastX = e.clientX; lastY = e.clientY;
+        svgEl.style.cursor = 'grabbing';
+        if (svgEl.setPointerCapture) { try { svgEl.setPointerCapture(e.pointerId); } catch(err){} }
+      });
+      svgEl.addEventListener('pointermove', function(e){
+        if (!dragging) return;
+        var s = clientScale();
+        var dx = (e.clientX - lastX) * s.kx, dy = (e.clientY - lastY) * s.ky;
+        lastX = e.clientX; lastY = e.clientY;
+        view.xMin -= dx; view.xMax -= dx;
+        view.yMin += dy; view.yMax += dy;
+        drawStatic();
+        if (cfg.onViewChange) cfg.onViewChange();
+      });
+      function endDrag(){ dragging = false; svgEl.style.cursor = 'grab'; }
+      svgEl.addEventListener('pointerup', endDrag);
+      svgEl.addEventListener('pointercancel', endDrag);
+      svgEl.addEventListener('pointerleave', endDrag);
+      svgEl.addEventListener('wheel', function(e){
+        e.preventDefault();
+        var s = clientScale();
+        var vbX = (e.clientX - s.rect.left) * (W / (s.rect.width || W));
+        var vbY = (e.clientY - s.rect.top) * (H / (s.rect.height || H));
+        var anchor = {
+          x: view.xMin + (vbX - M) / usableW * xRange(),
+          y: view.yMin + ((H - M) - vbY) / usableH * yRange()
+        };
+        zoomBy(e.deltaY > 0 ? 1.18 : 1 / 1.18, anchor);
+      }, { passive: false });
+    }
+
     return {
-      sx: sx, sy: sy, xMin: xMin, xMax: xMax, yMin: yMin, yMax: yMax,
+      sx: sx, sy: sy,
+      get xMin(){ return view.xMin; }, get xMax(){ return view.xMax; },
+      get yMin(){ return view.yMin; }, get yMax(){ return view.yMax; },
+      zoomBy: zoomBy, resetView: resetView, fitTo: fitTo,
       clear: function(){ while (dynG.firstChild) dynG.removeChild(dynG.firstChild); },
       add: function(node){ dynG.appendChild(node); return node; },
-      rect: function(){ return [{x:xMin,y:yMin},{x:xMax,y:yMin},{x:xMax,y:yMax},{x:xMin,y:yMax}]; },
+      rect: function(){
+        return [{x:view.xMin,y:view.yMin},{x:view.xMax,y:view.yMin},{x:view.xMax,y:view.yMax},{x:view.xMin,y:view.yMax}];
+      },
       poly: function(pts){
         return pts.map(function(p){ return sx(p.x).toFixed(2) + ',' + sy(p.y).toFixed(2); }).join(' ');
       }
@@ -1844,10 +1975,15 @@
   });
 
   /* ============ 動畫 4：二元一次聯立不等式的可行解區域（第3冊 3-3）============
-     每個不等式各自的解區域用淡色鋪一層，重疊起來的交集就是可行解區域。 */
-  var sysPlot = createPlot(document.getElementById('sysSvg'),
-    {w:519, h:438, margin:30, xMin:-3, xMax:14, yMin:-3, yMax:11, step:1, labelStep:3});
+     每個不等式各自的解區域用淡色鋪一層，重疊起來的交集就是可行解區域。
+     圖形可以用滑鼠拖曳平移、滾輪縮放，係數調大時也看得到完整的區域。 */
+  var sysPlot = createPlot(document.getElementById('sysSvg'), {
+    w:519, h:438, margin:30, xMin:-3, xMax:14, yMin:-3, yMax:11, step:1, labelStep:3,
+    interactive:true,
+    onViewChange:function(){ redrawSystem(); }
+  });
   var sysRel = {1:'le', 2:'le'};
+  var SYS_REL_SYM = {lt:'<', le:'≤', ge:'≥', gt:'>'};
 
   function sysReadRow(n){
     var a = parseFloat(document.getElementById('sysA' + n).value);
@@ -1856,26 +1992,90 @@
     document.getElementById('outSysA' + n).textContent = a;
     document.getElementById('outSysB' + n).textContent = b;
     document.getElementById('outSysC' + n).textContent = c;
-    var le = (sysRel[n] === 'le');
+    var rel = sysRel[n];
+    var isGe = (rel === 'ge' || rel === 'gt');     // ax + by ≥ c 這一側
+    var strict = (rel === 'lt' || rel === 'gt');   // 沒有等號 → 邊界畫虛線、邊界上的點不算解
     // ax + by ≤ c 轉成 -(ax+by) + c ≥ 0；ax + by ≥ c 轉成 (ax+by) - c ≥ 0
-    var hp = le ? {a:-a, b:-b, c:c} : {a:a, b:b, c:-c};
+    var hp = isGe ? {a:a, b:b, c:-c} : {a:-a, b:-b, c:c};
     var degenerate = (Math.abs(a) < 1e-9 && Math.abs(b) < 1e-9);
-    var text = linearExpr(a, b, 0) + (le ? ' ≤ ' : ' ≥ ') + c;
+    var text = linearExpr(a, b, 0) + ' ' + SYS_REL_SYM[rel] + ' ' + c;
     document.getElementById('sysEq' + n).textContent = degenerate ? 'a、b 不能同時是 0' : text;
     return {
       on: document.getElementById('sysUse' + n).checked && !degenerate,
-      hp: hp, text: text
+      hp: hp, strict: strict, text: text
     };
+  }
+
+  /* ---- 兩條邊界線的交點（平行時回傳 null）---- */
+  function sysLineIntersection(p, q){
+    var det = p.a * q.b - q.a * p.b;
+    if (Math.abs(det) < 1e-9) return null;
+    return {
+      x: (p.b * q.c - q.b * p.c) / det,
+      y: (q.a * p.c - p.a * q.c) / det
+    };
+  }
+  /* ---- 真正的頂點＝兩條邊界線的交點，而且要滿足所有不等式。
+         （之前是拿「可視範圍的四個角」去算，所以畫面邊緣的點會被誤當成頂點）---- */
+  function sysFindVertices(halfPlanes){
+    var pts = [];
+    for (var i = 0; i < halfPlanes.length; i++){
+      for (var j = i + 1; j < halfPlanes.length; j++){
+        var p = sysLineIntersection(halfPlanes[i], halfPlanes[j]);
+        if (!p) continue;
+        var ok = true;
+        for (var k = 0; k < halfPlanes.length; k++){
+          var hp = halfPlanes[k];
+          if (hp.a * p.x + hp.b * p.y + hp.c < -1e-6){ ok = false; break; }
+        }
+        if (!ok) continue;
+        var dup = false;
+        for (var m = 0; m < pts.length; m++){
+          if (Math.abs(pts[m].x - p.x) < 1e-6 && Math.abs(pts[m].y - p.y) < 1e-6){ dup = true; break; }
+        }
+        if (!dup) pts.push(p);
+      }
+    }
+    // 依角度排序，列出來才會照著區域邊界繞一圈
+    if (pts.length > 2){
+      var cx = 0, cy = 0;
+      pts.forEach(function(p){ cx += p.x; cy += p.y; });
+      cx /= pts.length; cy /= pts.length;
+      pts.sort(function(u, v){
+        return Math.atan2(u.y - cy, u.x - cx) - Math.atan2(v.y - cy, v.x - cx);
+      });
+    }
+    return pts;
+  }
+  /* ---- 用一個很大的框去裁，判斷這個區域是空的、有界、還是無界 ---- */
+  function sysRegionKind(halfPlanes){
+    if (!halfPlanes.length) return 'all';
+    var R = 1e4;
+    var poly = [{x:-R,y:-R},{x:R,y:-R},{x:R,y:R},{x:-R,y:R}];
+    halfPlanes.forEach(function(hp){ poly = clipHalfPlane(poly, hp.a, hp.b, hp.c); });
+    if (poly.length < 3) return 'empty';
+    for (var i = 0; i < poly.length; i++){
+      if (Math.abs(Math.abs(poly[i].x) - R) < 1 || Math.abs(Math.abs(poly[i].y) - R) < 1) return 'unbounded';
+    }
+    return 'bounded';
+  }
+
+  function sysCollectHalfPlanes(rows){
+    var halfPlanes = [];
+    if (document.getElementById('sysUseX').checked) halfPlanes.push({a:1, b:0, c:0, text:'x ≥ 0', cls:'', strict:false});
+    if (document.getElementById('sysUseY').checked) halfPlanes.push({a:0, b:1, c:0, text:'y ≥ 0', cls:'', strict:false});
+    rows.forEach(function(r, i){
+      if (r.on) halfPlanes.push({a:r.hp.a, b:r.hp.b, c:r.hp.c, text:r.text, cls:(i === 0 ? 'is-a' : 'is-b'), strict:r.strict});
+    });
+    return halfPlanes;
   }
 
   function redrawSystem(){
     var rows = [sysReadRow(1), sysReadRow(2)];
-    var halfPlanes = [];
-    if (document.getElementById('sysUseX').checked) halfPlanes.push({a:1, b:0, c:0, text:'x ≥ 0', cls:''});
-    if (document.getElementById('sysUseY').checked) halfPlanes.push({a:0, b:1, c:0, text:'y ≥ 0', cls:''});
-    rows.forEach(function(r, i){
-      if (r.on) halfPlanes.push({a:r.hp.a, b:r.hp.b, c:r.hp.c, text:r.text, cls:(i === 0 ? 'is-a' : 'is-b')});
-    });
+    var halfPlanes = sysCollectHalfPlanes(rows);
+    var kind = sysRegionKind(halfPlanes);
+    var vertices = sysFindVertices(halfPlanes);
+    var anyStrict = halfPlanes.some(function(hp){ return hp.strict; });
 
     sysPlot.clear();
     // 先把兩個不等式各自的解區域淡淡鋪一層，讓學生看出「交集」的意思
@@ -1887,7 +2087,7 @@
       }
     });
 
-    // 交集 = 可行解區域
+    // 交集 = 可行解區域（畫面上只畫得出看得到的部分）
     var region = sysPlot.rect();
     halfPlanes.forEach(function(hp){ region = clipHalfPlane(region, hp.a, hp.b, hp.c); });
     if (region.length >= 3){
@@ -1899,41 +2099,53 @@
         sysPlot.add(el('line', {
           x1:sysPlot.sx(seg[0].x), y1:sysPlot.sy(seg[0].y),
           x2:sysPlot.sx(seg[1].x), y2:sysPlot.sy(seg[1].y),
-          class:'sys-bound ' + hp.cls
+          class:'sys-bound ' + hp.cls + (hp.strict ? ' is-strict' : '')
         }));
       }
     });
+    // 只畫真正的頂點（而且要在目前看得到的範圍內）
+    vertices.forEach(function(p){
+      if (p.x < sysPlot.xMin || p.x > sysPlot.xMax || p.y < sysPlot.yMin || p.y > sysPlot.yMax) return;
+      sysPlot.add(el('circle', {cx:sysPlot.sx(p.x), cy:sysPlot.sy(p.y), r:4.5, class:'sys-vertex'}));
+    });
 
     function fmtCoord(n){
-      var r = Math.round(n * 100) / 100;
+      var r = Math.round(n * 1000) / 1000;
       return (Math.abs(r - Math.round(r)) < 1e-9) ? String(Math.round(r)) : String(r);
     }
     var listEl = document.getElementById('sysVertexList');
     listEl.innerHTML = '';
-    if (region.length >= 3){
-      region.forEach(function(p){
-        sysPlot.add(el('circle', {cx:sysPlot.sx(p.x), cy:sysPlot.sy(p.y), r:4.5, class:'sys-vertex'}));
-      });
-      var head = document.createElement('li');
-      head.textContent = '可行解區域的頂點（共 ' + region.length + ' 個）：';
-      listEl.appendChild(head);
-      region.forEach(function(p){
-        var li = document.createElement('li');
-        li.textContent = '( ' + fmtCoord(p.x) + ' , ' + fmtCoord(p.y) + ' )';
-        listEl.appendChild(li);
-      });
+    function addLine(text, cls){
+      var li = document.createElement('li');
+      if (cls) li.className = cls;
+      li.textContent = text;
+      listEl.appendChild(li);
+    }
+    if (kind === 'all'){
+      addLine('目前沒有勾選任何限制，整個平面都是解。', 'sys-note');
+    } else if (kind === 'empty'){
+      addLine('這組聯立不等式沒有共同的解區域（無解）。', 'sys-empty');
     } else {
-      var li0 = document.createElement('li');
-      li0.className = 'sys-empty';
-      li0.textContent = halfPlanes.length === 0
-        ? '目前沒有勾選任何限制，整個平面都是解。'
-        : '這組聯立不等式沒有共同的解區域（無解）。';
-      listEl.appendChild(li0);
+      if (kind === 'unbounded'){
+        addLine('這個可行解區域沒有界（往某個方向可以一直延伸下去），圖上只畫出目前看得到的部分。', 'sys-note');
+      }
+      if (vertices.length){
+        addLine('可行解區域的頂點（共 ' + vertices.length + ' 個）：');
+        vertices.forEach(function(p){
+          addLine('( ' + fmtCoord(p.x) + ' , ' + fmtCoord(p.y) + ' )');
+        });
+      } else {
+        addLine('這個區域沒有頂點（邊界之間沒有交點）。', 'sys-note');
+      }
+      if (anyStrict){
+        addLine('※ 虛線的邊界沒有包含在解裡面，所以落在虛線上的點（含頂點）不算解。', 'sys-note');
+      }
     }
     var lines = halfPlanes.map(function(hp){ return hp.text; });
     document.getElementById('sysFormulaOut').textContent =
       lines.length ? ('聯立：' + lines.join('　，　')) : '（尚未勾選任何限制）';
   }
+
   ['sysA1','sysB1','sysC1','sysA2','sysB2','sysC2'].forEach(function(id){
     document.getElementById(id).addEventListener('input', redrawSystem);
   });
@@ -1950,6 +2162,24 @@
       });
       redrawSystem();
     });
+  });
+  // 圖形檢視工具：放大／縮小／自動框住解區域／回到預設範圍
+  document.getElementById('sysZoomInBtn').addEventListener('click', function(){ sysPlot.zoomBy(1 / 1.3); });
+  document.getElementById('sysZoomOutBtn').addEventListener('click', function(){ sysPlot.zoomBy(1.3); });
+  document.getElementById('sysResetViewBtn').addEventListener('click', function(){ sysPlot.resetView(); });
+  document.getElementById('sysFitBtn').addEventListener('click', function(){
+    var rows = [sysReadRow(1), sysReadRow(2)];
+    var halfPlanes = sysCollectHalfPlanes(rows);
+    var pts = sysFindVertices(halfPlanes).slice();
+    // 沒有頂點（或區域無界）時，改用各邊界線跟兩軸的交點當參考，至少把重點框進來
+    if (pts.length < 2){
+      halfPlanes.forEach(function(hp){
+        if (Math.abs(hp.a) > 1e-9) pts.push({x:-hp.c / hp.a, y:0});
+        if (Math.abs(hp.b) > 1e-9) pts.push({x:0, y:-hp.c / hp.b});
+      });
+      pts.push({x:0, y:0});
+    }
+    sysPlot.fitTo(pts);
   });
 
   redrawAllDemos();
