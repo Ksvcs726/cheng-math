@@ -7215,7 +7215,7 @@
     groups.forEach(function(sec, gi){
       var det = document.createElement('details');
       det.className = 'book';
-      det.setAttribute('open', '');   // 題型不多，預設全部展開，學生一進來就看得到
+      // 題型越來越多，預設全部收合，一進來就看得到完整的章節目錄，點標題才展開
       var sum = document.createElement('summary');
       sum.innerHTML = '<span class="book-tag">' + sec + '</span><span>共 ' + seen[sec].length + ' 種題型</span>';
       det.appendChild(sum);
