@@ -576,6 +576,26 @@
   }
   .prac-choice:hover:not(:disabled){border-color:var(--indigo);}
   .prac-choice:disabled{cursor:default;}
+  /* 聯立方程組／聯立不等式：左邊一個大括號，右邊每式一行 */
+  .prac-sys{display:inline-flex;align-items:stretch;vertical-align:middle;position:relative;padding-left:17px;margin:3px 0;}
+  .prac-sys::before{content:'';position:absolute;left:3px;top:1px;bottom:1px;width:9px;
+    border:2px solid var(--ink-soft);border-right:0;border-radius:7px 0 0 7px;opacity:.55;}
+  .prac-sys-eqs{display:inline-flex;flex-direction:column;gap:3px;text-align:left;}
+  /* 手機版：題目裡的聯立式子自己占一行，不要跟句子擠在一起 */
+  @media (max-width:620px){
+    #pracStem .prac-sys, #pracExStem .prac-sys{display:flex;margin:10px 0;}
+  }
+  /* 題目裡的小圖（由圖示寫不等式、可行解區域…） */
+  .prac-fig-wrap{display:block;margin:12px 0 2px;}
+  svg.prac-fig{display:block;width:100%;max-width:330px;height:auto;margin:0 auto;}
+  svg.prac-fig .pf-grid{stroke:var(--grid-line);stroke-width:1;}
+  svg.prac-fig .pf-axis{stroke:var(--ink-soft);stroke-width:1.2;}
+  svg.prac-fig .pf-axis-label{fill:var(--ink-soft);font-size:11px;font-style:italic;}
+  svg.prac-fig .pf-line{stroke:var(--red);stroke-width:2;}
+  svg.prac-fig .pf-line.is-dash{stroke-dasharray:5 4;}
+  svg.prac-fig .pf-shade{fill:var(--teal);opacity:.28;}
+  svg.prac-fig .pf-dot{fill:var(--red);}
+  svg.prac-fig .pf-label{fill:var(--ink-soft);font-size:10px;}
   .prac-choice-tag{
     flex-shrink:0;width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
     background:var(--border);color:var(--ink);font-family:"JetBrains Mono",monospace;font-size:.8rem;font-weight:700;
@@ -3940,10 +3960,167 @@
     return {x1:x1, y1:y1, x2:x2, y2:y2};
   }
 
+
+  /* ============ 第三冊 CH3 練功坊：共用小工具 ============ */
+  // 「ax + by = c」的排版（a、b、c 都是整數）
+  function eq2Html(a, b, c){
+    var s = '';
+    s += termStr(a, 'x', true);
+    s += termStr(b, 'y', s === '');
+    if (s === '') s = '0';
+    return s + ' = ' + c;
+  }
+  // 「ax + by + c ≥ 0」的排版
+  function ineqHtml(a, b, c, rel){
+    return linearExpr(a, b, c) + ' ' + rel + ' 0';
+  }
+  // 聯立方程組／聯立不等式：左邊一個大括號，右邊每式一行
+  // 左邊的大括號改用 CSS 畫（::before），才能跟著式子的行數一起變高，
+  // 用「{」這個字元的話，行數一多括號就只蓋到中間兩行，很奇怪。
+  function braceHtml(rows){
+    return '<span class="prac-sys"><span class="prac-sys-eqs"><span>' +
+      rows.join('</span><span>') + '</span></span></span>';
+  }
+  function xyHtml(x, y){ return 'x = ' + x + '，y = ' + y; }
+  // 解 a1x+b1y=c1、a2x+b2y=c2（克拉瑪公式，回傳分數）
+  function sys2Solve(a1, b1, c1, a2, b2, c2){
+    var det = a1 * b2 - a2 * b1;
+    if (det === 0) return null;
+    return { x: ratMake(c1 * b2 - c2 * b1, det), y: ratMake(a1 * c2 - a2 * c1, det) };
+  }
+  // 多邊形面積（鞋帶公式）
+  function polyArea(pts){
+    var s = 0;
+    for (var i = 0; i < pts.length; i++){
+      var p = pts[i], q = pts[(i + 1) % pts.length];
+      s += p.x * q.y - q.x * p.y;
+    }
+    return Math.abs(s) / 2;
+  }
+  // 面積可能是 x.5，用分數顯示比較漂亮
+  function areaHtml(v){
+    if (Math.abs(v - Math.round(v)) < 1e-9) return String(Math.round(v));
+    return fracSpan(v < 0, Math.round(Math.abs(v) * 2), 2);
+  }
+
+  /* ---- 題目裡的小圖：座標平面 + 直線 + 鋪色區域 ----
+     cfg = { xMin,xMax,yMin,yMax, lines:[{a,b,c,dash,label}], shade:[{a,b,c}]（ax+by+c≥0 的交集）,
+             marks:[{x,y,label}] } */
+  function pracFig(cfg){
+    var W = 300, H = 230, M = 26;
+    var xMin = cfg.xMin, xMax = cfg.xMax, yMin = cfg.yMin, yMax = cfg.yMax;
+    var sx = (W - 2 * M) / (xMax - xMin), sy = (H - 2 * M) / (yMax - yMin);
+    function X(x){ return M + (x - xMin) * sx; }
+    function Y(y){ return H - M - (y - yMin) * sy; }
+    var out = [];
+    out.push('<svg class="prac-fig" viewBox="0 0 ' + W + ' ' + H + '" role="img">');
+    // 格線
+    var stepX = Math.max(1, Math.round((xMax - xMin) / 8));
+    var stepY = Math.max(1, Math.round((yMax - yMin) / 8));
+    for (var gx = Math.ceil(xMin / stepX) * stepX; gx <= xMax; gx += stepX){
+      out.push('<line class="pf-grid" x1="' + X(gx) + '" y1="' + Y(yMin) + '" x2="' + X(gx) + '" y2="' + Y(yMax) + '"/>');
+    }
+    for (var gy = Math.ceil(yMin / stepY) * stepY; gy <= yMax; gy += stepY){
+      out.push('<line class="pf-grid" x1="' + X(xMin) + '" y1="' + Y(gy) + '" x2="' + X(xMax) + '" y2="' + Y(gy) + '"/>');
+    }
+    // 鋪色區域（把整個可視矩形依序切半平面）
+    if (cfg.shade && cfg.shade.length){
+      var poly = [{x:xMin, y:yMin}, {x:xMax, y:yMin}, {x:xMax, y:yMax}, {x:xMin, y:yMax}];
+      cfg.shade.forEach(function(h){ poly = clipHalfPlane(poly, h.a, h.b, h.c); });
+      if (poly.length > 2){
+        out.push('<polygon class="pf-shade" points="' + poly.map(function(p){
+          return X(p.x).toFixed(1) + ',' + Y(p.y).toFixed(1);
+        }).join(' ') + '"/>');
+      }
+    }
+    // 坐標軸
+    out.push('<line class="pf-axis" x1="' + X(xMin) + '" y1="' + Y(0) + '" x2="' + X(xMax) + '" y2="' + Y(0) + '"/>');
+    out.push('<line class="pf-axis" x1="' + X(0) + '" y1="' + Y(yMin) + '" x2="' + X(0) + '" y2="' + Y(yMax) + '"/>');
+    out.push('<text class="pf-axis-label" x="' + (X(xMax) - 2) + '" y="' + (Y(0) - 6) + '">x</text>');
+    out.push('<text class="pf-axis-label" x="' + (X(0) + 6) + '" y="' + (Y(yMax) + 10) + '">y</text>');
+    out.push('<text class="pf-axis-label" x="' + (X(0) - 10) + '" y="' + (Y(0) + 13) + '">O</text>');
+    // 直線
+    (cfg.lines || []).forEach(function(L){
+      var pts = lineInView(L.a, L.b, L.c, {xMin:xMin, xMax:xMax, yMin:yMin, yMax:yMax});
+      if (pts.length < 2) return;
+      out.push('<line class="pf-line' + (L.dash ? ' is-dash' : '') + '" x1="' + X(pts[0].x).toFixed(1) +
+        '" y1="' + Y(pts[0].y).toFixed(1) + '" x2="' + X(pts[1].x).toFixed(1) + '" y2="' + Y(pts[1].y).toFixed(1) + '"/>');
+    });
+    // 標點
+    (cfg.marks || []).forEach(function(m){
+      out.push('<circle class="pf-dot" cx="' + X(m.x).toFixed(1) + '" cy="' + Y(m.y).toFixed(1) + '" r="3"/>');
+      if (m.label){
+        out.push('<text class="pf-label" x="' + (X(m.x) + (m.dx || 5)) + '" y="' + (Y(m.y) + (m.dy || -6)) + '">' + m.label + '</text>');
+      }
+    });
+    out.push('</svg>');
+    return '<span class="prac-fig-wrap">' + out.join('') + '</span>';
+  }
+
+  /* ---- 線性規劃：產生一個「頂點都是整數」的有界可行解區域 ----
+     回傳 {lines:[{a,b,c}], c1, c2, verts:[{x,y}], sysRows:[...]} ，
+     限制是 x≥0、y≥0、a1x+b1y≤c1、a2x+b2y≤c2 */
+  function lpBoundedRegion(){
+    var tpl = rndPick([
+      { a1:2, b1:1, a2:1, b2:1 },
+      { a1:1, b1:2, a2:1, b2:1 },
+      { a1:3, b1:1, a2:1, b2:1 },
+      { a1:1, b1:3, a2:1, b2:1 }
+    ]);
+    for (var tries = 0; tries < 200; tries++){
+      var c2 = rndInt(4, 18);                       // x + y ≤ c2
+      var c1 = rndInt(c2 + 1, 2 * c2 - 1);          // 另一條線
+      var P = sys2Solve(tpl.a1, tpl.b1, c1, tpl.a2, tpl.b2, c2);
+      if (!P) continue;
+      var px = ratVal(P.x), py = ratVal(P.y);
+      if (px <= 0 || py <= 0) continue;
+      if (Math.abs(px - Math.round(px)) > 1e-9 || Math.abs(py - Math.round(py)) > 1e-9) continue;
+      var xi1 = c1 / tpl.a1, xi2 = c2 / tpl.a2, yi1 = c1 / tpl.b1, yi2 = c2 / tpl.b2;
+      if (Math.abs(xi1 - Math.round(xi1)) > 1e-9 || Math.abs(xi2 - Math.round(xi2)) > 1e-9) continue;
+      if (Math.abs(yi1 - Math.round(yi1)) > 1e-9 || Math.abs(yi2 - Math.round(yi2)) > 1e-9) continue;
+      var xv = Math.min(xi1, xi2), yv = Math.min(yi1, yi2);
+      if (xv <= 0 || yv <= 0) continue;
+      // P 必須真的是頂點（兩條線各自在一個方向上先碰到）
+      if (!((xi1 < xi2 && yi1 > yi2) || (xi2 < xi1 && yi2 > yi1))) continue;
+      return {
+        a1:tpl.a1, b1:tpl.b1, c1:c1, a2:tpl.a2, b2:tpl.b2, c2:c2,
+        verts:[{x:0, y:0}, {x:xv, y:0}, {x:Math.round(px), y:Math.round(py)}, {x:0, y:yv}]
+      };
+    }
+    return { a1:2, b1:1, c1:40, a2:1, b2:1, c2:30,
+             verts:[{x:0,y:0},{x:20,y:0},{x:10,y:20},{x:0,y:30}] };
+  }
+  /* ---- 線性規劃：最小值用的無界區域（x≥0、y≥0、a1x+b1y≥c1、a2x+b2y≥c2） ---- */
+  function lpUnboundedRegion(){
+    var tpl = rndPick([
+      { a1:2, b1:1, a2:1, b2:1 },
+      { a1:1, b1:2, a2:1, b2:1 },
+      { a1:3, b1:1, a2:1, b2:1 }
+    ]);
+    for (var tries = 0; tries < 200; tries++){
+      var c2 = rndInt(4, 18);
+      var c1 = rndInt(c2 + 1, 2 * c2 - 1);
+      var P = sys2Solve(tpl.a1, tpl.b1, c1, tpl.a2, tpl.b2, c2);
+      if (!P) continue;
+      var px = ratVal(P.x), py = ratVal(P.y);
+      if (px <= 0 || py <= 0) continue;
+      if (Math.abs(px - Math.round(px)) > 1e-9 || Math.abs(py - Math.round(py)) > 1e-9) continue;
+      var xi1 = c1 / tpl.a1, xi2 = c2 / tpl.a2, yi1 = c1 / tpl.b1, yi2 = c2 / tpl.b2;
+      if ([xi1, xi2, yi1, yi2].some(function(v){ return Math.abs(v - Math.round(v)) > 1e-9; })) continue;
+      if (!((xi1 > xi2 && yi1 < yi2) || (xi2 > xi1 && yi2 < yi1))) continue;
+      return {
+        a1:tpl.a1, b1:tpl.b1, c1:c1, a2:tpl.a2, b2:tpl.b2, c2:c2,
+        verts:[{x:Math.max(xi1, xi2), y:0}, {x:Math.round(px), y:Math.round(py)}, {x:0, y:Math.max(yi1, yi2)}]
+      };
+    }
+    return { a1:2, b1:1, c1:20, a2:1, b2:1, c2:12,
+             verts:[{x:12,y:0},{x:8,y:4},{x:0,y:20}] };
+  }
+
   var PRACTICE_TYPES = [
     /* ---------------- 2-1 斜率 ---------------- */
     {
-      id:'slope2pt', section:'2-1 斜率', name:'由兩點求斜率',
+      id:'slope2pt', book:'第1冊', section:'2-1 斜率', name:'由兩點求斜率',
       concept:[
         '斜率就是「上升量 ÷ 水平移動量」，也就是 y 的變化量除以 x 的變化量。',
         '同一條直線上不管選哪兩點，算出來的斜率都一樣。',
@@ -3971,7 +4148,7 @@
       }
     },
     {
-      id:'collinear', section:'2-1 斜率', name:'三點共線求未知數',
+      id:'collinear', book:'第1冊', section:'2-1 斜率', name:'三點共線求未知數',
       concept:[
         '三點共線代表任兩點連起來的斜率都一樣。',
         '所以只要讓 m(AB) = m(AC)，就可以解出未知數。',
@@ -4008,7 +4185,7 @@
       }
     },
     {
-      id:'parperp', section:'2-1 斜率', name:'兩直線平行與垂直的斜率',
+      id:'parperp', book:'第1冊', section:'2-1 斜率', name:'兩直線平行與垂直的斜率',
       concept:[
         '兩直線平行 ⇒ 斜率相同（m₁ = m₂）。',
         '兩直線垂直 ⇒ 斜率相乘等於 －1（m₁ × m₂ = －1），也就是互為「負倒數」。',
@@ -4039,7 +4216,7 @@
 
     /* ---------------- 2-2 直線方程式 ---------------- */
     {
-      id:'pointslope', section:'2-2 直線方程式', name:'點斜式求直線方程式',
+      id:'pointslope', book:'第1冊', section:'2-2 直線方程式', name:'點斜式求直線方程式',
       concept:[
         '已知「一個點」加上「斜率」，就可以用點斜式寫出直線方程式。',
         '代入後把分母乘掉、展開、再把所有項移到等號左邊，就是一般式 ax + by + c = 0。',
@@ -4073,7 +4250,7 @@
       }
     },
     {
-      id:'twopoints', section:'2-2 直線方程式', name:'過兩點求直線方程式',
+      id:'twopoints', book:'第1冊', section:'2-2 直線方程式', name:'過兩點求直線方程式',
       concept:[
         '先用兩點求斜率，再挑其中一點套點斜式，就能寫出直線方程式。',
         '如果兩點的 x 相同就是鉛直線 x = x₁；y 相同就是水平線 y = y₁。',
@@ -4104,7 +4281,7 @@
       }
     },
     {
-      id:'hvline', section:'2-2 直線方程式', name:'水平線與鉛直線',
+      id:'hvline', book:'第1冊', section:'2-2 直線方程式', name:'水平線與鉛直線',
       concept:[
         '兩點的 x 座標相同 → 鉛直線，方程式是 x = x₁（斜率不存在）。',
         '兩點的 y 座標相同 → 水平線，方程式是 y = y₁（斜率為 0）。',
@@ -4141,7 +4318,7 @@
       }
     },
     {
-      id:'slopeint', section:'2-2 直線方程式', name:'斜截式與一般式互換',
+      id:'slopeint', book:'第1冊', section:'2-2 直線方程式', name:'斜截式與一般式互換',
       concept:[
         '斜截式 y = mx + b 裡的 m 是斜率、b 是 y 截距（直線與 y 軸交點的 y 值）。',
         '把一般式 ax + by + c = 0 整理成 y = … 的形式，就能一眼看出斜率與 y 截距。',
@@ -4173,7 +4350,7 @@
       }
     },
     {
-      id:'intercept', section:'2-2 直線方程式', name:'截距式與截距所圍面積',
+      id:'intercept', book:'第1冊', section:'2-2 直線方程式', name:'截距式與截距所圍面積',
       concept:[
         'x 截距 a 是直線與 x 軸交點 (a, 0) 的 x 值；y 截距 b 是與 y 軸交點 (0, b) 的 y 值。',
         '截距不是距離，可以是負的，但 a、b 都不能為 0 才寫得成截距式。',
@@ -4204,7 +4381,7 @@
       }
     },
     {
-      id:'altitude', section:'2-2 直線方程式', name:'三角形邊上的高',
+      id:'altitude', book:'第1冊', section:'2-2 直線方程式', name:'三角形邊上的高',
       concept:[
         '「AB 邊上的高」＝ 過頂點 C 而且垂直 AB 的那條直線。',
         '先求 AB 的斜率，再取負倒數就是高的斜率（m<sub>高</sub> × m<sub>AB</sub> = －1）。',
@@ -4246,7 +4423,7 @@
       }
     },
     {
-      id:'median', section:'2-2 直線方程式', name:'三角形的中線',
+      id:'median', book:'第1冊', section:'2-2 直線方程式', name:'三角形的中線',
       concept:[
         '過頂點 A 且平分 △ABC 面積的直線，就是 A 到對邊 BC 中點的「中線」。',
         '先用中點公式求出 BC 的中點 M，再用 A、M 兩點求斜率。',
@@ -4290,7 +4467,7 @@
       }
     },
     {
-      id:'perpbis', section:'2-2 直線方程式', name:'垂直平分線（中垂線）',
+      id:'perpbis', book:'第1冊', section:'2-2 直線方程式', name:'垂直平分線（中垂線）',
       concept:[
         'AB 的垂直平分線＝通過 AB 中點、而且垂直 AB 的直線。',
         '線上每一點到 A、B 的距離都相等，所以也叫「中垂線」。',
@@ -4330,7 +4507,723 @@
           ]
         };
       }
+    },
+    /* ---------------- 第3冊 3-1 二元一次聯立方程組 ---------------- */
+    {
+      id:'sub2', book:'第3冊', section:'3-1 二元一次聯立方程組', name:'利用代入消去法',
+      concept:[
+        '其中一式已經整理成「x ＝ …」或「y ＝ …」時，最快的解法就是代入消去法。',
+        '把①式整個代進②式，②式就只剩一個未知數，解出來以後再代回①式求另一個。',
+        '代入時整串都要加括號，負號才不會算錯。'
+      ],
+      formula:'由 ① 把 x（或 y）代入 ② ⇒ 只剩一個未知數 ⇒ 解出來再代回 ①',
+      example:function(){ return this.gen({m:3, k:-4, y0:4, a2:2, b2:5}); },
+      gen:function(fix){
+        var m, k, y0, a2, b2;
+        if (fix){ m = fix.m; k = fix.k; y0 = fix.y0; a2 = fix.a2; b2 = fix.b2; }
+        else {
+          do {
+            m = rndPick([1, -1, 2, -2, 3, -3]);
+            k = rndInt(-9, 9);
+            y0 = rndNonZero(-6, 6);
+            a2 = rndNonZero(-5, 5);
+            b2 = rndNonZero(-5, 5);
+          } while (a2 * m + b2 === 0 || Math.abs(m * y0 + k) > 24);
+        }
+        var x0 = m * y0 + k;
+        var c2 = a2 * x0 + b2 * y0;
+        var e1 = 'x = ' + (termStr(m, 'y', true) + termStr(k, '', false)) + ' … ①';
+        var e2 = eq2Html(a2, b2, c2) + ' … ②';
+        var coefY = a2 * m + b2;
+        var rhs = c2 - a2 * k;
+        return {
+          stem:'解二元一次聯立方程組 ' + braceHtml([e1, e2]) + ' 。',
+          choices:shuffleChoices(xyHtml(x0, y0), [xyHtml(y0, x0), xyHtml(x0, -y0), xyHtml(-x0, y0), xyHtml(x0 + 1, y0 - 1)]),
+          answerHtml:xyHtml(x0, y0),
+          steps:[
+            {eq:'將 ① 代入 ② 式', why:'①式已經是「x ＝ …」，直接整串代進②式'},
+            {eq:'得 ' + (a2 === 1 ? '' : (a2 === -1 ? '－' : a2)) + '( ' + (termStr(m, 'y', true) + termStr(k, '', false)) + ' )' +
+                termStr(b2, 'y', false) + ' = ' + c2, why:'代進去的時候整串要加括號'},
+            {eq:'⇒ ' + termStr(coefY, 'y', true) + ' = ' + rhs + ' ⇒ y = ' + y0, why:'展開、合併同類項，解出 y'},
+            {eq:'代入 ① 式，得 x = ' + (m === 1 ? '' : (m === -1 ? '－' : m + ' × ')) + '( ' + y0 + ' )' +
+                termStr(k, '', false) + ' = ' + x0, why:'把 y 代回①式求 x'},
+            {eq:'故 ' + xyHtml(x0, y0) + ' 是聯立方程組的解', why:'寫出答案'}
+          ]
+        };
+      }
+    },
+    {
+      id:'elim2', book:'第3冊', section:'3-1 二元一次聯立方程組', name:'利用加減消去法',
+      concept:[
+        '兩式的某個未知數係數相同或互為相反數時，直接相加或相減就可以消去它。',
+        '係數不一樣時，先把兩式各乘一個適當的倍數，把要消去的係數湊成一樣大。',
+        '消去一個未知數後就變成一元一次方程式，解完再代回任一式求另一個未知數。'
+      ],
+      formula:'① × m ± ② × n ⇒ 消去一個未知數',
+      example:function(){ return this.gen({a1:2, b1:3, a2:2, b2:-3, x0:3, y0:-1}); },
+      gen:function(fix){
+        var a1, b1, a2, b2, x0, y0;
+        if (fix){ a1 = fix.a1; b1 = fix.b1; a2 = fix.a2; b2 = fix.b2; x0 = fix.x0; y0 = fix.y0; }
+        else {
+          do {
+            a1 = rndNonZero(-5, 5); b1 = rndNonZero(-5, 5);
+            a2 = rndNonZero(-5, 5); b2 = rndNonZero(-5, 5);
+            x0 = rndNonZero(-7, 7); y0 = rndNonZero(-7, 7);
+          } while (a1 * b2 - a2 * b1 === 0);
+        }
+        var c1 = a1 * x0 + b1 * y0, c2 = a2 * x0 + b2 * y0;
+        // 用「最小公倍數」湊 y 的係數，倍數都取正的，再看兩式 y 的正負號決定相加還是相減
+        var g = Math.abs(b1 * b2) / gcdInt(b1, b2);
+        var m1 = g / Math.abs(b1), m2 = g / Math.abs(b2);
+        var sameSign = (b1 > 0) === (b2 > 0);
+        var opTxt = sameSign ? ' － ' : ' ＋ ';
+        var coefX = sameSign ? a1 * m1 - a2 * m2 : a1 * m1 + a2 * m2;
+        var rhsX = sameSign ? c1 * m1 - c2 * m2 : c1 * m1 + c2 * m2;
+        var mulTxt = function(n){ return n === 1 ? '' : ' × ' + n; };
+        return {
+          stem:'解二元一次聯立方程組 ' + braceHtml([eq2Html(a1, b1, c1) + ' … ①', eq2Html(a2, b2, c2) + ' … ②']) + ' 。',
+          choices:shuffleChoices(xyHtml(x0, y0), [xyHtml(y0, x0), xyHtml(x0, -y0), xyHtml(-x0, y0), xyHtml(x0 - 1, y0 + 1)]),
+          answerHtml:xyHtml(x0, y0),
+          steps:[
+            {eq:'①' + mulTxt(m1) + opTxt + '②' + mulTxt(m2),
+             why:'兩式 y 的係數是 ' + b1 + ' 與 ' + b2 + '，各乘 ' + m1 + '、' + m2 + ' 後絕對值都變成 ' + g +
+                 '，' + (sameSign ? '同號 → 相減' : '異號 → 相加') + '就能消去 y'},
+            {eq:'得 ' + termStr(coefX, 'x', true) + ' = ' + rhsX + ' ⇒ x = ' + x0, why:'y 被消掉，解出 x'},
+            {eq:'把 x = ' + x0 + ' 代入 ①：' + termStr(a1 * x0, '', true) + termStr(b1, 'y', false) + ' = ' + c1 + ' ⇒ y = ' + y0, why:'代回原式求 y'},
+            {eq:'故 ' + xyHtml(x0, y0) + ' 是聯立方程組的解', why:'兩式都代回去檢查一次會更保險'}
+          ]
+        };
+      }
+    },
+    {
+      id:'fracEq', book:'第3冊', section:'3-1 二元一次聯立方程組', name:'分數係數的聯立方程組',
+      concept:[
+        '式子裡有分數時，先把那一式「兩邊同乘分母的最小公倍數」，把分數清掉。',
+        '去分母以後就變成一般的整數係數聯立方程組，再用加減消去法解。',
+        '兩邊同乘的時候，每一項都要乘到，等號右邊也不能漏掉。'
+      ],
+      formula:'兩邊同乘分母的最小公倍數 ⇒ 去分母 ⇒ 加減消去法',
+      example:function(){ return this.gen({p:3, q:2, x0:9, y0:-2, a2:2, b2:3}); },
+      gen:function(fix){
+        var p, q, x0, y0, a2, b2;
+        if (fix){ p = fix.p; q = fix.q; x0 = fix.x0; y0 = fix.y0; a2 = fix.a2; b2 = fix.b2; }
+        else {
+          do {
+            p = rndPick([2, 3, 4, 5, 6]);
+            q = rndPick([2, 3, 4, 5, 6]);
+            x0 = p * rndNonZero(-4, 4);
+            y0 = q * rndNonZero(-4, 4);
+            a2 = rndNonZero(-4, 4); b2 = rndNonZero(-4, 4);
+            // ③式（去分母後）要跟②式獨立，不然解不出唯一解
+          } while (p === q || (p * q / gcdInt(p, q) / p) * b2 + a2 * (p * q / gcdInt(p, q) / q) === 0);
+        }
+        var r = x0 / p - y0 / q;
+        var c2 = a2 * x0 + b2 * y0;
+        var L = p * q / gcdInt(p, q);
+        var frac1 = '<span class="frac"><span class="num">1</span><span class="den">' + p + '</span></span>x';
+        var frac2 = ' － <span class="frac"><span class="num">1</span><span class="den">' + q + '</span></span>y';
+        var e1 = frac1 + frac2 + ' = ' + r + ' … ①';
+        var e2 = eq2Html(a2, b2, c2) + ' … ②';
+        var n1 = L / p, n2 = L / q;
+        return {
+          stem:'解二元一次聯立方程組 ' + braceHtml([e1, e2]) + ' 。',
+          choices:shuffleChoices(xyHtml(x0, y0), [xyHtml(y0, x0), xyHtml(x0, -y0), xyHtml(-x0, y0), xyHtml(x0 + p, y0 + q)]),
+          answerHtml:xyHtml(x0, y0),
+          steps:[
+            {eq:'① × ' + L + '（' + p + ' 與 ' + q + ' 的最小公倍數）', why:'先把①式的分數清掉'},
+            {eq:'得 ' + eq2Html(n1, -n2, r * L) + ' … ③', why:'每一項都要乘，右邊也要'},
+            {eq:'③ 與 ② 用加減消去法解', why:'現在兩式都是整數係數了'},
+            {eq:'解得 ' + xyHtml(x0, y0), why:'消去一個未知數後再代回求另一個'},
+            {eq:'檢查：代回原來的①式 ' + (x0 / p) + ' － (' + (y0 / q) + ') = ' + r + ' ✓', why:'有分數的題目一定要代回去檢查'}
+          ]
+        };
+      }
+    },
+    {
+      id:'app2', book:'第3冊', section:'3-1 二元一次聯立方程組', name:'聯立方程式的應用問題',
+      concept:[
+        '先設兩個未知數（題目問什麼就設什麼），再依題意列出兩個式子。',
+        '通常一式是「數量關係」，另一式是「價錢／分數／長度等的總和關係」。',
+        '解出來之後要回頭檢查答案在題目情境裡合不合理（不能是負數或小數個）。'
+      ],
+      formula:'設未知數 ⇒ 依題意列兩式 ⇒ 解聯立 ⇒ 檢查是否合理',
+      example:function(){ return this.gen({kind:'quiz', n:20, s:5, t:2, r:18}); },
+      gen:function(fix){
+        var kind = fix ? fix.kind : rndPick(['quiz', 'ball', 'rect']);
+        if (kind === 'quiz'){
+          var n = fix ? fix.n : rndInt(15, 25);
+          var s = fix ? fix.s : rndInt(4, 6);
+          var t = fix ? fix.t : rndInt(1, 3);
+          var r = fix ? fix.r : rndInt(Math.ceil(n * 0.6), n - 1);
+          var T = s * r - t * (n - r);
+          var ans = '答對 ' + r + ' 題，答錯 ' + (n - r) + ' 題';
+          return {
+            stem:'小龍參加數學競試共 ' + n + ' 題，每答對一題得 ' + s + ' 分，答錯一題倒扣 ' + t +
+                 ' 分。已知小龍全部作答，得到 ' + T + ' 分，請問他答對幾題？答錯幾題？',
+            choices:shuffleChoices(ans, [
+              '答對 ' + (n - r) + ' 題，答錯 ' + r + ' 題',
+              '答對 ' + (r - 1) + ' 題，答錯 ' + (n - r + 1) + ' 題',
+              '答對 ' + (r + 1) + ' 題，答錯 ' + (n - r - 1) + ' 題',
+              '答對 ' + (r - 2) + ' 題，答錯 ' + (n - r + 2) + ' 題'
+            ]),
+            answerHtml:ans,
+            steps:[
+              {eq:'設答對 x 題，答錯 y 題', why:'題目問什麼就設什麼'},
+              {eq:braceHtml(['x + y = ' + n + ' … ①', eq2Html(s, -t, T) + ' … ②']), why:'①是題數總和，②是分數總和（答錯是倒扣所以用減的）'},
+              {eq:'① × ' + t + ' ＋ ② 得 ' + (s + t) + 'x = ' + (T + t * n) + ' ⇒ x = ' + r, why:'消去 y 解出答對題數'},
+              {eq:'代入①得 y = ' + n + ' － ' + r + ' = ' + (n - r), why:'再求答錯題數'},
+              {eq:'故 ' + ans, why:'答案是正整數，合理'}
+            ]
+          };
+        }
+        if (kind === 'ball'){
+          var u = fix ? fix.u : rndInt(8, 22);      // 2 分球
+          var v = fix ? fix.v : rndInt(2, 10);      // 3 分球
+          var N = u + v, P = 2 * u + 3 * v;
+          var ansB = '2 分球 ' + u + ' 顆，3 分球 ' + v + ' 顆';
+          return {
+            stem:'班際籃球比賽中，商一甲班最後總共投進 ' + N + ' 顆球，共得 ' + P +
+                 ' 分（只有 2 分球與 3 分球）。請問商一甲班分別投進幾顆 2 分球與 3 分球？',
+            choices:shuffleChoices(ansB, [
+              '2 分球 ' + v + ' 顆，3 分球 ' + u + ' 顆',
+              '2 分球 ' + (u + 1) + ' 顆，3 分球 ' + (v - 1) + ' 顆',
+              '2 分球 ' + (u - 1) + ' 顆，3 分球 ' + (v + 1) + ' 顆',
+              '2 分球 ' + (u - 2) + ' 顆，3 分球 ' + (v + 2) + ' 顆'
+            ]),
+            answerHtml:ansB,
+            steps:[
+              {eq:'設 2 分球 x 顆，3 分球 y 顆', why:'先設未知數'},
+              {eq:braceHtml(['x + y = ' + N + ' … ①', '2x + 3y = ' + P + ' … ②']), why:'①是球數，②是得分'},
+              {eq:'① × 2 得 2x + 2y = ' + (2 * N) + ' … ③', why:'把 x 的係數湊成一樣'},
+              {eq:'② － ③ 得 y = ' + v, why:'消去 x，直接得到 3 分球的顆數'},
+              {eq:'代入①得 x = ' + u + '，故 ' + ansB, why:'再求 2 分球'}
+            ]
+          };
+        }
+        var w = fix ? fix.w : rndInt(4, 12);
+        var kk = fix ? fix.k : rndPick([2, 3]);
+        var d = fix ? fix.d : rndInt(1, 6);
+        var len = kk * w + d, Lp = 2 * (len + w);
+        var ansR = '長 ' + len + ' 公分，寬 ' + w + ' 公分';
+        return {
+          stem:'有一長方形的周長為 ' + Lp + ' 公分，其長比寬的 ' + kk + ' 倍多 ' + d +
+               ' 公分。若設長為 x 公分、寬為 y 公分，試求出長與寬。',
+          choices:shuffleChoices(ansR, [
+            '長 ' + w + ' 公分，寬 ' + len + ' 公分',
+            '長 ' + (len + 1) + ' 公分，寬 ' + (w - 1) + ' 公分',
+            '長 ' + (len - 2) + ' 公分，寬 ' + (w + 2) + ' 公分',
+            '長 ' + (len + 2) + ' 公分，寬 ' + (w - 2) + ' 公分'
+          ]),
+          answerHtml:ansR,
+          steps:[
+            {eq:'設長為 x 公分，寬為 y 公分', why:'先設未知數'},
+            {eq:braceHtml(['x + y = ' + (Lp / 2) + ' … ①', 'x = ' + kk + 'y ＋ ' + d + ' … ②']), why:'①是周長的一半，②是「長比寬的 ' + kk + ' 倍多 ' + d + ' 公分」'},
+            {eq:'把②代入①：' + kk + 'y ＋ ' + d + ' ＋ y = ' + (Lp / 2), why:'代入消去法'},
+            {eq:'⇒ ' + (kk + 1) + 'y = ' + (Lp / 2 - d) + ' ⇒ y = ' + w, why:'解出寬'},
+            {eq:'代入②得 x = ' + len + '，故 ' + ansR, why:'再求長'}
+          ]
+        };
+      }
+    },
+    {
+      id:'sameSol', book:'第3冊', section:'3-1 二元一次聯立方程組', name:'兩個方程組有相同解',
+      concept:[
+        '「兩個聯立方程組有相同解」代表這四個式子的解都是同一組 (x, y)。',
+        '所以可以先把「係數都知道」的那兩式配成一組，解出 x、y。',
+        '再把解出來的 x、y 代入含有未知係數的兩式，解出 a、b。'
+      ],
+      formula:'先用「已知係數」的兩式解出 x、y ⇒ 再代入含 a、b 的兩式求 a、b',
+      example:function(){ return this.gen({p1:2, q1:5, p2:7, q2:-2, x0:3, y0:2, a:-8, b:6}); },
+      gen:function(fix){
+        var p1, q1, p2, q2, x0, y0, a, b;
+        if (fix){ p1 = fix.p1; q1 = fix.q1; p2 = fix.p2; q2 = fix.q2; x0 = fix.x0; y0 = fix.y0; a = fix.a; b = fix.b; }
+        else {
+          do {
+            p1 = rndNonZero(-7, 7); q1 = rndNonZero(-7, 7);
+            p2 = rndNonZero(-7, 7); q2 = rndNonZero(-7, 7);
+            x0 = rndNonZero(-5, 5); y0 = rndNonZero(-5, 5);
+            a = rndNonZero(-8, 8); b = rndNonZero(-8, 8);
+          } while (p1 * q2 - p2 * q1 === 0 || x0 * x0 - 2 * y0 * y0 === 0 || a + b === 0);
+        }
+        var r1 = p1 * x0 + q1 * y0, r2 = p2 * x0 + q2 * y0;
+        var s = a * x0 + b * y0, t = b * x0 + 2 * a * y0;
+        var sum = a + b;
+        return {
+          stem:'若 ' + braceHtml([eq2Html(p1, q1, r1), 'ax + by = ' + s]) + ' 與 ' +
+               braceHtml([eq2Html(p2, q2, r2), 'bx + 2ay = ' + t]) + ' 有相同解，試求 a ＋ b 的值。',
+          choices:shuffleChoices(String(sum), [String(a - b), String(b - a), String(-sum), String(sum + 2)]),
+          answerHtml:String(sum),
+          steps:[
+            {eq:'四個式子有相同解 ⇒ 可以先把係數都知道的兩式配成一組', why:'這是這類題目的關鍵一步'},
+            {eq:'解 ' + braceHtml([eq2Html(p1, q1, r1), eq2Html(p2, q2, r2)]) + '，得 ' + xyHtml(x0, y0), why:'用加減消去法解出共同的解'},
+            {eq:'把 ' + xyHtml(x0, y0) + ' 代入 ' + braceHtml(['ax + by = ' + s, 'bx + 2ay = ' + t]), why:'剩下的兩式就變成以 a、b 為未知數的聯立方程組'},
+            {eq:'⇒ ' + braceHtml([eq2Html(x0, y0, s).replace('x', 'a').replace('y', 'b'), eq2Html(2 * y0, x0, t).replace('x', 'a').replace('y', 'b')]), why:'整理成 a、b 的聯立'},
+            {eq:'解得 a = ' + a + '，b = ' + b + '，故 a ＋ b = ' + sum, why:'最後把 a、b 相加'}
+          ]
+        };
+      }
+    },
+    {
+      id:'lineRel', book:'第3冊', section:'3-1 二元一次聯立方程組', name:'兩直線的關係與解的情形',
+      concept:[
+        '把兩式寫成 a₁x＋b₁y＋c₁＝0 與 a₂x＋b₂y＋c₂＝0，再比較三組係數的比值。',
+        'a₁/a₂ ≠ b₁/b₂ ⇒ 交於一點，恰有一組解。',
+        'a₁/a₂ ＝ b₁/b₂ ≠ c₁/c₂ ⇒ 平行，無解；三個比值全部相等 ⇒ 重合，有無限多組解。'
+      ],
+      formula:'比值全不等 → 交於一點　｜　前兩個相等、第三個不等 → 平行無解　｜　三個都相等 → 重合',
+      example:function(){ return this.gen({kind:'cross', a1:1, b1:3, c1:-2, a2:2, b2:-2, c2:3}); },
+      gen:function(fix){
+        var kind = fix ? fix.kind : rndPick(['cross', 'para', 'same']);
+        var a1, b1, c1, a2, b2, c2, k;
+        if (fix){ a1 = fix.a1; b1 = fix.b1; c1 = fix.c1; a2 = fix.a2; b2 = fix.b2; c2 = fix.c2; }
+        else {
+          // 常數項不能是 0，不然比值會出現 0/0，沒辦法講「三個比值相等」
+          a1 = rndNonZero(-6, 6); b1 = rndNonZero(-6, 6); c1 = rndNonZero(-8, 8);
+          if (kind === 'cross'){
+            do {
+              a2 = rndNonZero(-6, 6); b2 = rndNonZero(-6, 6);
+            } while (a1 * b2 - a2 * b1 === 0 || a1 * a2 + b1 * b2 === 0);   // 不平行、也不垂直
+            c2 = rndNonZero(-8, 8);
+          } else {
+            k = rndPick([2, -2, 3, -3, -1]);
+            a2 = k * a1; b2 = k * b1;
+            if (kind === 'same'){
+              c2 = k * c1;
+            } else {
+              do { c2 = k * c1 + rndNonZero(-4, 4); } while (c2 === 0);
+            }
+          }
+        }
+        var CROSS = '兩直線交於一點，方程組恰有一組解';
+        var PARA = '兩直線平行，方程組無解';
+        var SAME = '兩直線重合，方程組有無限多組解';
+        var PERP = '兩直線互相垂直，方程組無解';
+        var ans = (kind === 'cross') ? CROSS : (kind === 'para' ? PARA : SAME);
+        var ratio = function(u, v){ return '<span class="frac"><span class="num">' + u + '</span><span class="den">' + v + '</span></span>'; };
+        var cmp = (kind === 'cross')
+          ? ratio(a1, a2) + ' ≠ ' + ratio(b1, b2)
+          : (kind === 'para' ? ratio(a1, a2) + ' = ' + ratio(b1, b2) + ' ≠ ' + ratio(c1, c2)
+                             : ratio(a1, a2) + ' = ' + ratio(b1, b2) + ' = ' + ratio(c1, c2));
+        return {
+          stem:'試判斷下列兩直線的關係，並說明方程組解的情形：' +
+               braceHtml(['L₁：' + linearExpr(a1, b1, c1) + ' = 0', 'L₂：' + linearExpr(a2, b2, c2) + ' = 0']),
+          choices:shuffleChoices(ans, [CROSS, PARA, SAME, PERP].filter(function(t){ return t !== ans; })),
+          answerHtml:ans,
+          steps:[
+            {eq:'先把兩式都寫成 ax ＋ by ＋ c = 0 的形式', why:'比較係數前要先統一格式'},
+            {eq:'比較係數：' + cmp, why:'依序比 x 的係數、y 的係數、常數項'},
+            {eq:ans, why:(kind === 'cross' ? '前兩個比值就不相等 → 兩線一定交於一點'
+                 : (kind === 'para' ? '前兩個相等、常數項不等 → 平行，永遠沒有交點'
+                                     : '三個比值都相等 → 其實是同一條線'))}
+          ]
+        };
+      }
+    },
+    {
+      id:'paramSol', book:'第3冊', section:'3-1 二元一次聯立方程組', name:'由解的情形求參數',
+      concept:[
+        '方程組「無解」＝兩直線平行；「有無限多組解」＝兩直線重合。',
+        '無解：a₁/a₂ ＝ b₁/b₂ ≠ c₁/c₂。',
+        '無限多組解：a₁/a₂ ＝ b₁/b₂ ＝ c₁/c₂，三個比值全部一樣。'
+      ],
+      formula:'無解：前兩個比相等、常數比不等　｜　無限多組解：三個比值都相等',
+      example:function(){ return this.gen({kind:'none', a2:2, b2:1, c2:5, t:3, c1:6}); },
+      gen:function(fix){
+        var kind = fix ? fix.kind : rndPick(['none', 'inf']);
+        var a2, b2, c2, t;
+        if (fix){ a2 = fix.a2; b2 = fix.b2; c2 = fix.c2; t = fix.t; }
+        else {
+          a2 = rndNonZero(-5, 5); b2 = rndNonZero(-5, 5); c2 = rndNonZero(-9, 9);
+          t = rndPick([2, 3, -2, -3, 4]);
+        }
+        var a = a2 * t, b = b2 * t;
+        if (kind === 'none'){
+          var c1 = (fix && fix.c1 !== undefined) ? fix.c1 : c2 * t + rndNonZero(-5, 5);
+          return {
+            stem:'若方程組 ' + braceHtml(['ax ' + (b >= 0 ? '＋ ' : '－ ') + Math.abs(b) + 'y = ' + c1, eq2Html(a2, b2, c2)]) +
+                 ' 無解，試求 a 的值。',
+            choices:shuffleChoices(String(a), [String(-a), String(a + 1), String(a2), String(a * 2)]),
+            answerHtml:String(a),
+            steps:[
+              {eq:'方程組無解 ⇒ 兩直線平行', why:'無解就是兩條線永遠碰不到'},
+              {eq:'<span class="frac"><span class="num">a</span><span class="den">' + a2 + '</span></span> = ' +
+                  '<span class="frac"><span class="num">' + b + '</span><span class="den">' + b2 + '</span></span> ≠ ' +
+                  '<span class="frac"><span class="num">' + c1 + '</span><span class="den">' + c2 + '</span></span>', why:'x、y 的係數比相等，但常數項比不相等'},
+              {eq:'由 <span class="frac"><span class="num">a</span><span class="den">' + a2 + '</span></span> = ' + t + ' 得 a = ' + a2 + ' × ' + t + ' = ' + a, why:'先算出 y 的係數比 ' + b + ' ÷ ' + b2 + ' = ' + t},
+              {eq:'檢查常數項：' + c1 + ' ÷ ' + c2 + ' ≠ ' + t + '，確實無解', why:'一定要檢查，不然可能變成重合（無限多組解）'}
+            ]
+          };
+        }
+        var c1i = c2 * t;
+        var ansInf = 'a = ' + a + '，b = ' + b;
+        return {
+          stem:'若方程組 ' + braceHtml(['ax ＋ by = ' + c1i, eq2Html(a2, b2, c2)]) + ' 有無限多組解，試求 a、b 之值。',
+          choices:shuffleChoices(ansInf, ['a = ' + b + '，b = ' + a, 'a = ' + a2 + '，b = ' + b2,
+                                          'a = ' + (-a) + '，b = ' + (-b), 'a = ' + (a + 1) + '，b = ' + (b + 1)]),
+          answerHtml:ansInf,
+          steps:[
+            {eq:'有無限多組解 ⇒ 兩直線重合', why:'其實是同一條直線'},
+            {eq:'<span class="frac"><span class="num">a</span><span class="den">' + a2 + '</span></span> = ' +
+                '<span class="frac"><span class="num">b</span><span class="den">' + b2 + '</span></span> = ' +
+                '<span class="frac"><span class="num">' + c1i + '</span><span class="den">' + c2 + '</span></span> = ' + t, why:'三個比值要全部相等'},
+            {eq:'a = ' + a2 + ' × ' + t + ' = ' + a, why:'先用常數項算出倍數 ' + t + '，再回推 a'},
+            {eq:'b = ' + b2 + ' × ' + t + ' = ' + b + '，故 ' + ansInf, why:'同樣方式求 b'}
+          ]
+        };
+      }
+    },
+
+    /* ---------------- 第3冊 3-2 二元一次不等式 ---------------- */
+    {
+      id:'halfPlane', book:'第3冊', section:'3-2 二元一次不等式', name:'不等式的圖形在哪一側',
+      concept:[
+        '直線 L：ax＋by＋c＝0 會把平面切成左右兩個半平面。',
+        'x 的係數 a ＞ 0 時，ax＋by＋c ＞ 0 的解在 L 的右側；＜ 0 的解在 L 的左側。',
+        '有「＝」號 ⇒ 解包含直線上的點，L 要畫實線；沒有「＝」⇒ 不包含，L 畫虛線。'
+      ],
+      formula:'a ＞ 0 時：＞0 → 右側半平面　，　＜0 → 左側半平面　；有「＝」畫實線，沒有畫虛線',
+      example:function(){ return this.gen({a:1, b:2, c:-20, rel:'≤'}); },
+      gen:function(fix){
+        var a, b, c, rel;
+        if (fix){ a = fix.a; b = fix.b; c = fix.c; rel = fix.rel; }
+        else {
+          a = rndInt(1, 4);                       // 固定讓 x 的係數為正，跟課本的講法一致
+          b = rndNonZero(-4, 4);
+          c = rndNonZero(-20, 20);
+          rel = rndPick(['≥', '>', '≤', '<']);
+        }
+        var right = (rel === '≥' || rel === '>');
+        var solid = (rel === '≥' || rel === '≤');
+        var mk = function(r, s){
+          return '在 L 的' + (r ? '右' : '左') + '側半平面，' + (s ? '且包含直線 L（L 畫實線）' : '但不含直線 L（L 畫虛線）');
+        };
+        var ans = mk(right, solid);
+        return {
+          stem:'設直線 L：' + linearExpr(a, b, c) + ' = 0。二元一次不等式 ' + ineqHtml(a, b, c, rel) +
+               ' 的圖形，是下列哪一個部分？',
+          choices:shuffleChoices(ans, [mk(!right, solid), mk(right, !solid), mk(!right, !solid)]),
+          answerHtml:ans,
+          steps:[
+            {eq:'先作直線 L：' + linearExpr(a, b, c) + ' = 0', why:'兩個截距各算一個點就能把線畫出來'},
+            {eq:'x 的係數 a = ' + a + ' ＞ 0', why:'課本的判斷是看 x 的係數'},
+            {eq:(right ? '不等式是「' + rel + ' 0」⇒ 取 L 的右側半平面' : '不等式是「' + rel + ' 0」⇒ 取 L 的左側半平面'),
+             why:'也可以直接代一個點（例如原點）進去檢驗比較快'},
+            {eq:(solid ? '有「＝」號 ⇒ 包含直線 L，L 畫實線' : '沒有「＝」號 ⇒ 不含直線 L，L 畫虛線'), why:'這是最常被扣分的地方'},
+            {eq:'故答案為「' + ans + '」', why:'兩個重點：哪一側、含不含邊界'}
+          ]
+        };
+      }
+    },
+    {
+      id:'sameSide', book:'第3冊', section:'3-2 二元一次不等式', name:'兩點在直線的同側或異側',
+      concept:[
+        '把兩點分別代入 ax＋by＋c，得到兩個數值。',
+        '兩值相乘 ＞ 0 ⇒ 同號 ⇒ 兩點在直線的同側。',
+        '兩值相乘 ＜ 0 ⇒ 異號 ⇒ 兩點在直線的異側（直線通過兩點之間）。'
+      ],
+      formula:'(ax₁＋by₁＋c)(ax₂＋by₂＋c) ＞ 0 → 同側　；　＜ 0 → 異側',
+      example:function(){ return this.gen({x1:2, y1:3, x2:-1, y2:2, p:1, q:-2, kind:'same'}); },
+      gen:function(fix){
+        var x1, y1, x2, y2, p, q, kind;
+        if (fix){ x1 = fix.x1; y1 = fix.y1; x2 = fix.x2; y2 = fix.y2; p = fix.p; q = fix.q; kind = fix.kind; }
+        else {
+          do {
+            x1 = rndInt(-4, 4); y1 = rndInt(-4, 4);
+            x2 = rndInt(-4, 4); y2 = rndInt(-4, 4);
+            p = rndNonZero(-3, 3); q = rndNonZero(-3, 3);
+          } while ((p * x1 + q * y1) === (p * x2 + q * y2));
+          kind = rndPick(['same', 'diff']);
+        }
+        var u = p * x1 + q * y1, v = p * x2 + q * y2;
+        var r1 = Math.min(-u, -v), r2 = Math.max(-u, -v);
+        var ansSame = 'k ＜ ' + r1 + ' 或 k ＞ ' + r2;
+        var ansDiff = r1 + ' ＜ k ＜ ' + r2;
+        var ans = (kind === 'same') ? ansSame : ansDiff;
+        return {
+          stem:'試求 k 之範圍，使 A( ' + x1 + ' , ' + y1 + ' )、B( ' + x2 + ' , ' + y2 + ' ) 在直線 L：' +
+               linearExpr(p, q, 0) + ' ＋ k = 0 之' + (kind === 'same' ? '同側' : '異側') + '。',
+          choices:shuffleChoices(ans, [
+            (kind === 'same') ? ansDiff : ansSame,
+            'k ＜ ' + (-r2) + ' 或 k ＞ ' + (-r1),
+            (-r2) + ' ＜ k ＜ ' + (-r1),
+            'k ＞ ' + r2
+          ]),
+          answerHtml:ans,
+          steps:[
+            {eq:'把 A 代入：' + p + ' × ( ' + x1 + ' )' + (q < 0 ? ' － ' : ' ＋ ') + Math.abs(q) + ' × ( ' + y1 + ' ) ＋ k = k' + termStr(u, '', false), why:'先算出 A 代進去的值'},
+            {eq:'把 B 代入：' + p + ' × ( ' + x2 + ' )' + (q < 0 ? ' － ' : ' ＋ ') + Math.abs(q) + ' × ( ' + y2 + ' ) ＋ k = k' + termStr(v, '', false), why:'再算 B'},
+            {eq:'兩點在' + (kind === 'same' ? '同側 ⇒ ( k' + termStr(u, '', false) + ' )( k' + termStr(v, '', false) + ' ) ＞ 0'
+                                            : '異側 ⇒ ( k' + termStr(u, '', false) + ' )( k' + termStr(v, '', false) + ' ) ＜ 0'),
+             why:'同側＝同號（乘積為正），異側＝異號（乘積為負）'},
+            {eq:'兩根為 k = ' + r1 + ' 與 k = ' + r2, why:'先把乘積等於 0 的兩個 k 算出來'},
+            {eq:'故 ' + ans, why:(kind === 'same' ? '乘積 ＞ 0 取兩根「外側」' : '乘積 ＜ 0 取兩根「之間」')}
+          ]
+        };
+      }
+    },
+    {
+      id:'fromFig', book:'第3冊', section:'3-2 二元一次不等式', name:'由圖示寫出二元一次不等式',
+      concept:[
+        '先看圖上直線通過的兩個截距，用截距式 x/a ＋ y/b ＝ 1 寫出直線方程式，再化成一般式。',
+        '再看鋪色區域在直線的哪一側，決定不等號的方向（可以代一個點檢驗）。',
+        '最後看邊界是實線還是虛線：實線有「＝」，虛線沒有「＝」。'
+      ],
+      formula:'截距式 <span class="frac"><span class="num">x</span><span class="den">a</span></span> ＋ <span class="frac"><span class="num">y</span><span class="den">b</span></span> = 1 ⇒ 一般式 ⇒ 再決定不等號與實虛線',
+      example:function(){ return this.gen({m:2, n:3, rel:'>'}); },
+      gen:function(fix){
+        var m, n, rel;
+        if (fix){ m = fix.m; n = fix.n; rel = fix.rel; }
+        else {
+          m = rndNonZero(-5, 5); n = rndNonZero(-5, 5);
+          rel = rndPick(['≥', '>', '≤', '<']);
+        }
+        // 過 (m,0)、(0,n) 的直線：n·x + m·y － mn = 0，再正規化成 x 的係數為正
+        var L = lineNormalize(ratMake(n), ratMake(m), ratMake(-m * n));
+        var ge = (rel === '≥' || rel === '>');
+        var shade = ge ? { a:L.a, b:L.b, c:L.c } : { a:-L.a, b:-L.b, c:-L.c };
+        var lim = Math.max(Math.abs(m), Math.abs(n)) + 2;
+        var fig = pracFig({
+          xMin:-lim, xMax:lim, yMin:-lim, yMax:lim,
+          shade:[shade],
+          lines:[{ a:L.a, b:L.b, c:L.c, dash:(rel === '>' || rel === '<') }],
+          marks:[{ x:m, y:0, label:'(' + m + ',0)', dy:14 }, { x:0, y:n, label:'(0,' + n + ')', dx:6 }]
+        });
+        var base = linearExpr(L.a, L.b, L.c);
+        var opp = (rel === '≥') ? '≤' : (rel === '>' ? '<' : (rel === '≤' ? '≥' : '>'));
+        var sameDirOtherStrict = (rel === '≥') ? '>' : (rel === '>' ? '≥' : (rel === '≤' ? '<' : '≤'));
+        var oppOther = (opp === '≥') ? '>' : (opp === '>' ? '≥' : (opp === '≤' ? '<' : '≤'));
+        var ans = base + ' ' + rel + ' 0';
+        return {
+          stem:'如圖所示，請寫出滿足鋪色區域的不等式。' + fig,
+          choices:shuffleChoices(ans, [base + ' ' + opp + ' 0', base + ' ' + sameDirOtherStrict + ' 0', base + ' ' + oppOther + ' 0']),
+          answerHtml:ans,
+          steps:[
+            {eq:'直線 L 通過 ( ' + m + ' , 0 ) 與 ( 0 , ' + n + ' )', why:'先從圖上讀出兩個截距'},
+            {eq:'截距式：<span class="frac"><span class="num">x</span><span class="den">' + m + '</span></span> ＋ ' +
+                '<span class="frac"><span class="num">y</span><span class="den">' + n + '</span></span> = 1', why:'兩個截距都知道，用截距式最快'},
+            {eq:'去分母、整理（習慣上讓 x 的係數為正）⇒ L：' + base + ' = 0', why:'兩邊同乘 ' + Math.abs(m * n) + '，再把所有項移到左邊'},
+            {eq:'鋪色區域在 L 的' + (ge ? '右' : '左') + '側 ⇒ 不等號方向是「' + (ge ? '＞' : '＜') + '」', why:'可以代一個不在線上的點檢驗'},
+            {eq:((rel === '≥' || rel === '≤') ? '邊界是實線 ⇒ 要加「＝」' : '邊界是虛線 ⇒ 不加「＝」') + '，故不等式為 ' + ans, why:'實線含邊界、虛線不含'}
+          ]
+        };
+      }
+    },
+
+    /* ---------------- 第3冊 3-3 線性規劃 ---------------- */
+    {
+      id:'sysFromFig', book:'第3冊', section:'3-3 線性規劃', name:'由鋪色區域寫出聯立不等式',
+      concept:[
+        '鋪色區域在 x 軸上方 ⇒ y ≥ 0；在 y 軸右方 ⇒ x ≥ 0。',
+        '每一條邊界線都先寫出它的方程式，再看鋪色區域在這條線的哪一側，決定不等號方向。',
+        '把所有條件並列起來，就是這個區域的聯立不等式。'
+      ],
+      formula:'每條邊界各寫一個不等式 ⇒ 全部並列成聯立不等式',
+      example:function(){ return this.gen({a1:2, b1:1, c1:40, a2:1, b2:1, c2:30,
+                                           verts:[{x:0,y:0},{x:20,y:0},{x:10,y:20},{x:0,y:30}]}); },
+      gen:function(fix){
+        var R = fix ? fix : lpBoundedRegion();
+        var lim = Math.max(R.c1 / R.a1, R.c1 / R.b1, R.c2 / R.a2, R.c2 / R.b2) * 1.25;
+        var fig = pracFig({
+          xMin:-lim * 0.25, xMax:lim, yMin:-lim * 0.25, yMax:lim,
+          shade:[{a:1, b:0, c:0}, {a:0, b:1, c:0}, {a:-R.a1, b:-R.b1, c:R.c1}, {a:-R.a2, b:-R.b2, c:R.c2}],
+          lines:[{a:R.a1, b:R.b1, c:-R.c1}, {a:R.a2, b:R.b2, c:-R.c2}],
+          marks:R.verts.map(function(v){ return { x:v.x, y:v.y, label:'(' + v.x + ',' + v.y + ')' }; })
+        });
+        var L1 = eq2Html(R.a1, R.b1, R.c1).replace(' = ', ' ≤ ');
+        var L2 = eq2Html(R.a2, R.b2, R.c2).replace(' = ', ' ≤ ');
+        var G1 = eq2Html(R.a1, R.b1, R.c1).replace(' = ', ' ≥ ');
+        var G2 = eq2Html(R.a2, R.b2, R.c2).replace(' = ', ' ≥ ');
+        var ans = braceHtml(['x ≥ 0', 'y ≥ 0', L1, L2]);
+        return {
+          stem:'試寫出滿足下圖鋪色區域的聯立不等式。' + fig,
+          choices:shuffleChoices(ans, [
+            braceHtml(['x ≥ 0', 'y ≥ 0', G1, G2]),
+            braceHtml(['x ≥ 0', 'y ≥ 0', G1, L2]),
+            braceHtml(['x ≥ 0', 'y ≥ 0', L1, G2])
+          ]),
+          answerHtml:ans,
+          steps:[
+            {eq:'鋪色區域在 y 軸的右方 ⇒ x ≥ 0', why:'先看兩個坐標軸'},
+            {eq:'鋪色區域在 x 軸的上方 ⇒ y ≥ 0', why:'同理'},
+            {eq:'邊界線 ' + eq2Html(R.a1, R.b1, R.c1) + '，鋪色區域在它的左下方 ⇒ ' + L1, why:'代原點 (0,0) 進去檢驗最快'},
+            {eq:'邊界線 ' + eq2Html(R.a2, R.b2, R.c2) + '，鋪色區域在它的左下方 ⇒ ' + L2, why:'同樣用代點檢驗'},
+            {eq:'故所求聯立不等式為 ' + ans, why:'四個條件全部並列'}
+          ]
+        };
+      }
+    },
+    {
+      id:'regionArea', book:'第3冊', section:'3-3 線性規劃', name:'聯立不等式所圍區域的面積',
+      concept:[
+        '先把每個不等式的邊界線畫出來，找出共同的區域（可行解區域）。',
+        '再求出這個區域每一個頂點的坐標（兩條邊界線的交點）。',
+        '把多邊形切成三角形或梯形，分別算面積再相加。'
+      ],
+      formula:'以 O 連到對角頂點，把四邊形切成兩個三角形：面積 = ½×底×高 ＋ ½×底×高',
+      example:function(){ return this.gen({a1:2, b1:1, c1:40, a2:1, b2:1, c2:30,
+                                           verts:[{x:0,y:0},{x:20,y:0},{x:10,y:20},{x:0,y:30}]}); },
+      gen:function(fix){
+        var R = fix ? fix : lpBoundedRegion();
+        var V = R.verts;              // [(0,0), (xv,0), P, (0,yv)]
+        var xv = V[1].x, P = V[2], yv = V[3].y;
+        var area = polyArea(V);
+        var lim = Math.max(xv, yv, P.x, P.y) * 1.25;
+        var fig = pracFig({
+          xMin:-lim * 0.2, xMax:lim, yMin:-lim * 0.2, yMax:lim,
+          shade:[{a:1, b:0, c:0}, {a:0, b:1, c:0}, {a:-R.a1, b:-R.b1, c:R.c1}, {a:-R.a2, b:-R.b2, c:R.c2}],
+          lines:[{a:R.a1, b:R.b1, c:-R.c1}, {a:R.a2, b:R.b2, c:-R.c2}],
+          marks:V.map(function(v){ return { x:v.x, y:v.y, label:'(' + v.x + ',' + v.y + ')' }; })
+        });
+        var ans = areaHtml(area);
+        return {
+          stem:'在坐標平面上，滿足不等式組 ' +
+               braceHtml(['x ≥ 0', 'y ≥ 0', eq2Html(R.a1, R.b1, R.c1).replace(' = ', ' ≤ '),
+                          eq2Html(R.a2, R.b2, R.c2).replace(' = ', ' ≤ ')]) + ' 的區域面積為何？' + fig,
+          choices:shuffleChoices(ans, [areaHtml(area * 2), areaHtml(area / 2),
+                                       areaHtml(xv * yv / 2), areaHtml(area + xv)]),
+          answerHtml:ans,
+          steps:[
+            {eq:'先畫出四個條件的共同區域（上圖鋪色部分）', why:'x≥0、y≥0 把範圍限制在第一象限'},
+            {eq:'各頂點為 ( 0 , 0 )、( ' + xv + ' , 0 )、( ' + P.x + ' , ' + P.y + ' )、( 0 , ' + yv + ' )',
+             why:'兩兩邊界線求交點，就是頂點'},
+            {eq:'連 O 到 ( ' + P.x + ' , ' + P.y + ' )，把四邊形切成兩個三角形', why:'切成三角形最好算'},
+            {eq:'△₁ = ½ × ' + xv + ' × ' + P.y + ' = ' + areaHtml(xv * P.y / 2) + '，△₂ = ½ × ' + yv + ' × ' + P.x + ' = ' + areaHtml(yv * P.x / 2),
+             why:'一個以 x 軸上的邊為底，一個以 y 軸上的邊為底'},
+            {eq:'面積 = ' + areaHtml(xv * P.y / 2) + ' ＋ ' + areaHtml(yv * P.x / 2) + ' = ' + ans, why:'兩塊相加就是答案'}
+          ]
+        };
+      }
+    },
+    {
+      id:'objMax', book:'第3冊', section:'3-3 線性規劃', name:'求目標函數的最大值',
+      concept:[
+        '線性規劃：在聯立不等式（限制條件）所圍成的可行解區域裡，求目標函數的最大或最小值。',
+        '目標函數的極值一定發生在可行解區域的「頂點」上。',
+        '所以步驟是：畫出可行解區域 → 求出各頂點坐標 → 把每個頂點代入目標函數比大小。'
+      ],
+      formula:'極值發生在頂點 ⇒ 把每個頂點代入 f(x, y) 比大小',
+      example:function(){ return this.gen({a1:2, b1:1, c1:8, a2:1, b2:1, c2:6,
+                                           verts:[{x:0,y:0},{x:4,y:0},{x:2,y:4},{x:0,y:6}], p:-1, q:2}); },
+      gen:function(fix){
+        var R = fix ? fix : lpBoundedRegion();
+        var p = (fix && fix.p !== undefined) ? fix.p : rndInt(1, 6);
+        var q = (fix && fix.q !== undefined) ? fix.q : rndInt(1, 6);
+        while (q === p) q = rndInt(1, 6);        // 係數相同時極值常常落在整條邊上，講解起來不漂亮
+        var V = R.verts;
+        var vals = V.map(function(v){ return p * v.x + q * v.y; });
+        var best = Math.max.apply(null, vals);
+        var worstNonZero = Math.min.apply(null, vals.filter(function(v){ return v !== 0; }));
+        var lim = Math.max(V[1].x, V[3].y, V[2].x, V[2].y) * 1.25;
+        var fig = pracFig({
+          xMin:-lim * 0.2, xMax:lim, yMin:-lim * 0.2, yMax:lim,
+          shade:[{a:1, b:0, c:0}, {a:0, b:1, c:0}, {a:-R.a1, b:-R.b1, c:R.c1}, {a:-R.a2, b:-R.b2, c:R.c2}],
+          lines:[{a:R.a1, b:R.b1, c:-R.c1}, {a:R.a2, b:R.b2, c:-R.c2}],
+          marks:V.map(function(v){ return { x:v.x, y:v.y, label:'(' + v.x + ',' + v.y + ')' }; })
+        });
+        return {
+          stem:'若變數 x、y 滿足限制條件 ' +
+               braceHtml(['x ≥ 0', 'y ≥ 0', eq2Html(R.a1, R.b1, R.c1).replace(' = ', ' ≤ '),
+                          eq2Html(R.a2, R.b2, R.c2).replace(' = ', ' ≤ ')]) +
+               '，求目標函數 f ( x , y ) = ' + linearExpr(p, q, 0) + ' 的最大值。' + fig,
+          choices:shuffleChoices(String(best), [String(worstNonZero), String(best + q), String(best - p), String(Math.round(best / 2))]),
+          answerHtml:String(best),
+          steps:[
+            {eq:'可行解區域就是上圖鋪色的四邊形', why:'四個限制條件的共同部分'},
+            {eq:'各頂點坐標為 ' + V.map(function(v){ return '( ' + v.x + ' , ' + v.y + ' )'; }).join('、'), why:'兩兩邊界線求交點'},
+            {eq:'令 f ( x , y ) = ' + linearExpr(p, q, 0), why:'目標函數'},
+            {eq:V.map(function(v, i){ return 'f( ' + v.x + ' , ' + v.y + ' ) = ' + vals[i]; }).join('，'), why:'每個頂點都代一次'},
+            {eq:'故最大值為 ' + best, why:'比大小，取最大的那一個'}
+          ]
+        };
+      }
+    },
+    {
+      id:'objMin', book:'第3冊', section:'3-3 線性規劃', name:'求目標函數的最小值',
+      concept:[
+        '限制條件是「≥」的時候，可行解區域會往右上方無限延伸（無界），但最小值仍然在頂點上。',
+        '一樣先求出每個頂點坐標，再把頂點代入目標函數比大小。',
+        '區域無界時只有最小值、沒有最大值（目標函數的係數都是正的時候）。'
+      ],
+      formula:'求出各頂點 ⇒ 代入 f(x, y) ⇒ 取最小的那一個',
+      example:function(){ return this.gen({a1:2, b1:1, c1:20, a2:1, b2:1, c2:12,
+                                           verts:[{x:12,y:0},{x:8,y:4},{x:0,y:20}], p:3, q:1}); },
+      gen:function(fix){
+        var R = fix ? fix : lpUnboundedRegion();
+        var p = (fix && fix.p !== undefined) ? fix.p : rndInt(1, 6);
+        var q = (fix && fix.q !== undefined) ? fix.q : rndInt(1, 6);
+        while (q === p) q = rndInt(1, 6);
+        var V = R.verts;
+        var vals = V.map(function(v){ return p * v.x + q * v.y; });
+        var best = Math.min.apply(null, vals);
+        var worst = Math.max.apply(null, vals);
+        var lim = Math.max(V[0].x, V[2].y, V[1].x, V[1].y) * 1.3;
+        var fig = pracFig({
+          xMin:-lim * 0.2, xMax:lim, yMin:-lim * 0.2, yMax:lim,
+          shade:[{a:1, b:0, c:0}, {a:0, b:1, c:0}, {a:R.a1, b:R.b1, c:-R.c1}, {a:R.a2, b:R.b2, c:-R.c2}],
+          lines:[{a:R.a1, b:R.b1, c:-R.c1}, {a:R.a2, b:R.b2, c:-R.c2}],
+          marks:V.map(function(v){ return { x:v.x, y:v.y, label:'(' + v.x + ',' + v.y + ')' }; })
+        });
+        return {
+          stem:'在限制條件 ' +
+               braceHtml(['x ≥ 0', 'y ≥ 0', eq2Html(R.a1, R.b1, R.c1).replace(' = ', ' ≥ '),
+                          eq2Html(R.a2, R.b2, R.c2).replace(' = ', ' ≥ ')]) +
+               ' 之下，求目標函數 f ( x , y ) = ' + linearExpr(p, q, 0) + ' 的最小值。' + fig,
+          choices:shuffleChoices(String(best), [String(worst), String(best + q), String(best - 1), String(best + p)]),
+          answerHtml:String(best),
+          steps:[
+            {eq:'可行解區域是上圖鋪色的部分（往右上方無限延伸）', why:'限制條件都是「≥」，區域沒有上界'},
+            {eq:'可行解區域的頂點為 ' + V.map(function(v){ return '( ' + v.x + ' , ' + v.y + ' )'; }).join('、'), why:'邊界線兩兩求交點，再跟兩個坐標軸的交點'},
+            {eq:V.map(function(v, i){ return 'f( ' + v.x + ' , ' + v.y + ' ) = ' + vals[i]; }).join('，'), why:'把每個頂點代入目標函數'},
+            {eq:'故最小值為 ' + best, why:'區域無界，所以只有最小值沒有最大值'}
+          ]
+        };
+      }
+    },
+    {
+      id:'lpApp', book:'第3冊', section:'3-3 線性規劃', name:'線性規劃應用問題',
+      concept:[
+        '先設兩個未知數（通常是「各生產幾件／用幾公斤」），再依題意列出限制條件與目標函數。',
+        '別忘了 x ≥ 0、y ≥ 0 這兩個「現實上不能是負的」限制。',
+        '畫出可行解區域、求出頂點，再把頂點代入目標函數，比出最大（或最小）值。'
+      ],
+      formula:'設未知數 ⇒ 列限制條件與目標函數 ⇒ 求可行解區域的頂點 ⇒ 代入比大小',
+      example:function(){ return this.gen({a1:2, b1:1, c1:40, a2:1, b2:1, c2:30,
+                                           verts:[{x:0,y:0},{x:20,y:0},{x:10,y:20},{x:0,y:30}],
+                                           s1:20, s2:30, p:40, q:25}); },
+      gen:function(fix){
+        var R = fix ? fix : lpBoundedRegion();
+        var s1 = (fix && fix.s1) ? fix.s1 : rndPick([10, 20, 25]);
+        var s2 = (fix && fix.s2) ? fix.s2 : rndPick([10, 20, 30]);
+        var p = (fix && fix.p) ? fix.p : rndPick([20, 25, 30, 40, 50]);
+        var q = (fix && fix.q) ? fix.q : rndPick([15, 25, 30, 35, 45]);
+        var V = R.verts;
+        var vals = V.map(function(v){ return p * v.x + q * v.y; });
+        var best = Math.max.apply(null, vals);
+        var bi = vals.indexOf(best);
+        var ans = best + ' 元';
+        return {
+          stem:'兩種款式的毛織品：每一件 A 款式需用紅色毛線 ' + (R.a1 * s1) + ' 公尺、白色毛線 ' + (R.a2 * s2) +
+               ' 公尺，利潤 ' + p + ' 元；每一件 B 款式需用紅色毛線 ' + (R.b1 * s1) + ' 公尺、白色毛線 ' + (R.b2 * s2) +
+               ' 公尺，利潤 ' + q + ' 元。現有紅色毛線 ' + (R.c1 * s1) + ' 公尺、白色毛線 ' + (R.c2 * s2) +
+               ' 公尺，全部均可使用，試問最大利潤為何？',
+          choices:shuffleChoices(ans, [Math.min.apply(null, vals.filter(function(v){ return v !== 0; })) + ' 元',
+                                       (p * V[1].x) + ' 元', (q * V[3].y) + ' 元', (best + q) + ' 元']),
+          answerHtml:ans,
+          steps:[
+            {eq:'設生產 A 款式 x 件、B 款式 y 件', why:'題目問利潤，先設生產件數'},
+            {eq:'目標函數 f ( x , y ) = ' + p + 'x ＋ ' + q + 'y （元）', why:'利潤 = 每件利潤 × 件數'},
+            {eq:'紅線：' + (R.a1 * s1) + 'x ＋ ' + (R.b1 * s1) + 'y ≤ ' + (R.c1 * s1) + ' ⇒ ' + eq2Html(R.a1, R.b1, R.c1).replace(' = ', ' ≤ '),
+             why:'兩邊同除 ' + s1 + ' 化簡'},
+            {eq:'白線：' + (R.a2 * s2) + 'x ＋ ' + (R.b2 * s2) + 'y ≤ ' + (R.c2 * s2) + ' ⇒ ' + eq2Html(R.a2, R.b2, R.c2).replace(' = ', ' ≤ '),
+             why:'兩邊同除 ' + s2 + ' 化簡；另外還有 x ≥ 0、y ≥ 0'},
+            {eq:'可行解區域的頂點為 ' + V.map(function(v){ return '( ' + v.x + ' , ' + v.y + ' )'; }).join('、'), why:'畫出可行解區域後求頂點'},
+            {eq:V.map(function(v, i){ return 'f( ' + v.x + ' , ' + v.y + ' ) = ' + vals[i]; }).join('，'), why:'每個頂點都代入目標函數'},
+            {eq:'故生產 A 款 ' + V[bi].x + ' 件、B 款 ' + V[bi].y + ' 件時，最大利潤為 ' + ans, why:'取最大的那一個'}
+          ]
+        };
+      }
     }
+
   ];
 
 
@@ -4372,8 +5265,9 @@
     wrap.innerHTML = '';
     var groups = [], seen = {};
     PRACTICE_TYPES.forEach(function(t){
-      if (!seen[t.section]){ seen[t.section] = []; groups.push(t.section); }
-      seen[t.section].push(t);
+      var key = (t.book ? t.book + '　' : '') + t.section;   // 例如「第3冊　3-3 線性規劃」
+      if (!seen[key]){ seen[key] = []; groups.push(key); }
+      seen[key].push(t);
     });
     groups.forEach(function(sec, gi){
       var det = document.createElement('details');
@@ -4484,7 +5378,8 @@
       (pracState.index + 1 >= PRAC_ROUND_SIZE) ? '看這一輪結果 →' : '下一題 →';
     // 先把這一題的紀錄存起來（自評之後會補上）
     pracState.rows.push({
-      section: t.section, typeId: t.id, typeName: t.name,
+      section: (t.book ? t.book + ' ' : '') + t.section,   // 例如「第3冊 3-3 線性規劃」，老師看紀錄時才分得出冊別
+      typeId: t.id, typeName: t.name,
       stem: stripHtml(q.stem), answer: stripHtml(q.choices[idx].html),
       correctAnswer: stripHtml(q.answerHtml), isCorrect: correct, self: ''
     });
@@ -4609,11 +5504,20 @@
   function populatePracticeClassOptions(){
     var sel = document.getElementById('pracLogClass');
     var current = sel.value;
+    // 先放老師的任課班（登入時後端回傳的 classes，例如 110、203、214），
+    // 這樣就算某個班還沒有人練習過，下拉選單裡也看得到、可以先選起來；
+    // 紀錄裡若出現名單外的班級（例如以後新增的班），再補在後面。
     var classes = [];
-    practiceLogCache.forEach(function(r){
-      if (r.className && classes.indexOf(r.className) === -1) classes.push(r.className);
+    adminClassList.forEach(function(c){
+      if (c && classes.indexOf(c) === -1) classes.push(c);
     });
     classes.sort();
+    var extra = [];
+    practiceLogCache.forEach(function(r){
+      if (r.className && classes.indexOf(r.className) === -1 && extra.indexOf(r.className) === -1) extra.push(r.className);
+    });
+    extra.sort();
+    classes = classes.concat(extra);
     sel.innerHTML = '<option value="">全部班級</option>';
     classes.forEach(function(c){
       var o = document.createElement('option');
