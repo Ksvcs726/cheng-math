@@ -419,6 +419,8 @@
   /* 互動動畫這一頁單獨放寬（一般內容頁維持 1180px 的易讀寬度），
      讓圖形可以畫大一點，不要在寬螢幕上左右空一大塊。 */
   #demos .page{max-width:1760px;}
+  /* 練功坊跟互動動畫一樣：題目/檢討是左右兩欄，內容欄放寬才不會兩邊都被擠窄 */
+  #practice .page{max-width:1760px;}
   .demo-body{
     display:grid;grid-template-columns:minmax(360px,820px) minmax(300px,520px);
     gap:32px;justify-content:center;
@@ -583,9 +585,11 @@
   .prac-type-card:hover{border-color:var(--indigo);transform:translateY(-1px);}
   .prac-type-name{font-size:.95rem;font-weight:600;}
   .prac-type-formula{font-family:"JetBrains Mono",monospace;font-size:.74rem;color:var(--ink-soft);line-height:1.7;}
-  .prac-learn-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:20px;}
-  .prac-quiz-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;}
-  @media (max-width:860px){.prac-learn-grid,.prac-quiz-grid{grid-template-columns:1fr;}}
+  .prac-learn-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:28px;}
+  .prac-quiz-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;}
+  @media (max-width:860px){.prac-learn-grid,.prac-quiz-grid{grid-template-columns:1fr;gap:20px;}}
+  /* 題目裡的小圖在寬畫面可以畫大一點 */
+  @media (min-width:1100px){ svg.prac-fig{max-width:420px;} svg.prac-numline{max-width:460px;} }
   .prac-concept{list-style:disc;margin:0 0 12px;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:.84rem;color:var(--ink);line-height:1.7;}
   .prac-stem{font-size:.95rem;line-height:1.9;margin:0 0 16px;color:var(--ink);}
   .prac-choices{display:flex;flex-direction:column;gap:10px;}
