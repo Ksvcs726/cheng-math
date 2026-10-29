@@ -214,6 +214,8 @@
   .topbar-auth{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
   .topbar-session{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
   .btn-sm{padding:6px 12px;font-size:.8rem;}
+  .login-remember{display:flex;align-items:center;gap:7px;font-size:.82rem;color:var(--ink-soft);white-space:nowrap;}
+  .login-remember input{width:15px;height:15px;accent-color:var(--indigo);}
 
   /* ---------- 登入／修改密碼彈出視窗 ---------- */
   .modal-overlay{
@@ -458,10 +460,21 @@
   #pracFormula{white-space:normal;overflow-x:visible;line-height:2;word-break:break-word;}
   .frac{
     display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;
-    margin:0 2px;font-size:.82em;line-height:1.15;position:relative;top:.05em;
+    margin:0 3px;font-size:.9em;line-height:1.2;position:relative;top:.04em;
   }
-  .frac .num{border-bottom:1px solid currentColor;padding:0 3px 1px;}
-  .frac .den{padding:1px 3px 0;}
+  .frac .num{border-bottom:1.6px solid currentColor;padding:0 5px 2px;}
+  .frac .den{padding:2px 5px 0;}
+  /* 根號：勾勾用 SVG 畫（會跟著內容的高度自動拉長），上面的橫線用 border-top 接上去。
+     用「√」這個字元畫不出會變高的根號，內容一多（例如分數）就會對不齊。 */
+  .rad{display:inline-flex;align-items:stretch;vertical-align:middle;margin:0 2px;white-space:nowrap;line-height:1.35;}
+  .rad-svg{flex:0 0 auto;width:.62em;align-self:stretch;overflow:visible;}
+  .rad-svg path{stroke:currentColor;stroke-width:1.5;fill:none;stroke-linejoin:miter;stroke-linecap:round;}
+  .rad-body{border-top:1.6px solid currentColor;padding:.14em .3em .02em .12em;}
+  .rad-idx{font-size:.62em;line-height:1;align-self:flex-start;margin-right:-.3em;position:relative;top:-.1em;}
+  .rad .frac{font-size:.84em;}
+  sup .frac, sub .frac{font-size:.95em;margin:0 1px;top:0;}
+  sup .frac .num{padding:0 3px 1px;border-bottom-width:1.2px;}
+  sup .frac .den{padding:1px 3px 0;}
   .lp-readout{font-size:.84rem;color:var(--ink-soft);}
   .lp-readout .mono{color:var(--red);font-weight:600;}
   .lp-vertex-list{list-style:none;margin:8px 0 0;padding:0;font-size:.8rem;}
@@ -665,6 +678,82 @@
     .demo-body,.demo-body-sys{grid-template-columns:1fr;}
   }
 
+  /* ============================================================
+     手機版（直式窄螢幕）專用調整
+     手機是「窄而長」，所以原則是：字小一點、留白少一點、
+     所有東西都排成單欄、按鈕放大到好按，寧可往下捲也不要左右捲。
+     寫在整份 CSS 的最後面，同權重時後寫的贏。
+     ============================================================ */
+  @media (max-width:560px){
+    html{font-size:16px;}                 /* 電腦版 18px → 手機 16px，整體等比縮小 */
+    .page{padding:0 14px;}
+    section.block{padding:26px 0 34px;}
+    .block-head{margin-bottom:16px;gap:8px;}
+    .block-head h2{font-size:1.32rem;}
+    .block-desc{font-size:.86rem;line-height:1.75;margin-top:4px;}
+    .block-tag{font-size:.66rem;padding:3px 8px;}
+
+    /* 上方兩條列（頂部列＋漢堡列）壓低一點，少吃掉畫面高度 */
+    .topbar-inner{padding:6px 12px;gap:8px;font-size:.78rem;}
+    .topbar-auth,.topbar-session{gap:6px;}
+    .btn-sm{padding:5px 9px;font-size:.74rem;}
+    .mobile-bar{padding:8px 12px;gap:10px;}
+
+    /* 卡片的內距縮小，內容可用寬度就變多 */
+    .demo-shell{padding:14px 13px 16px;border-radius:5px;}
+    .demo-head{margin-bottom:12px;gap:8px;}
+    .demo-head h3{font-size:1rem;line-height:1.5;}
+
+    /* 表單欄位一行一個，不要兩個擠在一起 */
+    .exam-meta{padding:12px;gap:12px;}
+    .exam-meta label{min-width:100%;flex:1 1 100%;}
+    .login-remember{white-space:normal;}
+
+    /* 表格：維持可左右捲動，但不要讓單一欄被壓到擠成直書 */
+    .ledger-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    .ledger th,.ledger td{white-space:nowrap;padding:7px 9px;font-size:.8rem;}
+
+    /* 按鈕放大到好按（至少 40px 高），一排放不下就自己換行 */
+    .btn{min-height:40px;padding:9px 14px;}
+    .roster-actions{gap:8px;}
+    .roster-actions .btn{flex:1 1 auto;}
+
+    /* 練功坊：題目、選項、檢討都單欄；自評三顆排成一列 */
+    .prac-learn-grid,.prac-quiz-grid{gap:16px;}
+    .prac-type-card{padding:12px 13px;}
+    .prac-stem{font-size:.9rem;line-height:1.85;}
+    .prac-choice{padding:11px 12px;gap:10px;}
+    .prac-choice-body{font-size:.84rem;line-height:1.75;}
+    .prac-concept{font-size:.8rem;line-height:1.75;}
+    .prac-selfcheck{gap:6px;}
+    .prac-selfcheck-label{flex:1 1 100%;margin-bottom:2px;}
+    .prac-selfcheck .btn{flex:1 1 0;min-width:0;padding:9px 4px;font-size:.78rem;}
+    #pracFormula{font-size:.8rem;line-height:1.95;padding:9px 10px;}
+    .step-eq{font-size:.82rem;line-height:1.75;}
+    .step-why{font-size:.72rem;}
+    svg.prac-fig{max-width:100%;}
+
+    /* 互動動畫：滑桿加粗、標題與數值縮小，拖起來比較順 */
+    .controls label{font-size:.8rem;}
+    input[type="range"]{height:26px;}
+    .formula{font-size:.78rem;padding:9px 10px;}
+
+    /* 目錄清單：小節與徽章的行距縮小，一個畫面看得到更多節次 */
+    ul.section-list.chapter-list li{padding:5px 0;row-gap:4px;}
+    ul.section-list li{font-size:.86rem;}
+    .book-body{padding:12px 12px 14px;}
+    summary{padding:11px 12px;}
+
+    /* 頁尾 */
+    footer.site{padding:18px 0;}
+    footer.site .page{flex-direction:column;align-items:flex-start;gap:4px;font-size:.76rem;}
+  }
+  @media (max-width:380px){
+    html{font-size:15px;}
+    .page{padding:0 11px;}
+    .prac-choice-body{font-size:.8rem;}
+  }
+
   /* 手機版：主題標題列讓它自己換行，不要被右邊的小標籤擠成一行一個字 */
   @media (max-width:640px){
     .demo-topic summary{gap:8px;}
@@ -793,6 +882,7 @@
     <form id="loginForm" class="exam-meta" style="align-items:flex-end;">
       <label>帳號<input type="text" id="loginAccount" required placeholder="學號或管理者帳號"></label>
       <label>密碼<input type="password" id="loginPassword" required placeholder="密碼"></label>
+      <label class="login-remember"><input type="checkbox" id="loginRemember" checked> 記住我（下次不用再輸入）</label>
       <button type="submit" class="btn btn-primary" id="loginSubmitBtn">登入</button>
     </form>
     <span class="roster-status is-error" id="loginError"></span>
@@ -1224,7 +1314,7 @@
           <div class="book-body demo-topic-body">
             <div class="demo-head">
               <h3>斜率：正負、大小與傾斜程度</h3>
-              <span class="badge">m = (y₂－y₁) ÷ (x₂－x₁)</span>
+              <span class="badge">m = <span class="frac"><span class="num">y₂－y₁</span><span class="den">x₂－x₁</span></span></span>
             </div>
             <div class="demo-body">
               <div class="graph-wrap">
@@ -2472,7 +2562,7 @@
     if (samePoint){
       formulaEl.innerHTML = 'A、B 是同一點，沒辦法決定一條直線';
     } else if (vertical){
-      formulaEl.innerHTML = 'm = (' + y2 + ' － ' + y1 + ') ÷ (' + x2 + ' － ' + x1 + ') = ' + dy + ' ÷ 0 → 斜率不存在';
+      formulaEl.innerHTML = 'm = ' + fracH(y2 + ' － ' + y1, x2 + ' － ' + x1) + ' = ' + fracH(dy, 0) + ' → 斜率不存在';
     } else {
       // 被減數是負數才加括號，例如 5 －（-4），正數就直接寫 -4 － 5
       var wrap = function(v){ return v < 0 ? '(' + v + ')' : String(v); };
@@ -2637,7 +2727,7 @@
       steps.push({ eq:fmtInt(b) + ' x ' + signedTermInt(a, 'y') + ' = ' + fmtInt(a * b),
                    why:'兩邊同乘 a × b = ' + (a * b) + '（去分母）', focus:'area' });
       steps.push({ eq:lineHtml(L), why:'移項並整理成一般式', focus:'line' });
-      note = '這條直線與兩坐標軸圍成的三角形面積 = ½ |a × b| = ½ |' + a + ' × ' + b + '| = ' +
+      note = '這條直線與兩坐標軸圍成的三角形面積 = ' + fracH(1, 2) + ' |a × b| = ' + fracH(1, 2) + ' |' + a + ' × ' + b + '| = ' +
              ratHtml(ratMake(Math.abs(a * b), 2));
 
     } else {
@@ -2944,7 +3034,7 @@
       } else {
         var mP = perpSlope(it.mSide);
         steps.push({ eq:'m<sub>' + p + q + '</sub> = ' + ratHtml(it.mSide), why:'先求 ' + p + q + ' 的斜率', focus:'side' });
-        steps.push({ eq:'中垂線斜率 = －1 ÷ m<sub>' + p + q + '</sub> = ' + ratHtml(mP), why:'垂直 → 取負倒數', focus:'side' });
+        steps.push({ eq:'中垂線斜率 = ' + fracH('－1', 'm<sub>' + p + q + '</sub>') + ' = ' + ratHtml(mP), why:'垂直 → 取負倒數', focus:'side' });
         steps.push({ eq:'y － ' + ratHtmlParen(it.mid.y) + ' = ' + ratHtmlParen(mP) + ' ( x － ' + ratHtmlParen(it.mid.x) + ' )',
                      why:'由點斜式，代入中點 M', focus:'line' });
       }
@@ -3926,23 +4016,32 @@
   // 避免帳密長期留在裝置上；重新整理網頁時會用存起來的帳密重新呼叫一次 login 驗證，
   // 確認密碼沒有被改過、帳號還在，才會恢復登入狀態。
   var SESSION_STORAGE_KEY = 'mathsiteSession_v1';
+  // 勾了「記住我」就存在 localStorage（關掉瀏覽器下次還在），沒勾只存 sessionStorage（關掉分頁就忘記）。
+  // 不論存哪裡，重新進來時都會拿帳密再呼叫一次 login 驗證，密碼被改過就會自動失效。
+  var rememberMe = false;
+  try { rememberMe = localStorage.getItem(SESSION_STORAGE_KEY) !== null; } catch (e) { rememberMe = false; }
   function saveSessionToStorage(){
     try {
       if (currentUser && currentPassword != null){
-        sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
-          account: currentUser.account,
-          password: currentPassword
-        }));
+        var payload = JSON.stringify({ account: currentUser.account, password: currentPassword });
+        if (rememberMe){
+          localStorage.setItem(SESSION_STORAGE_KEY, payload);
+          sessionStorage.removeItem(SESSION_STORAGE_KEY);
+        } else {
+          sessionStorage.setItem(SESSION_STORAGE_KEY, payload);
+          localStorage.removeItem(SESSION_STORAGE_KEY);
+        }
       }
     } catch (e) { /* 瀏覽器不支援或被封鎖時直接略過，不影響其他功能 */ }
   }
   function clearSessionStorage(){
     try { sessionStorage.removeItem(SESSION_STORAGE_KEY); } catch (e) {}
+    try { localStorage.removeItem(SESSION_STORAGE_KEY); } catch (e) {}
   }
   function tryRestoreSession(){
     var stored = null;
     try {
-      var raw = sessionStorage.getItem(SESSION_STORAGE_KEY);
+      var raw = localStorage.getItem(SESSION_STORAGE_KEY) || sessionStorage.getItem(SESSION_STORAGE_KEY);
       if (raw) stored = JSON.parse(raw);
     } catch (e) { stored = null; }
     if (!stored || !stored.account || stored.password == null) return Promise.resolve();
@@ -4233,8 +4332,23 @@
     }
     return s === '' ? '0' : s;
   }
+  // 分數：fracH('分子', '分母') → 上下排版的分數（不是用 ÷ 或 /）
+  function fracH(n, d){
+    return '<span class="frac"><span class="num">' + n + '</span><span class="den">' + d + '</span></span>';
+  }
+  // 根號：sqrtH('72') → 會跟著內容長高的根號；idx 可以指定幾次方根（例如 3 代表立方根）
+  var RAD_SVG = '<svg class="rad-svg" viewBox="0 0 10 24" preserveAspectRatio="none" aria-hidden="true">' +
+                '<path d="M0 14 L2.6 14 L5.6 23.4 L9.4 0" vector-effect="non-scaling-stroke"/></svg>';
+  function sqrtH(inner, idx){
+    return '<span class="rad">' + (idx ? '<span class="rad-idx">' + idx + '</span>' : '') +
+           RAD_SVG + '<span class="rad-body">' + inner + '</span></span>';
+  }
   // 負數用全形減號顯示，跟其他算式一致
   function nStr(n){ return (n < 0) ? ('－' + Math.abs(n)) : String(n); }
+  // 把一個帶正負號的項接到式子後面：b ＜ 0 寫成「－ |b|」，不要寫成「＋ －b」
+  function joinSigned(n, tail){
+    return (n < 0 ? ' － ' + Math.abs(n) : ' ＋ ' + n) + (tail || '');
+  }
   // ( x － m )，m = 0 時直接寫 x
   function xMinus(m){ return (m === 0) ? 'x' : ('x ' + (m < 0 ? '＋ ' + (-m) : '－ ' + m)); }
   // a ( x － m )²，m = 0 時寫成 a x²；a = ±1 時省略係數
@@ -4255,7 +4369,7 @@
   function radHtml(n){
     var r = simpRadical(n);
     if (r.m === 1) return String(r.k);
-    return (r.k === 1 ? '' : r.k) + '√' + r.m;
+    return (r.k === 1 ? '' : r.k) + sqrtH(r.m);
   }
   // 距離：|t| ÷ √m，有理化之後顯示成分數
   function distHtml(t, m){
@@ -4269,7 +4383,7 @@
     var num = t, den = r.k * r.m;
     var g2 = gcdInt(num, den) || 1;
     num /= g2; den /= g2;
-    var numTxt = (num === 1 ? '' : num) + '√' + r.m;
+    var numTxt = (num === 1 ? '' : num) + sqrtH(r.m);
     return den === 1 ? numTxt : '<span class="frac"><span class="num">' + numTxt + '</span><span class="den">' + den + '</span></span>';
   }
   // 解的範圍：'between' = r1 ＜ x ＜ r2，'outside' = x ＜ r1 或 x ＞ r2
@@ -4354,11 +4468,11 @@
     {
       id:'slope2pt', book:'第1冊', section:'2-1 斜率', name:'由兩點求斜率',
       concept:[
-        '斜率就是「上升量 ÷ 水平移動量」，也就是 y 的變化量除以 x 的變化量。',
+        '斜率就是「上升量 除以 水平移動量」，也就是 y 的變化量除以 x 的變化量。',
         '同一條直線上不管選哪兩點，算出來的斜率都一樣。',
         'm > 0：直線由左下往右上；m < 0：由左上往右下；m = 0 是水平線；x₁ = x₂ 時斜率不存在（鉛直線）。'
       ],
-      formula:'m = ( y₂ － y₁ ) ÷ ( x₂ － x₁ )',
+      formula:'m = ' + fracH('y₂ － y₁', 'x₂ － x₁'),
       example:function(){ return this.gen({x1:5, y1:5, x2:-2, y2:-4}); },
       gen:function(fix){
         var P = fix || rndTwoPoints();
@@ -4441,7 +4555,7 @@
                {eq:'m<sub>L₂</sub> = m<sub>L₁</sub> = ' + ratHtml(m1), why:'直接照抄 L₁ 的斜率'}]
             : [{eq:'兩直線垂直 ⇒ m<sub>L₁</sub> × m<sub>L₂</sub> = －1', why:'垂直的判斷方式'},
                {eq:ratHtml(m1) + ' × m<sub>L₂</sub> = －1', why:'把 L₁ 的斜率代進去'},
-               {eq:'m<sub>L₂</sub> = －1 ÷ ' + ratHtmlParen(m1) + ' = ' + ratHtml(ans), why:'取負倒數（分子分母對調再變號）'}]
+               {eq:'m<sub>L₂</sub> = ' + fracH('－1', ratHtml(m1)) + ' = ' + ratHtml(ans), why:'取負倒數（分子分母對調再變號）'}]
         };
       }
     },
@@ -4488,7 +4602,7 @@
         '如果兩點的 x 相同就是鉛直線 x = x₁；y 相同就是水平線 y = y₁。',
         '最後一樣整理成一般式。'
       ],
-      formula:'先求 m = ( y₂ － y₁ ) ÷ ( x₂ － x₁ )，再代點斜式',
+      formula:'先求 m = ' + fracH('y₂ － y₁', 'x₂ － x₁') + '，再代點斜式',
       example:function(){ return this.gen({x1:2, y1:5, x2:-1, y2:-3}); },
       gen:function(fix){
         var P = fix || rndTwoPoints();
@@ -4586,9 +4700,9 @@
       concept:[
         'x 截距 a 是直線與 x 軸交點 (a, 0) 的 x 值；y 截距 b 是與 y 軸交點 (0, b) 的 y 值。',
         '截距不是距離，可以是負的，但 a、b 都不能為 0 才寫得成截距式。',
-        '直線與兩坐標軸圍成的三角形面積 = ½ |a × b|。'
+        '直線與兩坐標軸圍成的三角形面積 = ' + fracH(1, 2) + ' |a × b|。'
       ],
-      formula:'<span class="frac"><span class="num">x</span><span class="den">a</span></span> ＋ <span class="frac"><span class="num">y</span><span class="den">b</span></span> = 1　，　面積 = ½ |a × b|',
+      formula:fracH('x', 'a') + ' ＋ ' + fracH('y', 'b') + ' = 1　，　面積 = ' + fracH(1, 2) + ' |a × b|',
       example:function(){ return this.gen({a:5, b:-4}); },
       gen:function(fix){
         var a = fix ? fix.a : rndNonZero(-8, 8);
@@ -4607,7 +4721,7 @@
             {eq:'<span class="frac"><span class="num">x</span><span class="den">' + a + '</span></span> ＋ <span class="frac"><span class="num">y</span><span class="den">' + b + '</span></span> = 1', why:'把兩個截距代進截距式'},
             {eq:fmtInt(b) + ' x ' + signedTermInt(a, 'y') + ' = ' + fmtInt(a * b), why:'兩邊同乘 a × b = ' + (a * b) + '（去分母）'},
             {eq:lineHtml(L), why:'移項整理成一般式'},
-            {eq:'面積 = ½ |' + a + ' × ' + b + '| = ' + ratHtml(area) + (function(){
+            {eq:'面積 = ' + fracH(1, 2) + ' |' + a + ' × ' + b + '| = ' + ratHtml(area) + (function(){
                  var lim = Math.max(Math.abs(a), Math.abs(b)) + 2;
                  return pracFig({ xMin:-lim, xMax:lim, yMin:-lim, yMax:lim,
                    fills:[[{x:0, y:0}, {x:a, y:0}, {x:0, y:b}]],
@@ -4626,7 +4740,7 @@
         '先求 AB 的斜率，再取負倒數就是高的斜率（m<sub>高</sub> × m<sub>AB</sub> = －1）。',
         '最後用點斜式套在頂點 C 上，再化成一般式。'
       ],
-      formula:'m<sub>高</sub> = －1 ÷ m<sub>AB</sub>　，　再代點斜式過 C',
+      formula:'m<sub>高</sub> = ' + fracH('－1', 'm<sub>AB</sub>') + '　，　再代點斜式過 C',
       example:function(){ return this.gen({ax:2, ay:3, bx:-3, by:-4, cx:5, cy:-2}); },
       gen:function(fix){
         var ax, ay, bx, by, cx, cy;
@@ -4764,7 +4878,7 @@
             {eq:'M = ( <span class="frac"><span class="num">' + ax + ' ＋ ' + (bx < 0 ? '(' + bx + ')' : bx) + '</span><span class="den">2</span></span> , ' +
                 '<span class="frac"><span class="num">' + ay + ' ＋ ' + (by < 0 ? '(' + by + ')' : by) + '</span><span class="den">2</span></span> ) = ' + ptHtml(M), why:'先求 AB 的中點（中垂線一定過中點）'},
             {eq:'m<sub>AB</sub> = ' + ratHtml(mAB), why:'再求 AB 的斜率'},
-            {eq:'中垂線斜率 = －1 ÷ ' + ratHtmlParen(mAB) + ' = ' + ratHtml(mPb), why:'垂直 → 取負倒數'},
+            {eq:'中垂線斜率 = ' + fracH('－1', ratHtml(mAB)) + ' = ' + ratHtml(mPb), why:'垂直 → 取負倒數'},
             {eq:'y － ' + ratHtmlParen(M.y) + ' = ' + ratHtmlParen(mPb) + ' ( x － ' + ratHtmlParen(M.x) + ' )', why:'由點斜式，代入中點 M'},
             {eq:lineHtml(L), why:'去分母、移項，整理成一般式'},
             {eq:(function(){
@@ -5127,8 +5241,8 @@
               {eq:'<span class="frac"><span class="num">a</span><span class="den">' + a2 + '</span></span> = ' +
                   '<span class="frac"><span class="num">' + b + '</span><span class="den">' + b2 + '</span></span> ≠ ' +
                   '<span class="frac"><span class="num">' + c1 + '</span><span class="den">' + c2 + '</span></span>', why:'x、y 的係數比相等，但常數項比不相等'},
-              {eq:'由 <span class="frac"><span class="num">a</span><span class="den">' + a2 + '</span></span> = ' + t + ' 得 a = ' + a2 + ' × ' + t + ' = ' + a, why:'先算出 y 的係數比 ' + b + ' ÷ ' + b2 + ' = ' + t},
-              {eq:'檢查常數項：' + c1 + ' ÷ ' + c2 + ' ≠ ' + t + '，確實無解', why:'一定要檢查，不然可能變成重合（無限多組解）'}
+              {eq:'由 <span class="frac"><span class="num">a</span><span class="den">' + a2 + '</span></span> = ' + t + ' 得 a = ' + a2 + ' × ' + t + ' = ' + a, why:'先算出 y 的係數比 ' + fracH(b, b2) + ' = ' + t},
+              {eq:'檢查常數項：' + fracH(c1, c2) + ' ≠ ' + t + '，確實無解', why:'一定要檢查，不然可能變成重合（無限多組解）'}
             ]
           };
         }
@@ -5349,7 +5463,7 @@
         '再求出這個區域每一個頂點的坐標（兩條邊界線的交點）。',
         '把多邊形切成三角形或梯形，分別算面積再相加。'
       ],
-      formula:'以 O 連到對角頂點，把四邊形切成兩個三角形：面積 = ½×底×高 ＋ ½×底×高',
+      formula:'以 O 連到對角頂點，把四邊形切成兩個三角形：面積 = ' + fracH(1, 2) + '×底×高 ＋ ' + fracH(1, 2) + '×底×高',
       example:function(){ return this.gen({a1:2, b1:1, c1:40, a2:1, b2:1, c2:30,
                                            verts:[{x:0,y:0},{x:20,y:0},{x:10,y:20},{x:0,y:30}]}); },
       gen:function(fix){
@@ -5377,7 +5491,7 @@
             {eq:'各頂點為 ( 0 , 0 )、( ' + xv + ' , 0 )、( ' + P.x + ' , ' + P.y + ' )、( 0 , ' + yv + ' )',
              why:'兩兩邊界線求交點，就是頂點'},
             {eq:'連 O 到 ( ' + P.x + ' , ' + P.y + ' )，把四邊形切成兩個三角形', why:'切成三角形最好算'},
-            {eq:'△₁ = ½ × ' + xv + ' × ' + P.y + ' = ' + areaHtml(xv * P.y / 2) + '，△₂ = ½ × ' + yv + ' × ' + P.x + ' = ' + areaHtml(yv * P.x / 2),
+            {eq:'△₁ = ' + fracH(1, 2) + ' × ' + xv + ' × ' + P.y + ' = ' + areaHtml(xv * P.y / 2) + '，△₂ = ' + fracH(1, 2) + ' × ' + yv + ' × ' + P.x + ' = ' + areaHtml(yv * P.x / 2),
              why:'一個以 x 軸上的邊為底，一個以 y 軸上的邊為底'},
             {eq:'面積 = ' + areaHtml(xv * P.y / 2) + ' ＋ ' + areaHtml(yv * P.x / 2) + ' = ' + ans, why:'兩塊相加就是答案'}
           ]
@@ -5668,7 +5782,7 @@
         '所以 a 就是解的「正中間」＝兩端點的平均；b 就是解的「半徑」＝兩端點差的一半。',
         '解若是分開的兩段，代表原來的不等號是「＞」。'
       ],
-      formula:'a = ( 左端 ＋ 右端 ) ÷ 2　，　b = ( 右端 － 左端 ) ÷ 2',
+      formula:'a = ' + fracH('左端 ＋ 右端', 2) + '　，　b = ' + fracH('右端 － 左端', 2),
       example:function(){ return this.gen({m:2, n:10, kind:'between'}); },
       gen:function(fix){
         var m, n, kind;
@@ -5743,10 +5857,10 @@
       id:'midDist', book:'第1冊', section:'1-2 平面坐標系與線型函數', name:'中點公式與兩點距離',
       concept:[
         '中點公式：M ＝ ( (x₁＋x₂)/2 , (y₁＋y₂)/2 )，就是兩個坐標各自取平均。',
-        '兩點距離公式：AB ＝ √( (x₂－x₁)² ＋ (y₂－y₁)² )，由畢氏定理而來。',
+        '兩點距離公式：AB ＝ ' + sqrtH('( x₂－x₁ )² ＋ ( y₂－y₁ )²') + '，由畢氏定理而來。',
         '根號算完要化到最簡（把完全平方因數提出來）。'
       ],
-      formula:'M = ( <span class="frac"><span class="num">x₁＋x₂</span><span class="den">2</span></span> , <span class="frac"><span class="num">y₁＋y₂</span><span class="den">2</span></span> )　，　AB = √( Δx² ＋ Δy² )',
+      formula:'M = ( ' + fracH('x₁＋x₂', 2) + ' , ' + fracH('y₁＋y₂', 2) + ' )　，　AB = ' + sqrtH('Δx² ＋ Δy²'),
       example:function(){ return this.gen({x1:-10, y1:5, x2:2, y2:-3}); },
       gen:function(fix){
         var x1, y1, x2, y2;
@@ -5776,7 +5890,7 @@
              why:'兩個坐標各自取平均'},
             {eq:'Δx = ' + x2 + ' － ' + (x1 < 0 ? '(' + x1 + ')' : x1) + ' = ' + dx + '，Δy = ' + y2 + ' － ' + (y1 < 0 ? '(' + y1 + ')' : y1) + ' = ' + dy,
              why:'先算水平與鉛直的變化量'},
-            {eq:'AB = √( ' + dx + '² ＋ ' + dy + '² ) = √' + d2 + ' = ' + radHtml(d2), why:'畢氏定理，根號要化到最簡'},
+            {eq:'AB = ' + sqrtH(sq2(dx) + ' ＋ ' + sq2(dy)) + ' = ' + sqrtH(d2) + ' = ' + radHtml(d2), why:'畢氏定理，根號要化到最簡'},
             {eq:(function(){
                  var lo = Math.min(x1, x2, y1, y2) - 2, hi = Math.max(x1, x2, y1, y2) + 2;
                  return pracFig({ xMin:lo, xMax:hi, yMin:lo, yMax:hi,
@@ -6451,7 +6565,7 @@
             {eq:kind === 'para' ? ('平行 ⇒ 可設為 ' + linearExpr(a, b, 0) + ' ＋ k = 0')
                                 : ('垂直 ⇒ 把 x、y 的係數對調再變號，可設為 ' + linearExpr(b, -a, 0) + ' ＋ k = 0'),
              why:kind === 'para' ? '平行的直線 x、y 係數完全一樣' : '垂直時斜率互為負倒數，係數對調變號最快'},
-            {eq:'把點 ( ' + px + ' , ' + py + ' ) 代入：' + nStr(A) + '×(' + px + ') ＋ ' + nStr(B) + '×(' + py + ') ＋ k = 0', why:'直線要通過這個點'},
+            {eq:'把點 ( ' + px + ' , ' + py + ' ) 代入：' + nStr(A) + '×(' + px + ')' + joinSigned(B, '×(' + py + ')') + ' ＋ k = 0', why:'直線要通過這個點'},
             {eq:'k = ' + k, why:'解出常數項'},
             {eq:lineHtml(L), why:'整理成一般式（讓 x 的係數為正）'},
             {eq:(function(){
@@ -6467,11 +6581,11 @@
     {
       id:'ptLineDist', book:'第1冊', section:'2-3 一般式與點到直線的距離', name:'點到直線的距離',
       concept:[
-        '點 P(x₀, y₀) 到直線 L：ax ＋ by ＋ c ＝ 0 的距離是 |ax₀ ＋ by₀ ＋ c| ÷ √(a² ＋ b²)。',
+        '點 P(x₀, y₀) 到直線 L：ax ＋ by ＋ c ＝ 0 的距離是 ' + fracH('| ax₀ ＋ by₀ ＋ c |', sqrtH('a² ＋ b²')) + '。',
         '分子要加絕對值（距離不會是負的），分母是係數平方和開根號。',
         '算出來若分母有根號，要有理化並化到最簡。'
       ],
-      formula:'d = <span class="frac"><span class="num">| a x₀ ＋ b y₀ ＋ c |</span><span class="den">√( a² ＋ b² )</span></span>',
+      formula:'d = ' + fracH('| a x₀ ＋ b y₀ ＋ c |', sqrtH('a² ＋ b²')),
       example:function(){ return this.gen({a:3, b:4, c:1, px:2, py:5}); },
       gen:function(fix){
         var a, b, c, px, py;
@@ -6491,11 +6605,11 @@
           answerHtml:ans,
           steps:[
             {eq:'a = ' + a + '，b = ' + b + '，c = ' + c + '，P ( ' + px + ' , ' + py + ' )', why:'先把數字對清楚'},
-            {eq:'分子 = | ' + nStr(a) + '×(' + px + ') ＋ ' + nStr(b) + '×(' + py + ')' + termStr(c, '', false) + ' | = | ' + t + ' | = ' + Math.abs(t),
+            {eq:'分子 = | ' + nStr(a) + '×(' + px + ')' + joinSigned(b, '×(' + py + ')') + termStr(c, '', false) + ' | = | ' + t + ' | = ' + Math.abs(t),
              why:'把點代進直線的左邊，再取絕對值'},
-            {eq:'分母 = √( ' + sq2(a) + ' ＋ ' + sq2(b) + ' ) = √' + m + ' = ' + radHtml(m), why:'係數平方和開根號'},
-            {eq:'d = <span class="frac"><span class="num">' + Math.abs(t) + '</span><span class="den">' + radHtml(m) + '</span></span> = ' + ans,
-             why:simpRadical(m).m === 1 ? '分母剛好是整數' : '分母有根號 ⇒ 分子分母同乘 √' + simpRadical(m).m + ' 有理化'},
+            {eq:'分母 = ' + sqrtH(sq2(a) + ' ＋ ' + sq2(b)) + ' = ' + sqrtH(m) + ' = ' + radHtml(m), why:'係數平方和開根號'},
+            {eq:'d = ' + fracH(Math.abs(t), radHtml(m)) + ' = ' + ans,
+             why:simpRadical(m).m === 1 ? '分母剛好是整數' : '分母有根號 ⇒ 分子分母同乘 ' + sqrtH(simpRadical(m).m) + ' 有理化'},
             {eq:(function(){
                  var lim = Math.max(6, Math.abs(px) + 3, Math.abs(py) + 3);
                  return pracFig({ xMin:-lim, xMax:lim, yMin:-lim, yMax:lim, lines:[{a:a, b:b, c:c}],
@@ -6509,11 +6623,11 @@
     {
       id:'paraDist', book:'第1冊', section:'2-3 一般式與點到直線的距離', name:'兩平行線的距離',
       concept:[
-        '兩平行線 ax ＋ by ＋ c₁ ＝ 0 與 ax ＋ by ＋ c₂ ＝ 0 的距離是 |c₁ － c₂| ÷ √(a² ＋ b²)。',
+        '兩平行線 ax ＋ by ＋ c₁ ＝ 0 與 ax ＋ by ＋ c₂ ＝ 0 的距離是 ' + fracH('| c₁ － c₂ |', sqrtH('a² ＋ b²')) + '。',
         '使用公式前，兩式的 x、y 係數一定要先化成一樣（必要時先同乘或同除一個數）。',
         '也可以在其中一條線上隨便取一點，再用點到直線的距離公式算。'
       ],
-      formula:'d = <span class="frac"><span class="num">| c₁ － c₂ |</span><span class="den">√( a² ＋ b² )</span></span>　（係數要先化成一樣）',
+      formula:'d = ' + fracH('| c₁ － c₂ |', sqrtH('a² ＋ b²')) + '　（係數要先化成一樣）',
       example:function(){ return this.gen({a:1, b:-3, c1:3, c2:-7, mul:1}); },
       gen:function(fix){
         var a, b, c1, c2, mul;
@@ -6537,7 +6651,7 @@
               : {eq:'L₂ 兩邊同除以 ' + mul + ' ⇒ ' + linearExpr(a, b, c2) + ' = 0', why:'係數要先化成跟 L₁ 一樣才能用公式'}),
             {eq:'c₁ = ' + c1 + '，c₂ = ' + c2, why:'兩個常數項'},
             {eq:'分子 = | ' + c1 + ' － ' + (c2 < 0 ? '(' + c2 + ')' : c2) + ' | = ' + Math.abs(c1 - c2), why:'兩個常數項相減取絕對值'},
-            {eq:'分母 = √( ' + sq2(a) + ' ＋ ' + sq2(b) + ' ) = ' + radHtml(m), why:'係數平方和開根號'},
+            {eq:'分母 = ' + sqrtH(sq2(a) + ' ＋ ' + sq2(b)) + ' = ' + radHtml(m), why:'係數平方和開根號'},
             {eq:'d = ' + ans, why:'有根號就有理化並化到最簡'},
             {eq:(function(){
                  var lim = 8;
@@ -6555,7 +6669,7 @@
         '會得到一個含 k 的絕對值方程式，解出來通常有兩個答案（k 在兩側各一個）。',
         '別忘了絕對值方程式要分成正、負兩種情形。'
       ],
-      formula:'<span class="frac"><span class="num">| c₁ － c₂ |</span><span class="den">√( a² ＋ b² )</span></span> = d ⇒ | c₁ － c₂ | = d √( a² ＋ b² )',
+      formula:fracH('| c₁ － c₂ |', sqrtH('a² ＋ b²')) + ' = d ⇒ | c₁ － c₂ | = d ' + sqrtH('a² ＋ b²'),
       example:function(){ return this.gen({a:3, b:-1, c:5, t:2}); },
       gen:function(fix){
         var a, b, c, t;
@@ -6576,12 +6690,11 @@
                                        'k = ' + (k1 + 1) + ' 或 k = ' + (k2 - 1)]),
           answerHtml:ans,
           steps:[
-            {eq:'第一條線兩邊同除以 2 ⇒ ' + linearExpr(a, b, 0) + ' = <span class="frac"><span class="num">k</span><span class="den">2</span></span>',
+            {eq:'第一條線兩邊同除以 2 ⇒ ' + linearExpr(a, b, 0) + ' = ' + fracH('k', 2),
              why:'先把係數化成跟第二條一樣'},
-            {eq:'d = <span class="frac"><span class="num">| <span class="frac"><span class="num">k</span><span class="den">2</span></span> － ' + c +
-                ' |</span><span class="den">' + radHtml(m) + '</span></span> = ' + distHtml(t, m), why:'套兩平行線距離公式'},
-            {eq:'| <span class="frac"><span class="num">k</span><span class="den">2</span></span> － ' + c + ' | = ' + t, why:'兩邊同乘分母，把根號約掉'},
-            {eq:'<span class="frac"><span class="num">k</span><span class="den">2</span></span> － ' + c + ' = ' + t + ' 或 = －' + t, why:'絕對值方程式要分兩種情形'},
+            {eq:'d = ' + fracH('| ' + fracH('k', 2) + ' － ' + c + ' |', radHtml(m)) + ' = ' + distHtml(t, m), why:'套兩平行線距離公式'},
+            {eq:'| ' + fracH('k', 2) + ' － ' + c + ' | = ' + t, why:'兩邊同乘分母，把根號約掉'},
+            {eq:fracH('k', 2) + ' － ' + c + ' = ' + t + ' 或 = －' + t, why:'絕對值方程式要分兩種情形'},
             {eq:ans, why:'兩邊同乘 2，得到兩個答案'}
           ]
         };
@@ -6594,7 +6707,7 @@
       concept:[
         '把 x ＝ 1 代進去，得到的就是「所有項係數的總和」。',
         '把 x ＝ 0 代進去，得到的就是「常數項」。',
-        '偶次項係數和 ＝ [ f(1) ＋ f(－1) ] ÷ 2，奇次項係數和 ＝ [ f(1) － f(－1) ] ÷ 2。'
+        '偶次項係數和 ＝ ' + fracH('f(1) ＋ f(－1)', 2) + '，奇次項係數和 ＝ ' + fracH('f(1) － f(－1)', 2) + '。'
       ],
       formula:'係數總和 = f ( 1 )　，　常數項 = f ( 0 )',
       example:function(){ return this.gen({a:2, b:-3, c:1, n:3}); },
@@ -6779,7 +6892,7 @@
         '因為 f(x) = (x－a)q(x) + r，把 x ＝ a 代進去，前面那一項變 0，只剩 r。',
         '所以求餘式不用真的做除法，代一個數進去就好。'
       ],
-      formula:'f ( x ) ÷ ( x － a ) 的餘式 = f ( a )',
+      formula:'f ( x ) 除以 ( x － a ) 的餘式 = f ( a )',
       example:function(){ return this.gen({c3:1, c2:-2, c1:5, c0:-3, a:2}); },
       gen:function(fix){
         var c3, c2, c1, c0, a;
@@ -6811,7 +6924,7 @@
         '餘式仍然是把這個數代進 f ( x )：餘式 ＝ f ( q / p )。',
         '（注意：商式會差一個 p 倍，但「餘式」不受影響。）'
       ],
-      formula:'f ( x ) ÷ ( p x － q ) 的餘式 = f ( <span class="frac"><span class="num">q</span><span class="den">p</span></span> )',
+      formula:'f ( x ) 除以 ( p x － q ) 的餘式 = f ( ' + fracH('q', 'p') + ' )',
       example:function(){ return this.gen({c3:16, c2:8, c1:-2, c0:1, p:2, q:1}); },
       gen:function(fix){
         var c3, c2, c1, c0, p, q;
@@ -7083,7 +7196,7 @@
             {eq:'最簡公分母 = ( ' + lin(p) + ' )( ' + lin(q) + ' )', why:'兩個分母都不一樣，直接相乘就是公分母'},
             {eq:frac(nStr(a), lin(p)) + ' = ' + frac(nStr(a) + ' ( ' + lin(q) + ' )', '( ' + lin(p) + ' )( ' + lin(q) + ' )'), why:'第一個分式上下同乘 ( ' + lin(q) + ' )'},
             {eq:frac(nStr(b), lin(q)) + ' = ' + frac(nStr(b) + ' ( ' + lin(p) + ' )', '( ' + lin(p) + ' )( ' + lin(q) + ' )'), why:'第二個分式上下同乘 ( ' + lin(p) + ' )'},
-            {eq:'分子 = ' + nStr(a) + '( ' + lin(q) + ' ) ＋ ' + nStr(b) + '( ' + lin(p) + ' ) = ' + polyHtml([num1, num0]), why:'分母一樣了，分子直接相加'},
+            {eq:'分子 = ' + nStr(a) + '( ' + lin(q) + ' )' + joinSigned(b, '( ' + lin(p) + ' )') + ' = ' + polyHtml([num1, num0]), why:'分母一樣了，分子直接相加'},
             {eq:ans, why:'整理完成'}
           ]
         };
@@ -7160,6 +7273,1223 @@
                {eq:'= x³ ＋ ' + frac(1, 'x³') + ' ＋ 3( x ＋ ' + frac(1, 'x') + ' )', why:'把中間兩項提出 3'},
                {eq:'x³ ＋ ' + frac(1, 'x³') + ' = ( ' + t + ' )³ － 3×( ' + t + ' )', why:'移項'},
                {eq:'= ' + (t * t * t) + ' － ' + (3 * t) + ' = ' + v3, why:'算出答案'}]
+        };
+      }
+    },
+
+    /* ---------------- 第3冊 1-1 等差數列與等差級數 ---------------- */
+    {
+      id:'arithNth', book:'第3冊', section:'1-1 等差數列與等差級數', name:'等差數列的第 n 項',
+      concept:[
+        '等差數列：後項減前項永遠是同一個數，這個數叫做公差 d。',
+        '第 n 項公式：a<sub>n</sub> ＝ a₁ ＋ ( n － 1 ) d。注意是乘 ( n － 1 )，不是 n。',
+        'd ＞ 0 數列遞增，d ＜ 0 遞減。'
+      ],
+      formula:'a<sub>n</sub> = a₁ ＋ ( n － 1 ) d',
+      example:function(){ return this.gen({a1:-8, d:3, n:10}); },
+      gen:function(fix){
+        var a1 = fix ? fix.a1 : rndInt(-15, 15);
+        var d = fix ? fix.d : rndNonZero(-8, 8);
+        var n = fix ? fix.n : rndInt(6, 25);
+        var an = a1 + (n - 1) * d;
+        return {
+          stem:'設一等差數列的首項為 ' + a1 + '、公差為 ' + d + '，試求第 ' + n + ' 項。',
+          choices:shuffleChoices(String(an), [String(a1 + n * d), String(a1 - (n - 1) * d),
+                                              String(a1 * n + d), String(an - d)]),
+          answerHtml:String(an),
+          steps:[
+            {eq:'a<sub>n</sub> = a₁ ＋ ( n － 1 ) d', why:'等差數列的第 n 項公式'},
+            {eq:'a<sub>' + n + '</sub> = ' + a1 + ' ＋ ( ' + n + ' － 1 ) × ' + (d < 0 ? '(' + d + ')' : d), why:'代入 a₁ = ' + a1 + '、d = ' + d + '、n = ' + n},
+            {eq:'= ' + a1 + ' ＋ ' + ((n - 1) * d) + ' = ' + an, why:'先算 ( n － 1 ) d 再加首項'},
+            {eq:'（常見錯誤：把 ( n － 1 ) 寫成 n，就會多加一個公差）', why:'這是最容易錯的地方'}
+          ]
+        };
+      }
+    },
+    {
+      id:'arithFind', book:'第3冊', section:'1-1 等差數列與等差級數', name:'由兩項求首項與公差',
+      concept:[
+        '已知第 m 項與第 n 項，兩式相減就能把 a₁ 消掉，直接解出 d。',
+        'a<sub>n</sub> － a<sub>m</sub> ＝ ( n － m ) d。',
+        '求出 d 之後代回任一式就能得到首項 a₁。'
+      ],
+      formula:'d = <span class="frac"><span class="num">a<sub>n</sub> － a<sub>m</sub></span><span class="den">n － m</span></span>　，　再代回求 a₁',
+      example:function(){ return this.gen({m:2, n:10, a1:5, d:4}); },
+      gen:function(fix){
+        var m, n, a1, d;
+        if (fix){ m = fix.m; n = fix.n; a1 = fix.a1; d = fix.d; }
+        else {
+          m = rndInt(2, 6); n = m + rndInt(3, 12);
+          a1 = rndInt(-12, 12); d = rndNonZero(-7, 7);
+        }
+        var am = a1 + (m - 1) * d, an = a1 + (n - 1) * d;
+        var ans = 'a₁ = ' + a1 + '，d = ' + d;
+        return {
+          stem:'已知一等差數列的第 ' + m + ' 項為 ' + am + '、第 ' + n + ' 項為 ' + an + '，求首項與公差。',
+          choices:shuffleChoices(ans, ['a₁ = ' + d + '，d = ' + a1,
+                                       'a₁ = ' + am + '，d = ' + d,
+                                       'a₁ = ' + a1 + '，d = ' + (-d),
+                                       'a₁ = ' + (a1 + d) + '，d = ' + d]),
+          answerHtml:ans,
+          steps:[
+            {eq:'a<sub>' + n + '</sub> － a<sub>' + m + '</sub> = ( ' + n + ' － ' + m + ' ) d', why:'兩式相減把 a₁ 消掉'},
+            {eq:(an < 0 ? '(' + an + ')' : an) + ' － ' + (am < 0 ? '(' + am + ')' : am) + ' = ' + (n - m) + 'd ⇒ d = ' +
+                '<span class="frac"><span class="num">' + (an - am) + '</span><span class="den">' + (n - m) + '</span></span> = ' + d, why:'解出公差'},
+            {eq:'a<sub>' + m + '</sub> = a₁ ＋ ( ' + m + ' － 1 ) d ⇒ ' + am + ' = a₁ ＋ ' + ((m - 1) * d), why:'代回第 ' + m + ' 項的式子'},
+            {eq:'a₁ = ' + a1 + '，故 ' + ans, why:'求出首項'}
+          ]
+        };
+      }
+    },
+    {
+      id:'arithSign', book:'第3冊', section:'1-1 等差數列與等差級數', name:'第幾項開始變號',
+      concept:[
+        '先寫出第 n 項的式子 a<sub>n</sub> ＝ a₁ ＋ ( n － 1 ) d。',
+        '再解不等式 a<sub>n</sub> ＜ 0（或 ＞ 0），得到 n 的範圍。',
+        'n 必須是正整數，所以要取「滿足範圍的最小整數」。'
+      ],
+      formula:'解 a₁ ＋ ( n － 1 ) d ＜ 0（或 ＞ 0），再取最小的正整數 n',
+      example:function(){ return this.gen({a1:36, d:-4}); },
+      gen:function(fix){
+        var a1, d;
+        if (fix){ a1 = fix.a1; d = fix.d; }
+        else {
+          if (rndInt(0, 1)){ a1 = rndInt(20, 60); d = -rndInt(2, 7); }
+          else { a1 = -rndInt(20, 60); d = rndInt(2, 7); }
+        }
+        var want = (d < 0) ? '負' : '正';
+        // a1 + (n-1)d 變號：解 a1 + (n-1)d < 0（d<0）或 > 0（d>0）
+        var n0 = (d < 0) ? Math.floor(a1 / (-d)) + 2 : Math.floor((-a1) / d) + 2;
+        while ((d < 0 ? (a1 + (n0 - 2) * d < 0) : (a1 + (n0 - 2) * d > 0))) n0--;
+        var ans = '第 ' + n0 + ' 項';
+        return {
+          stem:'已知一等差數列的首項為 ' + a1 + '、公差為 ' + d + '，試問從第幾項開始為' + want + '數？',
+          choices:shuffleChoices(ans, ['第 ' + (n0 - 1) + ' 項', '第 ' + (n0 + 1) + ' 項',
+                                       '第 ' + (n0 - 2) + ' 項', '第 ' + (n0 + 2) + ' 項']),
+          answerHtml:ans,
+          steps:[
+            {eq:'a<sub>n</sub> = ' + a1 + ' ＋ ( n － 1 ) × ' + (d < 0 ? '(' + d + ')' : d) + ' = ' + termStr(d, 'n', true) + termStr(a1 - d, '', false),
+             why:'先把第 n 項整理成 n 的一次式'},
+            {eq:'要' + want + '數 ⇒ ' + termStr(d, 'n', true) + termStr(a1 - d, '', false) + (d < 0 ? ' ＜ 0' : ' ＞ 0'), why:'列出不等式'},
+            {eq:'n ＞ ' + ratHtml(ratMake(-(a1 - d), d)) + ' ≈ ' + (Math.round(-(a1 - d) / d * 100) / 100), why:'兩邊同除以 ' + d + (d < 0 ? '（負數，不等號要變號）' : '')},
+            {eq:'n 是正整數 ⇒ 最小是 n = ' + n0, why:'取滿足條件的最小整數'},
+            {eq:'驗算：a<sub>' + (n0 - 1) + '</sub> = ' + (a1 + (n0 - 2) * d) + '，a<sub>' + n0 + '</sub> = ' + (a1 + (n0 - 1) * d) + ' ✓',
+             why:'前一項還不是' + want + '數，這一項才是'}
+          ]
+        };
+      }
+    },
+    {
+      id:'arithSum', book:'第3冊', section:'1-1 等差數列與等差級數', name:'等差級數的和',
+      concept:[
+        '等差級數前 n 項和有兩個公式：S<sub>n</sub> ＝ ' + fracH('n ( a₁ ＋ a<sub>n</sub> )', 2) + '（知道頭尾時用）。',
+        '或 S<sub>n</sub> ＝ n a₁ ＋ ' + fracH('n ( n － 1 ) d', 2) + '（知道首項與公差時用）。',
+        '兩個公式其實是同一個，挑知道的資料比較多的那一個用。'
+      ],
+      formula:'S<sub>n</sub> = <span class="frac"><span class="num">n ( a₁ ＋ a<sub>n</sub> )</span><span class="den">2</span></span> = n a₁ ＋ <span class="frac"><span class="num">n ( n － 1 ) d</span><span class="den">2</span></span>',
+      example:function(){ return this.gen({a1:3, d:2, n:18}); },
+      gen:function(fix){
+        var a1 = fix ? fix.a1 : rndInt(-12, 15);
+        var d = fix ? fix.d : rndNonZero(-6, 6);
+        var n = fix ? fix.n : rndInt(8, 25);
+        var an = a1 + (n - 1) * d;
+        var S = n * (a1 + an) / 2;
+        return {
+          stem:'試求等差級數 ' + a1 + ' ＋ ' + (a1 + d) + ' ＋ ' + (a1 + 2 * d) + ' ＋ … 到第 ' + n + ' 項的和。',
+          choices:shuffleChoices(String(S), [String(n * (a1 + an)), String(n * a1 + n * (n + 1) * d / 2),
+                                             String(S - an), String((n + 1) * (a1 + an) / 2)]),
+          answerHtml:String(S),
+          steps:[
+            {eq:'a₁ = ' + a1 + '，d = ' + ((a1 + d) - a1) + '，n = ' + n, why:'先從前幾項看出公差'},
+            {eq:'a<sub>' + n + '</sub> = ' + a1 + ' ＋ ( ' + n + ' － 1 ) × ' + (d < 0 ? '(' + d + ')' : d) + ' = ' + an, why:'先求末項'},
+            {eq:'S<sub>' + n + '</sub> = <span class="frac"><span class="num">' + n + ' × ( ' + a1 + ' ＋ ' + (an < 0 ? '(' + an + ')' : an) + ' )</span><span class="den">2</span></span>',
+             why:'用「頭加尾乘項數除以 2」'},
+            {eq:'= <span class="frac"><span class="num">' + n + ' × ' + (a1 + an) + '</span><span class="den">2</span></span> = ' + S, why:'算出答案'}
+          ]
+        };
+      }
+    },
+    {
+      id:'arithSumInv', book:'第3冊', section:'1-1 等差數列與等差級數', name:'由級數和反求首項或公差',
+      concept:[
+        '把已知的條件代進 S<sub>n</sub> ＝ n a₁ ＋ ' + fracH('n ( n － 1 ) d', 2) + '。',
+        '這會變成一個一元一次方程式，解出未知的那一個。',
+        '代入時 ' + fracH('n ( n － 1 )', 2) + ' 先算成一個數字，式子會乾淨很多。'
+      ],
+      formula:'S<sub>n</sub> = n a₁ ＋ <span class="frac"><span class="num">n ( n － 1 ) d</span><span class="den">2</span></span>',
+      example:function(){ return this.gen({n:16, d:4, a1:-5}); },
+      gen:function(fix){
+        var n = fix ? fix.n : rndInt(6, 20);
+        var d = fix ? fix.d : rndNonZero(-6, 6);
+        var a1 = fix ? fix.a1 : rndInt(-12, 15);
+        var S = n * a1 + n * (n - 1) * d / 2;
+        return {
+          stem:'設一等差級數的公差為 ' + d + '，前 ' + n + ' 項和為 ' + S + '，求首項 a₁。',
+          choices:shuffleChoices(String(a1), [String(a1 + d), String(-a1), String(S / n), String(a1 - d)]),
+          answerHtml:String(a1),
+          steps:[
+            {eq:'S<sub>n</sub> = n a₁ ＋ <span class="frac"><span class="num">n ( n － 1 ) d</span><span class="den">2</span></span>', why:'選「知道公差」的那個公式'},
+            {eq:S + ' = ' + n + ' a₁ ＋ <span class="frac"><span class="num">' + n + ' × ' + (n - 1) + ' × ' + (d < 0 ? '(' + d + ')' : d) + '</span><span class="den">2</span></span>',
+             why:'代入 n = ' + n + '、d = ' + d},
+            {eq:S + ' = ' + n + ' a₁ ＋ ' + (n * (n - 1) * d / 2), why:'先把後面那一項算成數字'},
+            {eq:n + ' a₁ = ' + (S - n * (n - 1) * d / 2) + ' ⇒ a₁ = ' + a1, why:'移項、兩邊同除以 ' + n}
+          ]
+        };
+      }
+    },
+    {
+      id:'arithMultiples', book:'第3冊', section:'1-1 等差數列與等差級數', name:'區間內倍數的個數與總和',
+      concept:[
+        '某區間裡 k 的倍數本身就是一個等差數列，公差就是 k。',
+        '先找出第一個與最後一個倍數，再用 n ＝ ' + fracH('末項 － 首項', 'd') + ' ＋ 1 算出個數。',
+        '總和就用等差級數公式 S ＝ ' + fracH('n ( 首項 ＋ 末項 )', 2) + '。'
+      ],
+      formula:'n = <span class="frac"><span class="num">末項 － 首項</span><span class="den">d</span></span> ＋ 1　，　S = <span class="frac"><span class="num">n ( 首項 ＋ 末項 )</span><span class="den">2</span></span>',
+      example:function(){ return this.gen({lo:101, hi:200, k:3}); },
+      gen:function(fix){
+        var lo, hi, k;
+        if (fix){ lo = fix.lo; hi = fix.hi; k = fix.k; }
+        else {
+          k = rndPick([3, 4, 5, 6, 7, 8, 9]);
+          lo = rndInt(20, 200); hi = lo + rndInt(80, 300);
+        }
+        var first = Math.ceil(lo / k) * k, last = Math.floor(hi / k) * k;
+        var n = (last - first) / k + 1;
+        var S = n * (first + last) / 2;
+        var ans = '共 ' + n + ' 個，總和 ' + S;
+        return {
+          stem:'試求 ' + lo + ' 到 ' + hi + ' 的自然數中，' + k + ' 的倍數共有幾個？它們的總和是多少？',
+          choices:shuffleChoices(ans, ['共 ' + (n + 1) + ' 個，總和 ' + (S + last),
+                                       '共 ' + (n - 1) + ' 個，總和 ' + (S - first),
+                                       '共 ' + n + ' 個，總和 ' + (n * (first + last)),
+                                       '共 ' + n + ' 個，總和 ' + (first + last)]),
+          answerHtml:ans,
+          steps:[
+            {eq:'第一個 ' + k + ' 的倍數是 ' + first + '，最後一個是 ' + last, why:'從 ' + lo + ' 往上找、從 ' + hi + ' 往下找'},
+            {eq:'它們構成公差 d = ' + k + ' 的等差數列', why:'連續的倍數就是等差數列'},
+            {eq:'n = <span class="frac"><span class="num">' + last + ' － ' + first + '</span><span class="den">' + k + '</span></span> ＋ 1 = ' + n, why:'算出項數'},
+            {eq:'S = <span class="frac"><span class="num">' + n + ' × ( ' + first + ' ＋ ' + last + ' )</span><span class="den">2</span></span> = ' + S, why:'等差級數求和'},
+            {eq:ans, why:'寫出答案'}
+          ]
+        };
+      }
+    },
+
+    /* ---------------- 第3冊 1-2 等比數列與等比級數 ---------------- */
+    {
+      id:'geoNth', book:'第3冊', section:'1-2 等比數列與等比級數', name:'等比數列的第 n 項',
+      concept:[
+        '等比數列：後項除以前項永遠是同一個數，這個數叫做公比 r（r ≠ 0）。',
+        '第 n 項公式：a<sub>n</sub> ＝ a₁ · r<sup>n－1</sup>，指數也是 ( n － 1 )。',
+        'r 是負數時，奇數項與偶數項的正負會交替。'
+      ],
+      formula:'a<sub>n</sub> = a₁ · r<sup>n－1</sup>',
+      example:function(){ return this.gen({a1:3, r:2, n:6}); },
+      gen:function(fix){
+        var a1 = fix ? fix.a1 : rndNonZero(-5, 5);
+        var r = fix ? fix.r : rndPick([2, 3, -2, -3, 2, 2]);
+        var n = fix ? fix.n : rndInt(4, 8);
+        var an = a1 * Math.pow(r, n - 1);
+        return {
+          stem:'設一等比數列的首項為 ' + a1 + '、公比為 ' + r + '，試求第 ' + n + ' 項。',
+          choices:shuffleChoices(String(an), [String(a1 * Math.pow(r, n)), String(-an),
+                                              String(a1 * (n - 1) * r), String(a1 * Math.pow(r, n - 2))]),
+          answerHtml:String(an),
+          steps:[
+            {eq:'a<sub>n</sub> = a₁ · r<sup>n－1</sup>', why:'等比數列的第 n 項公式'},
+            {eq:'a<sub>' + n + '</sub> = ' + a1 + ' × ' + (r < 0 ? '(' + r + ')' : r) + '<sup>' + (n - 1) + '</sup>', why:'指數是 n － 1，不是 n'},
+            {eq:'= ' + a1 + ' × ' + Math.pow(r, n - 1) + ' = ' + an, why:'先算次方再乘首項'},
+            {eq:r < 0 ? '（公比是負的，所以各項的正負會交替出現）' : '（公比是正的，各項同號）', why:'順便檢查正負號對不對'}
+          ]
+        };
+      }
+    },
+    {
+      id:'geoFind', book:'第3冊', section:'1-2 等比數列與等比級數', name:'由兩項求公比',
+      concept:[
+        '已知第 m 項與第 n 項：a<sub>n</sub> ＝ a<sub>m</sub> · r<sup>n－m</sup>。',
+        '兩式相除可以把首項消掉，直接解出 r 的次方。',
+        '開次方時如果指數是偶數，要注意正負兩種可能（本題用奇數次方避免這個問題）。'
+      ],
+      formula:'a<sub>n</sub> = a<sub>m</sub> · r<sup>n－m</sup>',
+      example:function(){ return this.gen({m:6, n:9, am:4, r:3}); },
+      gen:function(fix){
+        var m, n, am, r;
+        if (fix){ m = fix.m; n = fix.n; am = fix.am; r = fix.r; }
+        else {
+          m = rndInt(2, 5); n = m + rndPick([1, 3, 3, 1]);
+          am = rndNonZero(-6, 6); r = rndPick([2, 3, -2, -3, 2]);
+        }
+        var an = am * Math.pow(r, n - m);
+        return {
+          stem:'設等比數列的第 ' + m + ' 項為 ' + am + '、第 ' + n + ' 項為 ' + an + '，求公比 r。',
+          choices:shuffleChoices(String(r), [String(-r), String(Math.round(an / am)), String(r * r), String(r + 1)]),
+          answerHtml:String(r),
+          steps:[
+            {eq:'a<sub>' + n + '</sub> = a<sub>' + m + '</sub> · r<sup>' + n + '－' + m + '</sup>', why:'兩項之間差 ' + (n - m) + ' 項'},
+            {eq:(an < 0 ? '(' + an + ')' : an) + ' = ' + (am < 0 ? '(' + am + ')' : am) + ' × r<sup>' + (n - m) + '</sup>', why:'代入數字'},
+            {eq:'r<sup>' + (n - m) + '</sup> = <span class="frac"><span class="num">' + an + '</span><span class="den">' + am + '</span></span> = ' + Math.pow(r, n - m), why:'兩邊同除'},
+            {eq:'r = ' + r, why:'開 ' + (n - m) + ' 次方'}
+          ]
+        };
+      }
+    },
+    {
+      id:'geoSum', book:'第3冊', section:'1-2 等比數列與等比級數', name:'等比級數的和',
+      concept:[
+        '等比級數前 n 項和：S<sub>n</sub> ＝ ' + fracH('a₁ ( r<sup>n</sup> － 1 )', 'r － 1') + '（r ≠ 1）。',
+        'r ＜ 1 時寫成 ' + fracH('a₁ ( 1 － r<sup>n</sup> )', '1 － r') + ' 比較不會出現負號錯誤。',
+        'r ＝ 1 時每一項都一樣，S<sub>n</sub> ＝ n a₁。'
+      ],
+      formula:'S<sub>n</sub> = <span class="frac"><span class="num">a₁ ( r<sup>n</sup> － 1 )</span><span class="den">r － 1</span></span>　（r ≠ 1）',
+      example:function(){ return this.gen({a1:2, r:3, n:5}); },
+      gen:function(fix){
+        var a1 = fix ? fix.a1 : rndNonZero(-5, 5);
+        var r = fix ? fix.r : rndPick([2, 3, -2, 2]);
+        var n = fix ? fix.n : rndInt(4, 8);
+        var rn = Math.pow(r, n);
+        var S = a1 * (rn - 1) / (r - 1);
+        return {
+          stem:'求等比級數 ' + a1 + ' ＋ ' + (a1 * r) + ' ＋ ' + (a1 * r * r) + ' ＋ … 的前 ' + n + ' 項和。',
+          choices:shuffleChoices(String(S), [String(a1 * (Math.pow(r, n + 1) - 1) / (r - 1)),
+                                             String(a1 * rn), String(S - a1 * Math.pow(r, n - 1)), String(n * a1)]),
+          answerHtml:String(S),
+          steps:[
+            {eq:'a₁ = ' + a1 + '，r = ' + ((a1 * r) / a1) + '，n = ' + n, why:'第二項除以第一項就是公比'},
+            {eq:'S<sub>' + n + '</sub> = <span class="frac"><span class="num">' + a1 + ' ( ' + (r < 0 ? '(' + r + ')' : r) + '<sup>' + n + '</sup> － 1 )</span><span class="den">' + r + ' － 1</span></span>',
+             why:'代入等比級數求和公式'},
+            {eq:'= <span class="frac"><span class="num">' + a1 + ' × ( ' + rn + ' － 1 )</span><span class="den">' + (r - 1) + '</span></span>', why:'先算 r 的 n 次方'},
+            {eq:'= ' + S, why:'算出答案'}
+          ]
+        };
+      }
+    },
+    {
+      id:'geoInf', book:'第3冊', section:'1-2 等比數列與等比級數', name:'無窮等比級數的和',
+      concept:[
+        '當 | r | ＜ 1 時，項數越多後面的項越接近 0，整個級數會收斂到一個固定的值。',
+        '公式：S ＝ ' + fracH('a₁', '1 － r') + '。',
+        '| r | ≥ 1 時級數會發散（沒有和），不能用這個公式。'
+      ],
+      formula:'S = <span class="frac"><span class="num">a₁</span><span class="den">1 － r</span></span>　（ | r | ＜ 1 ）',
+      example:function(){ return this.gen({a1:2, rn:1, rd:3}); },
+      gen:function(fix){
+        var a1 = fix ? fix.a1 : rndNonZero(-9, 9);
+        var rn = fix ? fix.rn : rndPick([1, 1, 1, -1, 2]);
+        var rd = fix ? fix.rd : rndPick([2, 3, 4, 5]);
+        if (Math.abs(rn) >= rd) rn = 1;
+        var r = ratMake(rn, rd);
+        var S = ratDiv(ratMake(a1), ratSub(ratMake(1), r));
+        var ans = ratHtml(S);
+        return {
+          stem:'求無窮等比級數 ' + a1 + ' ＋ ' + ratHtml(ratMul(ratMake(a1), r)) + ' ＋ ' +
+               ratHtml(ratMul(ratMake(a1), ratMul(r, r))) + ' ＋ … 的和（公比為 ' + ratHtml(r) + '）。',
+          choices:shuffleChoices(ans, [ratHtml(ratDiv(ratMake(a1), ratAdd(ratMake(1), r))),
+                                       ratHtml(ratMul(ratMake(a1), ratSub(ratMake(1), r))),
+                                       ratHtml(ratDiv(ratMake(a1), r)), String(a1)]),
+          answerHtml:ans,
+          steps:[
+            {eq:'公比 r = ' + ratHtml(r) + '，| r | ＜ 1 ⇒ 級數收斂，可以用公式', why:'先確認 | r | ＜ 1'},
+            {eq:'S = <span class="frac"><span class="num">a₁</span><span class="den">1 － r</span></span> = <span class="frac"><span class="num">' + a1 +
+                '</span><span class="den">1 － ' + ratHtmlParen(r) + '</span></span>', why:'代入公式'},
+            {eq:'分母 = 1 － ' + ratHtmlParen(r) + ' = ' + ratHtml(ratSub(ratMake(1), r)), why:'先把分母算出來'},
+            {eq:'S = ' + ans, why:'除以一個分數＝乘它的倒數'}
+          ]
+        };
+      }
+    },
+    {
+      id:'geoThree', book:'第3冊', section:'1-2 等比數列與等比級數', name:'三數成等比數列',
+      concept:[
+        '三數成等比時，設成 ' + fracH('a', 'r') + '、a、a r 會讓「三數之積」變得很簡單（＝ a³）。',
+        '所以先由「積」求出中間那一項 a，再用「和」解出 r。',
+        '也可以用「中項性質」：中間項的平方 ＝ 前後兩項的乘積。'
+      ],
+      formula:'設三數為 <span class="frac"><span class="num">a</span><span class="den">r</span></span>、a、a r ⇒ 積 = a³',
+      example:function(){ return this.gen({r:2, k:3}); },
+      gen:function(fix){
+        // 讓 a 是 r 的倍數，三個數才都是整數（a/r、a、ar）
+        var r = fix ? fix.r : rndPick([2, 2, 3]);
+        var k = fix ? fix.k : rndInt(1, 6);
+        var a = r * k;
+        var x = k, y = a, z = a * r;
+        var sum = x + y + z, prod = a * a * a;
+        var ans = '這三數為 ' + x + '、' + y + '、' + z;
+        return {
+          stem:'設三個正數成等比數列，三數之和為 ' + sum + '、三數之積為 ' + prod + '，求這三個數（由小到大）。',
+          choices:shuffleChoices(ans, ['這三數為 ' + y + '、' + x + '、' + z,
+                                       '這三數為 ' + x + '、' + z + '、' + y,
+                                       '這三數為 1、' + y + '、' + prod,
+                                       '這三數為 ' + x + '、' + y + '、' + (z + 1)]),
+          answerHtml:ans,
+          steps:[
+            {eq:'設三數為 <span class="frac"><span class="num">a</span><span class="den">r</span></span>、a、a r', why:'這樣設可以讓乘積最乾淨'},
+            {eq:'三數之積 = <span class="frac"><span class="num">a</span><span class="den">r</span></span> × a × a r = a³ = ' + prod, why:'r 會自己消掉'},
+            {eq:'a = ' + y, why:'開三次方得到中間那一項'},
+            {eq:'三數之和：<span class="frac"><span class="num">' + y + '</span><span class="den">r</span></span> ＋ ' + y + ' ＋ ' + y + ' r = ' + sum + ' ⇒ r = ' + r,
+             why:'把 a 代回和的式子解出公比'},
+            {eq:ans, why:'寫出三個數'}
+          ]
+        };
+      }
+    },
+
+    /* ---------------- 第3冊 2-1 一元一次方程式與一元一次不等式 ---------------- */
+    {
+      id:'linEq1', book:'第3冊', section:'2-1 一元一次方程式與不等式', name:'解一元一次方程式',
+      concept:[
+        '有括號先去括號（注意括號前是負號時，裡面每一項都要變號）。',
+        '再把含 x 的項移到一邊、常數移到另一邊（移項要變號）。',
+        '最後兩邊同除以 x 的係數。'
+      ],
+      formula:'去括號 ⇒ 移項（變號）⇒ 合併同類項 ⇒ 兩邊同除以 x 的係數',
+      example:function(){ return this.gen({a:4, b:2, c:-1, d:2, e:5, f:3}); },
+      gen:function(fix){
+        var a, b, c, d, e, f;
+        if (fix){ a = fix.a; b = fix.b; c = fix.c; d = fix.d; e = fix.e; f = fix.f; }
+        else {
+          do {
+            a = rndNonZero(-5, 5); b = rndNonZero(-5, 5); c = rndInt(-6, 6);
+            d = rndInt(-8, 8); e = rndNonZero(-6, 6); f = rndInt(-8, 8);
+          } while (a * b === e);
+        }
+        // a ( b x + c ) + d = e x + f
+        var A = a * b - e, B = f - a * c - d;
+        var x = ratMake(B, A);
+        var ans = 'x = ' + ratHtml(x);
+        return {
+          stem:'解一元一次方程式 ' + a + ' ( ' + polyHtml([b, c]) + ' )' + termStr(d, '', false) + ' = ' + polyHtml([e, f]) + ' 。',
+          choices:shuffleChoices(ans, ['x = ' + ratHtml(ratNeg(x)), 'x = ' + ratHtml(ratMake(B, a * b + e)),
+                                       'x = ' + ratHtml(ratMake(B + 1, A)), 'x = ' + ratHtml(ratMake(A, B))]),
+          answerHtml:ans,
+          steps:[
+            {eq:'去括號：' + polyHtml([a * b, a * c]) + termStr(d, '', false) + ' = ' + polyHtml([e, f]), why:a + ' 要乘進括號裡的每一項'},
+            {eq:'整理左邊：' + polyHtml([a * b, a * c + d]) + ' = ' + polyHtml([e, f]), why:'合併常數項'},
+            {eq:'移項：' + termStr(A, 'x', true) + ' = ' + B, why:'含 x 的移到左邊、常數移到右邊（都要變號）'},
+            {eq:'x = <span class="frac"><span class="num">' + B + '</span><span class="den">' + A + '</span></span> = ' + ratHtml(x), why:'兩邊同除以 ' + A}
+          ]
+        };
+      }
+    },
+    {
+      id:'linEqFrac', book:'第3冊', section:'2-1 一元一次方程式與不等式', name:'分數係數的一元一次方程式',
+      concept:[
+        '有分數時，先把兩邊同乘「所有分母的最小公倍數」，一次把分數清光。',
+        '乘的時候每一項都要乘到，整數項也不能漏。',
+        '去分母之後就是普通的一元一次方程式。'
+      ],
+      formula:'兩邊同乘分母的最小公倍數 ⇒ 去分數 ⇒ 照一般步驟解',
+      example:function(){ return this.gen({p:2, q:4, c:1, k:3}); },
+      gen:function(fix){
+        var p, q, c, k;
+        if (fix){ p = fix.p; q = fix.q; c = fix.c; k = fix.k; }
+        else {
+          p = rndPick([2, 3, 4, 5, 6]);
+          do { q = rndPick([2, 3, 4, 5, 6]); } while (q === p);
+          c = rndNonZero(-6, 6); k = rndNonZero(-6, 6);
+        }
+        var L = p * q / gcdInt(p, q);
+        // x/p + c = x/q + k  ⇒ (L/p - L/q) x = (k - c) L
+        var A = L / p - L / q, B = (k - c) * L;
+        var x = ratMake(B, A);
+        var ans = 'x = ' + ratHtml(x);
+        function frac(n, d){ return '<span class="frac"><span class="num">' + n + '</span><span class="den">' + d + '</span></span>'; }
+        return {
+          stem:'解方程式 ' + frac('x', p) + termStr(c, '', false) + ' = ' + frac('x', q) + termStr(k, '', false) + ' 。',
+          choices:shuffleChoices(ans, ['x = ' + ratHtml(ratNeg(x)), 'x = ' + ratHtml(ratMake(B, L / p + L / q)),
+                                       'x = ' + ratHtml(ratMake(k - c, 1)), 'x = ' + ratHtml(ratMake(B + L, A))]),
+          answerHtml:ans,
+          steps:[
+            {eq:'兩邊同乘 ' + L + '（' + p + ' 與 ' + q + ' 的最小公倍數）', why:'一次把分數全部清掉'},
+            {eq:(L / p) + 'x ＋ ' + (c * L) + ' = ' + (L / q) + 'x ＋ ' + (k * L), why:'每一項都要乘，常數項也要'},
+            {eq:termStr(A, 'x', true) + ' = ' + B, why:'移項、合併同類項'},
+            {eq:ans, why:'兩邊同除以 ' + A}
+          ]
+        };
+      }
+    },
+    {
+      id:'linEqParam', book:'第3冊', section:'2-1 一元一次方程式與不等式', name:'方程式無解或無限多解',
+      concept:[
+        '把方程式整理成 A x ＝ B 的形式。',
+        'A ≠ 0 ⇒ 恰有一解；A ＝ 0 且 B ≠ 0 ⇒ 無解；A ＝ 0 且 B ＝ 0 ⇒ 無限多解。',
+        '所以這類題目就是去看 x 的係數與常數項會不會同時變成 0。'
+      ],
+      formula:'A x = B ⇒ A ≠ 0 一解　｜　A = 0、B ≠ 0 無解　｜　A = 0、B = 0 無限多解',
+      example:function(){ return this.gen({a:2, b:3, kind:'inf'}); },
+      gen:function(fix){
+        var a, b, kind;
+        if (fix){ a = fix.a; b = fix.b; kind = fix.kind; }
+        else {
+          a = rndNonZero(-6, 6); b = rndNonZero(-9, 9);
+          kind = rndPick(['none', 'inf']);
+        }
+        // ( a - 2 ) x + 3 = b x + c 這種形式：令 x 係數相等 ⇒ 求參數
+        var ansV = a;          // 讓 (a) x 的係數相同
+        var cRight = (kind === 'inf') ? b : b + rndNonZero(1, 5);
+        var ans = 'k = ' + ansV;
+        return {
+          stem:'設 k 為實數，方程式 k x ＋ ' + b + ' = ' + a + ' x ＋ ' + cRight + ' 若' +
+               (kind === 'inf' ? '有無限多解' : '無解') + '，求 k 之值。',
+          choices:shuffleChoices(ans, ['k = ' + (-ansV), 'k = ' + (ansV + 1), 'k = ' + b, 'k = 0']),
+          answerHtml:ans,
+          steps:[
+            {eq:'移項整理：( k － ' + a + ' ) x = ' + (cRight - b), why:'把 x 都移到左邊、常數移到右邊'},
+            {eq:(kind === 'inf' ? '有無限多解 ⇒ x 的係數與右邊常數都要是 0' : '無解 ⇒ x 的係數是 0，但右邊常數不是 0'),
+             why:'A x = B 的三種情形'},
+            {eq:'k － ' + a + ' = 0 ⇒ k = ' + ansV, why:'先讓 x 的係數等於 0'},
+            {eq:'右邊常數 = ' + (cRight - b) + (kind === 'inf' ? '，剛好也是 0 ✓ ⇒ 無限多解' : ' ≠ 0 ✓ ⇒ 無解'), why:'再檢查常數項'}
+          ]
+        };
+      }
+    },
+    {
+      id:'linIneqApp', book:'第3冊', section:'2-1 一元一次方程式與不等式', name:'不等式的應用問題',
+      concept:[
+        '「不超過」「至多」用 ≤；「至少」「不低於」用 ≥。',
+        '先設未知數，再依題意列出不等式。',
+        '解出來之後要回到情境判斷：個數必須是正整數，通常取最大（或最小）的整數。'
+      ],
+      formula:'設未知數 ⇒ 列不等式 ⇒ 解 ⇒ 取符合情境的整數',
+      example:function(){ return this.gen({pc:45, pb:120, total:500}); },
+      gen:function(fix){
+        var pc = fix ? fix.pc : rndPick([25, 30, 35, 45, 50, 55]);
+        var pb = fix ? fix.pb : rndPick([80, 100, 120, 150]);
+        var total = fix ? fix.total : rndPick([400, 500, 600, 800, 1000]);
+        var n = Math.floor((total - pb) / pc);
+        var ans = '最多 ' + n + ' 杯';
+        return {
+          stem:'阿偉到便利超商買一盒巧克力與若干杯咖啡。每杯咖啡 ' + pc + ' 元、一盒巧克力 ' + pb +
+               ' 元，他身上有 ' + total + ' 元，總共花費不超過身上的錢。請問咖啡最多可以買幾杯？',
+          choices:shuffleChoices(ans, ['最多 ' + (n + 1) + ' 杯', '最多 ' + (n - 1) + ' 杯',
+                                       '最多 ' + Math.floor(total / pc) + ' 杯', '最多 ' + (n + 2) + ' 杯']),
+          answerHtml:ans,
+          steps:[
+            {eq:'設買 x 杯咖啡', why:'題目問幾杯就設幾杯'},
+            {eq:pc + ' x ＋ ' + pb + ' ≤ ' + total, why:'「不超過」⇒ 用 ≤'},
+            {eq:pc + ' x ≤ ' + (total - pb), why:'先把巧克力的錢移過去'},
+            {eq:'x ≤ <span class="frac"><span class="num">' + (total - pb) + '</span><span class="den">' + pc + '</span></span> ≈ ' +
+                (Math.round((total - pb) / pc * 100) / 100), why:'兩邊同除以 ' + pc},
+            {eq:'x 是正整數 ⇒ 最多 ' + n + ' 杯', why:'杯數不能是小數，要取不超過的最大整數'}
+          ]
+        };
+      }
+    },
+
+    /* ---------------- 第3冊 2-2 一元二次方程式 ---------------- */
+    {
+      id:'quadFormula', book:'第3冊', section:'2-2 一元二次方程式', name:'一元二次方程式的公式解',
+      concept:[
+        '公式解：x ＝ ' + fracH('－b ± ' + sqrtH('b² － 4ac'), '2a') + '。',
+        '先算判別式 D ＝ b² － 4ac，再開根號並化到最簡。',
+        '不能因式分解的時候就用公式解，一定解得出來。'
+      ],
+      formula:'x = ' + fracH('－b ± ' + sqrtH('b² － 4ac'), '2a'),
+      example:function(){ return this.gen({a:2, b:3, c:-4}); },
+      gen:function(fix){
+        var a, b, c;
+        if (fix){ a = fix.a; b = fix.b; c = fix.c; }
+        else {
+          do {
+            a = rndPick([1, 1, 2, 2, 3]); b = rndNonZero(-9, 9); c = rndNonZero(-9, 9);
+          } while (b * b - 4 * a * c <= 0 || simpRadical(b * b - 4 * a * c).m === 1);
+        }
+        var D = b * b - 4 * a * c;
+        var rr = simpRadical(D);
+        var g = gcdInt(gcdInt(Math.abs(b), rr.k), 2 * a) || 1;
+        var ansNum = (-b / g) + ' ± ' + (rr.k / g === 1 ? '' : (rr.k / g)) + sqrtH(rr.m);
+        var ans = (2 * a / g === 1) ? ansNum : fracH(ansNum, 2 * a / g);
+        var wrong1 = fracH(b + ' ± ' + (rr.k === 1 ? '' : rr.k) + sqrtH(rr.m), 2 * a);
+        var wrong2 = fracH((-b) + ' ± ' + sqrtH(Math.abs(b * b + 4 * a * c)), 2 * a);
+        var w3num = (-b) + ' ± ' + (rr.k === 1 ? '' : rr.k) + sqrtH(rr.m);
+        var wrong3 = (a === 1) ? w3num : fracH(w3num, a);
+        return {
+          stem:'利用公式解求方程式 ' + polyHtml([a, b, c]) + ' = 0 的解。',
+          choices:shuffleChoices(ans, [wrong1, wrong2, wrong3, fracH((-b) + ' ± ' + sqrtH(D), 4 * a)]),
+          answerHtml:ans,
+          steps:[
+            {eq:'a = ' + a + '，b = ' + b + '，c = ' + c, why:'先對照 ax² ＋ bx ＋ c = 0'},
+            {eq:'D = b² － 4ac = ' + sq2(b) + ' － 4×' + a + '×' + (c < 0 ? '(' + c + ')' : c) + ' = ' + D, why:'先算判別式'},
+            {eq:sqrtH(D) + ' = ' + radHtml(D), why:'根號化到最簡'},
+            {eq:'x = ' + fracH((-b) + ' ± ' + radHtml(D), 2 * a), why:'代入公式解'},
+            {eq:'x = ' + ans, why:g > 1 ? ('上下都可以同除以 ' + g + '，記得「三項都要除」') : '分子分母沒有公因數，這就是最簡形式'}
+          ]
+        };
+      }
+    },
+    {
+      id:'quadDisc', book:'第3冊', section:'2-2 一元二次方程式', name:'判別式與根的性質',
+      concept:[
+        'D ＝ b² － 4ac ＞ 0 ⇒ 兩相異實根；D ＝ 0 ⇒ 兩相等實根（重根）；D ＜ 0 ⇒ 沒有實根。',
+        '若 D 還是完全平方數，兩根會是有理數（可以因式分解）。',
+        '只問「根的性質」時不用真的解出來，算 D 就夠了。'
+      ],
+      formula:'D = b² － 4ac　：　＞0 兩相異實根　｜　=0 重根　｜　＜0 無實根',
+      example:function(){ return this.gen({a:1, b:-6, c:9}); },
+      gen:function(fix){
+        var a, b, c;
+        if (fix){ a = fix.a; b = fix.b; c = fix.c; }
+        else { a = rndPick([1, 1, 2, 3]); b = rndInt(-9, 9); c = rndInt(-9, 9); }
+        var D = b * b - 4 * a * c;
+        var ansTxt = D > 0 ? (simpRadical(D).m === 1 ? '有兩個相異的有理根' : '有兩個相異的無理根')
+                           : (D === 0 ? '有兩個相等的實根（重根）' : '沒有實根（兩個虛根）');
+        var all = ['有兩個相異的有理根', '有兩個相異的無理根', '有兩個相等的實根（重根）', '沒有實根（兩個虛根）'];
+        return {
+          stem:'試判斷方程式 ' + polyHtml([a, b, c]) + ' = 0 的根的性質。',
+          choices:shuffleChoices(ansTxt, all.filter(function(t){ return t !== ansTxt; })),
+          answerHtml:ansTxt,
+          steps:[
+            {eq:'a = ' + a + '，b = ' + b + '，c = ' + c, why:'先對照係數'},
+            {eq:'D = ' + sq2(b) + ' － 4×' + a + '×' + (c < 0 ? '(' + c + ')' : c) + ' = ' + D, why:'算判別式'},
+            {eq:D > 0 ? ('D = ' + D + ' ＞ 0 ⇒ 兩個相異實根') : (D === 0 ? 'D = 0 ⇒ 重根' : ('D = ' + D + ' ＜ 0 ⇒ 沒有實根')), why:'先看正負'},
+            {eq:D > 0 ? (simpRadical(D).m === 1 ? ('而且 ' + D + ' = ' + Math.round(Math.sqrt(D)) + '² 是完全平方 ⇒ 根是有理數')
+                                                : ('但 ' + D + ' 不是完全平方 ⇒ 根是無理數')) : '（不用再判斷有理無理）',
+             why:'D ＞ 0 時再看是不是完全平方'},
+            {eq:ansTxt, why:'寫出結論'}
+          ]
+        };
+      }
+    },
+    {
+      id:'quadDiscParam', book:'第3冊', section:'2-2 一元二次方程式', name:'由根的性質求參數範圍',
+      concept:[
+        '題目說「有兩相異實根」就是 D ＞ 0；「有重根」就是 D ＝ 0；「沒有實根」就是 D ＜ 0。',
+        '把含 k 的係數代進 D ＝ b² － 4ac，會得到一個關於 k 的不等式。',
+        '別忘了：要是一元二次方程式，x² 的係數不能是 0。'
+      ],
+      formula:'依題意列出 D ＞ 0 / D = 0 / D ＜ 0，再解 k 的不等式',
+      example:function(){ return this.gen({t:3, kind:'two'}); },
+      gen:function(fix){
+        var t = fix ? fix.t : rndInt(1, 6);
+        var kind = fix ? fix.kind : rndPick(['two', 'none', 'eq']);
+        var c = t * t;          // x² + kx + c：D = k² - 4c
+        var ans = (kind === 'two') ? rangeHtml('outside', -2 * t, 2 * t, false, 'k')
+                : (kind === 'none') ? rangeHtml('between', -2 * t, 2 * t, false, 'k')
+                : ('k = ' + (2 * t) + ' 或 k = ' + (-2 * t));
+        var txt = (kind === 'two') ? '有兩個相異實根' : (kind === 'none') ? '沒有實根' : '有重根';
+        return {
+          stem:'設 k 為實數，若方程式 x² ＋ k x ＋ ' + c + ' = 0 ' + txt + '，求 k 的範圍（或值）。',
+          choices:shuffleChoices(ans, [rangeHtml('outside', -2 * t, 2 * t, false, 'k'),
+                                       rangeHtml('between', -2 * t, 2 * t, false, 'k'),
+                                       'k = ' + (2 * t) + ' 或 k = ' + (-2 * t),
+                                       rangeHtml('between', -t, t, false, 'k')].filter(function(x){ return x !== ans; })),
+          answerHtml:ans,
+          steps:[
+            {eq:'D = k² － 4×1×' + c + ' = k² － ' + (4 * c), why:'先把判別式寫成 k 的式子'},
+            {eq:txt + ' ⇒ D ' + (kind === 'two' ? '＞' : (kind === 'none' ? '＜' : '＝')) + ' 0', why:'把題目的敘述翻成判別式的條件'},
+            {eq:'k² ' + (kind === 'two' ? '＞' : (kind === 'none' ? '＜' : '＝')) + ' ' + (4 * c), why:'移項'},
+            {eq:'| k | ' + (kind === 'two' ? '＞' : (kind === 'none' ? '＜' : '＝')) + ' ' + (2 * t), why:'開根號要用絕對值'},
+            {eq:ans, why:kind === 'two' ? '絕對值大於 ⇒ 取兩邊' : (kind === 'none' ? '絕對值小於 ⇒ 夾在中間' : '兩個值')}
+          ]
+        };
+      }
+    },
+    {
+      id:'rootCoef', book:'第3冊', section:'2-2 一元二次方程式', name:'根與係數的關係',
+      concept:[
+        '設 α、β 為 ax² ＋ bx ＋ c ＝ 0 的兩根，則 α ＋ β ＝ －' + fracH('b', 'a') + '，αβ ＝ ' + fracH('c', 'a') + '。',
+        '不用解出根，就能算出跟兩根有關的對稱式。',
+        '常用變形：α² ＋ β² ＝ ( α ＋ β )² － 2αβ；' + fracH(1, 'α') + ' ＋ ' + fracH(1, 'β') + ' ＝ ' + fracH('α ＋ β', 'αβ') + '。'
+      ],
+      formula:'α ＋ β = －<span class="frac"><span class="num">b</span><span class="den">a</span></span>　，　αβ = <span class="frac"><span class="num">c</span><span class="den">a</span></span>',
+      example:function(){ return this.gen({a:1, b:-1, c:-10, want:'sq'}); },
+      gen:function(fix){
+        var a, b, c, want;
+        if (fix){ a = fix.a; b = fix.b; c = fix.c; want = fix.want; }
+        else {
+          a = rndPick([1, 1, 2]); b = rndNonZero(-9, 9);
+          do { c = rndNonZero(-9, 9); } while (c === 0);
+          want = rndPick(['sq', 'inv']);
+        }
+        var S = ratMake(-b, a), P = ratMake(c, a);
+        var val = (want === 'sq') ? ratSub(ratMul(S, S), ratMul(ratMake(2), P)) : ratDiv(S, P);
+        var ans = ratHtml(val);
+        var label = (want === 'sq') ? 'α² ＋ β²' : '<span class="frac"><span class="num">1</span><span class="den">α</span></span> ＋ <span class="frac"><span class="num">1</span><span class="den">β</span></span>';
+        return {
+          stem:'設 α、β 為方程式 ' + polyHtml([a, b, c]) + ' = 0 的兩根，試求 ' + label + ' 之值。',
+          choices:shuffleChoices(ans, [ratHtml(ratNeg(val)),
+                                       ratHtml(want === 'sq' ? ratAdd(ratMul(S, S), ratMul(ratMake(2), P)) : ratDiv(P, S)),
+                                       ratHtml(ratMul(S, S)), ratHtml(P)]),
+          answerHtml:ans,
+          steps:[
+            {eq:'α ＋ β = －<span class="frac"><span class="num">' + b + '</span><span class="den">' + a + '</span></span> = ' + ratHtml(S), why:'根與係數：兩根和'},
+            {eq:'αβ = <span class="frac"><span class="num">' + c + '</span><span class="den">' + a + '</span></span> = ' + ratHtml(P), why:'根與係數：兩根積'},
+            {eq:(want === 'sq') ? 'α² ＋ β² = ( α ＋ β )² － 2αβ' : '<span class="frac"><span class="num">1</span><span class="den">α</span></span> ＋ <span class="frac"><span class="num">1</span><span class="den">β</span></span> = <span class="frac"><span class="num">α ＋ β</span><span class="den">αβ</span></span>',
+             why:'先把要求的式子改寫成「和」與「積」'},
+            {eq:(want === 'sq') ? ('= ' + ratHtmlParen(S) + '² － 2×' + ratHtmlParen(P)) : ('= ' + fracH(ratHtml(S), ratHtml(P))), why:'代入剛剛算好的和與積'},
+            {eq:'= ' + ans, why:'算出答案'}
+          ]
+        };
+      }
+    },
+    {
+      id:'rootDiff', book:'第3冊', section:'2-2 一元二次方程式', name:'由兩根之差求參數',
+      concept:[
+        '( α － β )² ＝ ( α ＋ β )² － 4αβ，這個變形可以把「兩根之差」換成和與積。',
+        '把根與係數代進去，就得到一個關於參數的方程式。',
+        '算完記得檢查判別式要 ＞ 0（兩根才真的是相異實數）。'
+      ],
+      formula:'( α － β )² = ( α ＋ β )² － 4αβ',
+      example:function(){ return this.gen({a:2, b:-6, diff:2}); },
+      gen:function(fix){
+        var a, b, diff;
+        if (fix){ a = fix.a; b = fix.b; diff = fix.diff; }
+        else {
+          a = rndPick([1, 1, 2, 3]); b = rndNonZero(-12, 12); diff = rndInt(1, 6);
+        }
+        // (α-β)² = (b/a)² - 4k/a = diff²  ⇒ k = a[(b/a)² - diff²]/4
+        var kRat = ratMul(ratMake(a, 4), ratSub(ratMul(ratMake(b, a), ratMake(b, a)), ratMake(diff * diff)));
+        var ans = 'k = ' + ratHtml(kRat);
+        return {
+          stem:'設一元二次方程式 ' + polyHtml([a, b, 0]).replace(/ ＋ 0$/, '') + ' ＋ k = 0 的兩根之差為 ' + diff + '，求 k 之值。',
+          choices:shuffleChoices(ans, ['k = ' + ratHtml(ratNeg(kRat)),
+                                       'k = ' + ratHtml(ratAdd(kRat, ratMake(1))),
+                                       'k = ' + ratHtml(ratMake(diff * diff)),
+                                       'k = ' + ratHtml(ratMul(kRat, ratMake(2)))]),
+          answerHtml:ans,
+          steps:[
+            {eq:'α ＋ β = －<span class="frac"><span class="num">' + b + '</span><span class="den">' + a + '</span></span> = ' + ratHtml(ratMake(-b, a)) +
+                '，αβ = <span class="frac"><span class="num">k</span><span class="den">' + a + '</span></span>', why:'先寫出根與係數'},
+            {eq:'( α － β )² = ( α ＋ β )² － 4αβ', why:'把「差」換成「和」與「積」'},
+            {eq:sq2(diff) + ' = ' + ratHtmlParen(ratMake(-b, a)) + '² － 4 × <span class="frac"><span class="num">k</span><span class="den">' + a + '</span></span>', why:'代入數字'},
+            {eq:(diff * diff) + ' = ' + ratHtml(ratMul(ratMake(b, a), ratMake(b, a))) + ' － <span class="frac"><span class="num">4k</span><span class="den">' + a + '</span></span>', why:'整理'},
+            {eq:ans, why:'解出 k'}
+          ]
+        };
+      }
+    },
+
+    /* ---------------- 第3冊 4-1 指數 ---------------- */
+    {
+      id:'expLaw', book:'第3冊', section:'4-1 指數', name:'指數律的運算',
+      concept:[
+        '同底數相乘指數相加：a<sup>m</sup> · a<sup>n</sup> ＝ a<sup>m＋n</sup>；相除指數相減。',
+        '次方的次方指數相乘：( a<sup>m</sup> )<sup>n</sup> ＝ a<sup>mn</sup>。',
+        '負指數就是倒數：a<sup>－n</sup> ＝ 1 / a<sup>n</sup>；a<sup>0</sup> ＝ 1（a ≠ 0）。'
+      ],
+      formula:'a<sup>m</sup> · a<sup>n</sup> = a<sup>m＋n</sup>　，　<span class="frac"><span class="num">a<sup>m</sup></span><span class="den">a<sup>n</sup></span></span> = a<sup>m－n</sup>　，　( a<sup>m</sup> )<sup>n</sup> = a<sup>mn</sup>',
+      example:function(){ return this.gen({b:2, m:5, n:-3, k:2}); },
+      gen:function(fix){
+        var b = fix ? fix.b : rndPick([2, 2, 3, 5]);
+        var m = fix ? fix.m : rndInt(2, 6);
+        var n = fix ? fix.n : rndInt(-4, 4);
+        var k = fix ? fix.k : rndInt(1, 3);
+        var e = m + n - k;
+        var val = (e >= 0) ? ratMake(Math.pow(b, e)) : ratMake(1, Math.pow(b, -e));
+        var ans = ratHtml(val);
+        return {
+          stem:'求 <span class="frac"><span class="num">' + b + '<sup>' + m + '</sup> × ' + b + '<sup>' + n + '</sup></span><span class="den">' +
+               b + '<sup>' + k + '</sup></span></span> 之值。',
+          choices:shuffleChoices(ans, [ratHtml(ratMake(Math.pow(b, m + n + k))),
+                                       ratHtml(e - 1 >= 0 ? ratMake(Math.pow(b, e - 1)) : ratMake(1, Math.pow(b, 1 - e))),
+                                       ratHtml(e + 1 >= 0 ? ratMake(Math.pow(b, e + 1)) : ratMake(1, Math.pow(b, -1 - e))),
+                                       ratHtml(ratMake(Math.pow(b, m + n)))]),
+          answerHtml:ans,
+          steps:[
+            {eq:b + '<sup>' + m + '</sup> × ' + b + '<sup>' + n + '</sup> = ' + b + '<sup>' + m + '＋(' + n + ')</sup> = ' + b + '<sup>' + (m + n) + '</sup>',
+             why:'同底相乘，指數相加'},
+            {eq:'<span class="frac"><span class="num">' + b + '<sup>' + (m + n) + '</sup></span><span class="den">' + b + '<sup>' + k + '</sup></span></span> = ' +
+                b + '<sup>' + (m + n) + '－' + k + '</sup> = ' + b + '<sup>' + e + '</sup>', why:'同底相除，指數相減'},
+            {eq:b + '<sup>' + e + '</sup> = ' + ans, why:e < 0 ? '負指數＝倒數' : '直接算出來'}
+          ]
+        };
+      }
+    },
+    {
+      id:'fracExp', book:'第3冊', section:'4-1 指數', name:'分數指數與根式',
+      concept:[
+        '分數指數的定義：a<sup>' + fracH('m', 'n') + '</sup> ＝ ' + sqrtH('a<sup>m</sup>', 'n') + '（n 次根號）。',
+        '算的時候先把底數寫成「某個數的 n 次方」，約分之後就很好算。',
+        '例如 8<sup>2/3</sup>：先寫 8 ＝ 2³，則 8<sup>2/3</sup> ＝ 2<sup>3×2/3</sup> ＝ 2² ＝ 4。'
+      ],
+      formula:'a<sup>' + fracH('m', 'n') + '</sup> = ' + sqrtH('a<sup>m</sup>', 'n') + '　；　( a<sup>p</sup> )<sup>' + fracH('m', 'n') + '</sup> = a<sup>' + fracH('pm', 'n') + '</sup>',
+      example:function(){ return this.gen({t:2, p:3, m:2}); },
+      gen:function(fix){
+        var t = fix ? fix.t : rndPick([2, 2, 3, 5]);
+        var p = fix ? fix.p : rndInt(2, 4);
+        var m = fix ? fix.m : rndInt(1, 5);
+        var base = Math.pow(t, p);
+        var e = ratMake(m, p);
+        var val = Math.pow(t, m);
+        var ans = String(val);
+        return {
+          stem:'求 ' + base + '<sup>' + ratHtml(e) + '</sup> 之值。',
+          choices:shuffleChoices(ans, [String(Math.pow(t, m + 1)), String(Math.pow(base, m)),
+                                       String(Math.round(base * ratVal(e))), String(Math.pow(t, Math.max(1, m - 1)))]),
+          answerHtml:ans,
+          steps:[
+            {eq:base + ' = ' + t + '<sup>' + p + '</sup>', why:'先把底數寫成 ' + t + ' 的次方'},
+            {eq:base + '<sup>' + ratHtml(e) + '</sup> = ( ' + t + '<sup>' + p + '</sup> )<sup>' + ratHtml(e) + '</sup> = ' +
+                t + '<sup>' + p + '×' + ratHtml(e) + '</sup>', why:'次方的次方，指數相乘'},
+            {eq:'= ' + t + '<sup>' + m + '</sup> = ' + val, why:'指數約分後直接算'}
+          ]
+        };
+      }
+    },
+    {
+      id:'expSimplify', book:'第3冊', section:'4-1 指數', name:'有理數指數的化簡',
+      concept:[
+        '把每個因式的指數分別乘上外面的次方。',
+        '分數指數相乘時記得先約分。',
+        '最後把同底數的指數加起來。'
+      ],
+      formula:'( a<sup>p</sup> b<sup>q</sup> )<sup>n</sup> = a<sup>pn</sup> b<sup>qn</sup>',
+      example:function(){ return this.gen({p:1, pd:2, q:2, qd:3, n:6}); },
+      gen:function(fix){
+        var p, pd, q, qd, n;
+        if (fix){ p = fix.p; pd = fix.pd; q = fix.q; qd = fix.qd; n = fix.n; }
+        else {
+          pd = rndPick([2, 3, 4]); qd = rndPick([2, 3, 4]);
+          p = rndInt(1, 3); q = rndInt(1, 3);
+          n = pd * qd / gcdInt(pd, qd) * rndInt(1, 2);
+        }
+        var ea = ratMake(p * n, pd), eb = ratMake(q * n, qd);
+        var ans = 'a<sup>' + ratHtml(ea) + '</sup> b<sup>' + ratHtml(eb) + '</sup>';
+        return {
+          stem:'設 a ＞ 0、b ＞ 0，化簡 ( a<sup>' + ratHtml(ratMake(p, pd)) + '</sup> b<sup>' + ratHtml(ratMake(q, qd)) + '</sup> )<sup>' + n + '</sup> 。',
+          choices:shuffleChoices(ans, ['a<sup>' + ratHtml(eb) + '</sup> b<sup>' + ratHtml(ea) + '</sup>',
+                                       'a<sup>' + ratHtml(ratMake(p, pd)) + '</sup> b<sup>' + ratHtml(ratMake(q, qd)) + '</sup>',
+                                       'a<sup>' + ratHtml(ratAdd(ea, ratMake(1))) + '</sup> b<sup>' + ratHtml(eb) + '</sup>',
+                                       '( a b )<sup>' + n + '</sup>']),
+          answerHtml:ans,
+          steps:[
+            {eq:'( a<sup>' + ratHtml(ratMake(p, pd)) + '</sup> b<sup>' + ratHtml(ratMake(q, qd)) + '</sup> )<sup>' + n + '</sup> = a<sup>' +
+                ratHtml(ratMake(p, pd)) + '×' + n + '</sup> b<sup>' + ratHtml(ratMake(q, qd)) + '×' + n + '</sup>', why:'每個因式的指數都要乘上外面的次方'},
+            {eq:'a 的指數 = ' + ratHtml(ratMake(p, pd)) + ' × ' + n + ' = ' + ratHtml(ea), why:'分數乘整數，記得約分'},
+            {eq:'b 的指數 = ' + ratHtml(ratMake(q, qd)) + ' × ' + n + ' = ' + ratHtml(eb), why:'同樣算法'},
+            {eq:ans, why:'寫出化簡的結果'}
+          ]
+        };
+      }
+    },
+
+    /* ---------------- 第3冊 4-2 指數函數及其圖形 ---------------- */
+    {
+      id:'expCompare', book:'第3冊', section:'4-2 指數函數及其圖形', name:'同底數的次方比大小',
+      concept:[
+        '先把每個數都化成「同一個底數」的次方。',
+        '底數 ＞ 1 時是遞增函數 ⇒ 指數越大，值越大。',
+        '底數在 0 與 1 之間是遞減函數 ⇒ 指數越大，值反而越小。'
+      ],
+      formula:'底數 ＞ 1：指數大的比較大　｜　0 ＜ 底數 ＜ 1：指數大的反而比較小',
+      example:function(){ return this.gen({t:3, e:[[2,3],[1,3],[4,5]]}); },
+      gen:function(fix){
+        var t = fix ? fix.t : rndPick([2, 3]);
+        var E;
+        if (fix) E = fix.e;
+        else {
+          E = [];
+          var used = {};
+          while (E.length < 3){
+            var dd = rndPick([2, 3, 4, 5]), nn = rndInt(1, 5);
+            var key = (nn / dd).toFixed(4);
+            if (used[key] || nn % dd === 0) continue;
+            used[key] = 1; E.push([nn, dd]);
+          }
+        }
+        var items = E.map(function(pair, i){
+          return { name:'abc'.charAt(i), n:pair[0], d:pair[1], v:pair[0] / pair[1],
+                   html:sqrtH(Math.pow(t, pair[0]), pair[1]) };
+        });
+        var sorted = items.slice().sort(function(x, y){ return y.v - x.v; });
+        var ans = sorted.map(function(i){ return i.name; }).join(' ＞ ');
+        var rev = sorted.slice().reverse().map(function(i){ return i.name; }).join(' ＞ ');
+        var mix1 = [sorted[1], sorted[0], sorted[2]].map(function(i){ return i.name; }).join(' ＞ ');
+        var mix2 = [sorted[0], sorted[2], sorted[1]].map(function(i){ return i.name; }).join(' ＞ ');
+        return {
+          stem:'設 ' + items.map(function(i){ return i.name + ' = ' + i.html; }).join('、') + '，試比較 a、b、c 的大小。',
+          choices:shuffleChoices(ans, [rev, mix1, mix2, items.map(function(i){ return i.name; }).join(' ＞ ')]),
+          answerHtml:ans,
+          steps:[
+            {eq:'全部化成以 ' + t + ' 為底：' + items.map(function(i){ return i.name + ' = ' + t + '<sup>' + ratHtml(ratMake(i.n, i.d)) + '</sup>'; }).join('、'),
+             why:sqrtH(t + '<sup>m</sup>', 'n') + ' = ' + t + '<sup>' + fracH('m', 'n') + '</sup>'},
+            {eq:'底數 ' + t + ' ＞ 1 ⇒ 指數越大，值越大', why:'這是遞增的指數函數'},
+            {eq:'比較指數：' + sorted.map(function(i){ return ratHtml(ratMake(i.n, i.d)); }).join(' ＞ '), why:'通分之後比大小'},
+            {eq:ans, why:'寫出大小順序'}
+          ]
+        };
+      }
+    },
+    {
+      id:'expEq', book:'第3冊', section:'4-2 指數函數及其圖形', name:'指數方程式（化成同底）',
+      concept:[
+        '把等號兩邊化成「同一個底數」的次方。',
+        '底數相同時，指數一定相等：a<sup>f(x)</sup> ＝ a<sup>g(x)</sup> ⇒ f ( x ) ＝ g ( x )。',
+        '化同底是關鍵：4 ＝ 2²、8 ＝ 2³、27 ＝ 3³…'
+      ],
+      formula:'a<sup>f(x)</sup> = a<sup>g(x)</sup>　⇒　f ( x ) = g ( x )',
+      example:function(){ return this.gen({t:2, p:1, q:2, a:3, b:1, c:1, d:-2}); },
+      gen:function(fix){
+        var t, p, q, a, b, c, d;
+        if (fix){ t = fix.t; p = fix.p; q = fix.q; a = fix.a; b = fix.b; c = fix.c; d = fix.d; }
+        else {
+          t = rndPick([2, 3]); p = rndInt(1, 2); q = rndInt(1, 3);
+          do {
+            a = rndNonZero(-4, 4); b = rndInt(-6, 6);
+            c = rndNonZero(-4, 4); d = rndInt(-6, 6);
+          } while (p * a === q * c);
+        }
+        // (t^p)^(a x + b) = (t^q)^(c x + d) ⇒ p(ax+b) = q(cx+d)
+        var A = p * a - q * c, B = q * d - p * b;
+        var x = ratMake(B, A);
+        var ans = 'x = ' + ratHtml(x);
+        return {
+          stem:'解指數方程式 ' + Math.pow(t, p) + '<sup>' + polyHtml([a, b]) + '</sup> = ' + Math.pow(t, q) + '<sup>' + polyHtml([c, d]) + '</sup> 。',
+          choices:shuffleChoices(ans, ['x = ' + ratHtml(ratNeg(x)), 'x = ' + ratHtml(ratMake(B, p * a + q * c)),
+                                       'x = ' + ratHtml(ratMake(B + 1, A)), 'x = ' + ratHtml(ratMake(A, B))]),
+          answerHtml:ans,
+          steps:[
+            {eq:Math.pow(t, p) + ' = ' + t + '<sup>' + p + '</sup>，' + Math.pow(t, q) + ' = ' + t + '<sup>' + q + '</sup>', why:'先把兩邊的底數都化成 ' + t},
+            {eq:t + '<sup>' + p + '(' + polyHtml([a, b]) + ')</sup> = ' + t + '<sup>' + q + '(' + polyHtml([c, d]) + ')</sup>', why:'次方的次方，指數相乘'},
+            {eq:'底數相同 ⇒ ' + polyHtml([p * a, p * b]) + ' = ' + polyHtml([q * c, q * d]), why:'指數必須相等'},
+            {eq:termStr(A, 'x', true) + ' = ' + B + ' ⇒ ' + ans, why:'解一元一次方程式'}
+          ]
+        };
+      }
+    },
+    {
+      id:'expQuad', book:'第3冊', section:'4-2 指數函數及其圖形', name:'換元解指數方程式',
+      concept:[
+        '看到 4<sup>x</sup> 與 2<sup>x</sup> 同時出現，先想到 4<sup>x</sup> ＝ ( 2<sup>x</sup> )²。',
+        '令 y ＝ 2<sup>x</sup>，方程式就變成一元二次方程式。',
+        '非常重要：y ＝ 2<sup>x</sup> 一定大於 0，所以解出來的負根要捨去。'
+      ],
+      formula:'令 y = a<sup>x</sup>（y ＞ 0）⇒ 變成二次方程式 ⇒ 解完要檢查 y ＞ 0',
+      example:function(){ return this.gen({r:2, s:1}); },
+      gen:function(fix){
+        var r = fix ? fix.r : rndInt(1, 4);
+        var s = fix ? fix.s : rndPick([1, 2, 3, 4, 5]);
+        var P = Math.pow(2, r);
+        // ( y - P )( y + s ) = 0 ⇒ y² + (s - P) y - P s = 0
+        var b = s - P, c = -P * s;
+        var ans = 'x = ' + r;
+        return {
+          stem:'解指數方程式 4<sup>x</sup>' + termStr(b, '', false) + ' × 2<sup>x</sup>' + termStr(c, '', false) + ' = 0 。',
+          choices:shuffleChoices(ans, ['x = ' + r + ' 或 x = ' + (-s), 'x = ' + (-r), 'x = ' + P, 'x = ' + (r + 1)]),
+          answerHtml:ans,
+          steps:[
+            {eq:'4<sup>x</sup> = ( 2<sup>x</sup> )²', why:'先把 4 化成 2²'},
+            {eq:'令 y = 2<sup>x</sup>（注意 y ＞ 0），方程式變成 ' + polyHtml([1, b, c], 'y') + ' = 0', why:'換元之後就是一元二次方程式'},
+            {eq:'( y － ' + P + ' )( y ＋ ' + s + ' ) = 0 ⇒ y = ' + P + ' 或 y = ' + (-s), why:'十字交乘法分解'},
+            {eq:'y = ' + (-s) + ' ＜ 0 不合（2<sup>x</sup> 永遠大於 0）⇒ 只剩 y = ' + P, why:'這一步最容易忘記'},
+            {eq:'2<sup>x</sup> = ' + P + ' = 2<sup>' + r + '</sup> ⇒ ' + ans, why:'化成同底比較指數'}
+          ]
+        };
+      }
+    },
+
+    /* ---------------- 第3冊 4-3 對數 ---------------- */
+    {
+      id:'logDef', book:'第3冊', section:'4-3 對數', name:'由定義求對數值',
+      concept:[
+        '對數的定義：log<sub>a</sub> b ＝ x ⇔ a<sup>x</sup> ＝ b（a ＞ 0、a ≠ 1、b ＞ 0）。',
+        '求 log<sub>a</sub> b 就是在問「a 的幾次方等於 b」。',
+        '把 a、b 都化成同一個質數的次方，答案就是兩個指數的比。'
+      ],
+      formula:'log<sub>a</sub> b = x ⇔ a<sup>x</sup> = b',
+      example:function(){ return this.gen({t:2, p:3, q:5}); },
+      gen:function(fix){
+        var t = fix ? fix.t : rndPick([2, 2, 3, 5]);
+        var p = fix ? fix.p : rndInt(2, 4);
+        var q = fix ? fix.q : rndInt(1, 7);
+        while (!fix && q === p) q = rndInt(1, 7);   // 避免出 log_a a = 1 這種沒有練習價值的題目
+        var a = Math.pow(t, p), b = Math.pow(t, q);
+        var val = ratMake(q, p);
+        var ans = ratHtml(val);
+        return {
+          stem:'求 log<sub>' + a + '</sub> ' + b + ' 之值。',
+          choices:shuffleChoices(ans, [ratHtml(ratMake(p, q)), ratHtml(ratNeg(val)),
+                                       String(q), ratHtml(ratMake(q + 1, p))]),
+          answerHtml:ans,
+          steps:[
+            {eq:'設 log<sub>' + a + '</sub> ' + b + ' = x ⇒ ' + a + '<sup>x</sup> = ' + b, why:'對數的定義'},
+            {eq:a + ' = ' + t + '<sup>' + p + '</sup>，' + b + ' = ' + t + '<sup>' + q + '</sup>', why:'兩邊都化成 ' + t + ' 的次方'},
+            {eq:t + '<sup>' + p + 'x</sup> = ' + t + '<sup>' + q + '</sup> ⇒ ' + p + 'x = ' + q, why:'底數相同，指數相等'},
+            {eq:'x = ' + ans, why:'解出來就是對數值'}
+          ]
+        };
+      }
+    },
+    {
+      id:'logRules', book:'第3冊', section:'4-3 對數', name:'對數的運算性質',
+      concept:[
+        'log<sub>a</sub> M ＋ log<sub>a</sub> N ＝ log<sub>a</sub> ( M N )（相加變相乘）。',
+        'log<sub>a</sub> M － log<sub>a</sub> N ＝ log<sub>a</sub> ( M / N )（相減變相除）。',
+        'log<sub>a</sub> M<sup>k</sup> ＝ k log<sub>a</sub> M（次方可以搬到前面）。'
+      ],
+      formula:'log M ＋ log N = log MN　，　log M － log N = log <span class="frac"><span class="num">M</span><span class="den">N</span></span>　，　log M<sup>k</sup> = k log M',
+      example:function(){ return this.gen({t:2, m:3, n:4, k:5}); },
+      gen:function(fix){
+        var t, m, n, k;
+        if (fix){ t = fix.t; m = fix.m; n = fix.n; k = fix.k; }
+        else {
+          t = rndPick([2, 3, 5]); m = rndInt(1, 5); n = rndInt(1, 5); k = rndInt(1, 5);
+        }
+        var M = Math.pow(t, m), N = Math.pow(t, n), K = Math.pow(t, k);
+        var val = m + n - k;
+        var ans = String(val);
+        return {
+          stem:'求 log<sub>' + t + '</sub> ' + M + ' ＋ log<sub>' + t + '</sub> ' + N + ' － log<sub>' + t + '</sub> ' + K + ' 之值。',
+          choices:shuffleChoices(ans, [String(m + n + k), String(m * n - k), String(val + 1), String(M + N - K)]),
+          answerHtml:ans,
+          steps:[
+            {eq:'log<sub>' + t + '</sub> ' + M + ' ＋ log<sub>' + t + '</sub> ' + N + ' = log<sub>' + t + '</sub> ( ' + M + ' × ' + N + ' )', why:'相加變相乘'},
+            {eq:'再減去 log<sub>' + t + '</sub> ' + K + ' ⇒ log<sub>' + t + '</sub> <span class="frac"><span class="num">' + (M * N) + '</span><span class="den">' + K + '</span></span> = log<sub>' + t + '</sub> ' + (M * N / K),
+             why:'相減變相除'},
+            {eq:(M * N / K) + ' = ' + t + '<sup>' + val + '</sup>', why:'把真數化成 ' + t + ' 的次方'},
+            {eq:'log<sub>' + t + '</sub> ' + t + '<sup>' + val + '</sup> = ' + val, why:'log 與指數互相抵消'},
+            {eq:'（也可以先各自算：' + m + ' ＋ ' + n + ' － ' + k + ' = ' + val + '）', why:'兩種做法都可以'}
+          ]
+        };
+      }
+    },
+    {
+      id:'logChange', book:'第3冊', section:'4-3 對數', name:'換底公式',
+      concept:[
+        '換底公式：log<sub>a</sub> b ＝ ' + fracH('log<sub>c</sub> b', 'log<sub>c</sub> a') + '（底數可以換成任何方便的數）。',
+        '常用變形：log<sub>a</sub> b × log<sub>b</sub> c ＝ log<sub>a</sub> c（中間的底數「接龍」消掉）。',
+        '另一個變形：log<sub>a<sup>m</sup></sub> b<sup>n</sup> ＝ ( n / m ) log<sub>a</sub> b。'
+      ],
+      formula:'log<sub>a</sub> b = <span class="frac"><span class="num">log<sub>c</sub> b</span><span class="den">log<sub>c</sub> a</span></span>　，　log<sub>a</sub> b × log<sub>b</sub> c = log<sub>a</sub> c',
+      example:function(){ return this.gen({p:2, q:3, m:2, n:3}); },
+      gen:function(fix){
+        var p, q, m, n;
+        if (fix){ p = fix.p; q = fix.q; m = fix.m; n = fix.n; }
+        else {
+          p = rndPick([2, 3, 5]);
+          do { q = rndPick([2, 3, 5, 7]); } while (q === p);
+          m = rndInt(2, 4); n = rndInt(2, 4);
+        }
+        // log_p (q^m) × log_q (p^n) = m·n
+        var val = m * n;
+        return {
+          stem:'求 log<sub>' + p + '</sub> ' + Math.pow(q, m) + ' × log<sub>' + q + '</sub> ' + Math.pow(p, n) + ' 之值。',
+          choices:shuffleChoices(String(val), [String(m + n), String(Math.round(val / 2 * 10) / 10),
+                                               String(val * p), String(Math.pow(q, m))]),
+          answerHtml:String(val),
+          steps:[
+            {eq:'log<sub>' + p + '</sub> ' + Math.pow(q, m) + ' = ' + m + ' log<sub>' + p + '</sub> ' + q, why:'真數的次方可以搬到前面'},
+            {eq:'log<sub>' + q + '</sub> ' + Math.pow(p, n) + ' = ' + n + ' log<sub>' + q + '</sub> ' + p, why:'同樣處理'},
+            {eq:'兩個相乘 = ' + m + ' × ' + n + ' × ( log<sub>' + p + '</sub> ' + q + ' × log<sub>' + q + '</sub> ' + p + ' )', why:'先把係數提出來'},
+            {eq:'log<sub>' + p + '</sub> ' + q + ' × log<sub>' + q + '</sub> ' + p + ' = log<sub>' + p + '</sub> ' + p + ' = 1', why:'換底接龍，中間的消掉'},
+            {eq:'故原式 = ' + m + ' × ' + n + ' = ' + val, why:'算出答案'}
+          ]
+        };
+      }
+    },
+    {
+      id:'logExpress', book:'第3冊', section:'4-3 對數', name:'以已知的對數表示',
+      concept:[
+        '先把真數做質因數分解，拆成 2 與 3（或題目給的那幾個數）的次方。',
+        '再用 log ( M N ) ＝ log M ＋ log N、log M<sup>k</sup> ＝ k log M 拆開。',
+        '常用：log 10 ＝ 1，所以 log 5 ＝ log ' + fracH(10, 2) + ' ＝ 1 － log 2。'
+      ],
+      formula:'log ( M N ) = log M ＋ log N　，　log M<sup>k</sup> = k log M　，　log 10 = 1',
+      example:function(){ return this.gen({N:12}); },
+      gen:function(fix){
+        var N = fix ? fix.N : rndPick([12, 18, 24, 36, 48, 54, 72, 96, 6, 8, 9, 16, 27]);
+        var n2 = 0, n3 = 0, t = N;
+        while (t % 2 === 0){ t /= 2; n2++; }
+        while (t % 3 === 0){ t /= 3; n3++; }
+        function expr(c2, c3){
+          var s = '';
+          if (c2) s += (c2 === 1 ? 'a' : c2 + 'a');
+          if (c3) s += (s ? ' ＋ ' : '') + (c3 === 1 ? 'b' : c3 + 'b');
+          return s || '0';
+        }
+        var ans = expr(n2, n3);
+        return {
+          stem:'已知 log 2 = a、log 3 = b，試以 a、b 表示 log ' + N + ' 。',
+          choices:shuffleChoices(ans, [expr(n3, n2), expr(n2 + 1, n3), expr(n2, n3 + 1),
+                                       (n2 ? n2 + 'a' : '') + (n3 ? ' × ' + n3 + 'b' : '')]),
+          answerHtml:ans,
+          steps:[
+            {eq:N + ' = 2<sup>' + n2 + '</sup> × 3<sup>' + n3 + '</sup>', why:'先做質因數分解'},
+            {eq:'log ' + N + ' = log ( 2<sup>' + n2 + '</sup> × 3<sup>' + n3 + '</sup> ) = log 2<sup>' + n2 + '</sup> ＋ log 3<sup>' + n3 + '</sup>',
+             why:'相乘變相加'},
+            {eq:'= ' + n2 + ' log 2 ＋ ' + n3 + ' log 3', why:'次方搬到前面'},
+            {eq:'= ' + ans, why:'代入 log 2 = a、log 3 = b'}
+          ]
+        };
+      }
+    },
+
+    /* ---------------- 第3冊 4-4 對數函數及其圖形 ---------------- */
+    {
+      id:'logCompare', book:'第3冊', section:'4-4 對數函數及其圖形', name:'對數比較大小',
+      concept:[
+        '底數相同時，log<sub>a</sub> x 在 a ＞ 1 時是遞增函數 ⇒ 真數越大，值越大。',
+        '整數要先改寫成同底的對數才能比較，例如 2 ＝ log<sub>2</sub> 4。',
+        '0 ＜ a ＜ 1 時是遞減函數 ⇒ 真數越大，值反而越小。'
+      ],
+      formula:'a ＞ 1：真數大的比較大　｜　0 ＜ a ＜ 1：真數大的反而比較小　；　k = log<sub>a</sub> a<sup>k</sup>',
+      example:function(){ return this.gen({t:2, x1:11, k:2, x3:5}); },
+      gen:function(fix){
+        var t, x1, k, x3;
+        if (fix){ t = fix.t; x1 = fix.x1; k = fix.k; x3 = fix.x3; }
+        else {
+          t = rndPick([2, 3]);
+          k = rndInt(2, 3);
+          do { x1 = rndInt(2, 40); } while (x1 === Math.pow(t, k));
+          do { x3 = rndInt(2, 40); } while (x3 === x1 || x3 === Math.pow(t, k));
+        }
+        var items = [{ name:'a', v:x1, html:'log<sub>' + t + '</sub> ' + x1 },
+                     { name:'b', v:Math.pow(t, k), html:String(k) },
+                     { name:'c', v:x3, html:'log<sub>' + t + '</sub> ' + x3 }];
+        var sorted = items.slice().sort(function(p, q){ return q.v - p.v; });
+        var ans = sorted.map(function(i){ return i.name; }).join(' ＞ ');
+        return {
+          stem:'設 ' + items.map(function(i){ return i.name + ' = ' + i.html; }).join('、') + '，試比較 a、b、c 的大小。',
+          choices:shuffleChoices(ans, [sorted.slice().reverse().map(function(i){ return i.name; }).join(' ＞ '),
+                                       [sorted[1], sorted[0], sorted[2]].map(function(i){ return i.name; }).join(' ＞ '),
+                                       [sorted[0], sorted[2], sorted[1]].map(function(i){ return i.name; }).join(' ＞ '),
+                                       'a ＞ b ＞ c']),
+          answerHtml:ans,
+          steps:[
+            {eq:'b = ' + k + ' = log<sub>' + t + '</sub> ' + t + '<sup>' + k + '</sup> = log<sub>' + t + '</sub> ' + Math.pow(t, k), why:'整數要先改寫成同底的對數'},
+            {eq:'三個都是以 ' + t + ' 為底 ⇒ 只要比真數：' + sorted.map(function(i){ return i.v; }).join(' ＞ '), why:'底數 ' + t + ' ＞ 1，是遞增函數'},
+            {eq:ans, why:'真數越大，對數值越大'}
+          ]
+        };
+      }
+    },
+    {
+      id:'logEq', book:'第3冊', section:'4-4 對數函數及其圖形', name:'對數方程式',
+      concept:[
+        '先用運算性質把左邊合併成一個對數：log M － log N ＝ log ( M / N )。',
+        '再用定義去掉對數：log<sub>a</sub> X ＝ k ⇔ X ＝ a<sup>k</sup>。',
+        '最後一定要檢查：每一個真數都必須 ＞ 0，不合的解要捨去。'
+      ],
+      formula:'log<sub>a</sub> M － log<sub>a</sub> N = k ⇒ <span class="frac"><span class="num">M</span><span class="den">N</span></span> = a<sup>k</sup>　（記得檢查真數 ＞ 0）',
+      example:function(){ return this.gen({a:3, k:1, x0:5, q:-1}); },
+      gen:function(fix){
+        var a, k, x0, q;
+        if (fix){ a = fix.a; k = fix.k; x0 = fix.x0; q = fix.q; }
+        else {
+          a = rndPick([2, 3, 5]); k = rndInt(1, 2);
+          do {
+            x0 = rndInt(2, 12); q = rndInt(-6, 6);
+          } while (x0 + q <= 0);
+        }
+        var ak = Math.pow(a, k);
+        var p = ak * (x0 + q) - x0;
+        if (x0 + p <= 0) { p = p + Math.abs(x0 + p) + 1; }
+        var ans = 'x = ' + x0;
+        return {
+          stem:'解對數方程式 log<sub>' + a + '</sub> ( ' + polyHtml([1, p]) + ' ) － log<sub>' + a + '</sub> ( ' + polyHtml([1, q]) + ' ) = ' + k + ' 。',
+          choices:shuffleChoices(ans, ['x = ' + (x0 + 1), 'x = ' + (-q), 'x = ' + (x0 - 1), 'x = ' + (-p)]),
+          answerHtml:ans,
+          steps:[
+            {eq:'log<sub>' + a + '</sub> <span class="frac"><span class="num">' + polyHtml([1, p]) + '</span><span class="den">' + polyHtml([1, q]) + '</span></span> = ' + k,
+             why:'相減變相除，先合併成一個對數'},
+            {eq:'<span class="frac"><span class="num">' + polyHtml([1, p]) + '</span><span class="den">' + polyHtml([1, q]) + '</span></span> = ' + a + '<sup>' + k + '</sup> = ' + ak,
+             why:'用對數的定義去掉 log'},
+            {eq:polyHtml([1, p]) + ' = ' + ak + ' ( ' + polyHtml([1, q]) + ' )', why:'兩邊同乘分母'},
+            {eq:polyHtml([1 - ak, p - ak * q]) + ' = 0 ⇒ ' + ans, why:'整理成一元一次方程式'},
+            {eq:'檢查：' + (x0 + p) + ' ＞ 0 且 ' + (x0 + q) + ' ＞ 0 ✓', why:'兩個真數都要大於 0，否則要捨去'}
+          ]
+        };
+      }
+    },
+
+    /* ---------------- 第3冊 4-5 常用對數及其應用 ---------------- */
+    {
+      id:'commonLogShift', book:'第3冊', section:'4-5 常用對數及其應用', name:'由查表值求對數',
+      concept:[
+        '以 10 為底的對數叫常用對數，底數省略不寫：log x。',
+        'log ( A × 10<sup>n</sup> ) ＝ log A ＋ n，所以只有「首數」改變，小數部分（尾數）完全一樣。',
+        '查表只要查 1.00 ～ 9.99，其他的都靠乘 10 的次方調整。'
+      ],
+      formula:'log ( A × 10<sup>n</sup> ) = n ＋ log A　（尾數不變，只改首數）',
+      example:function(){ return this.gen({A:3.38, man:0.5289, n:2}); },
+      gen:function(fix){
+        var A, man, n;
+        if (fix){ A = fix.A; man = fix.man; n = fix.n; }
+        else {
+          A = Math.round((1.01 + Math.random() * 8.9) * 100) / 100;
+          man = Math.round(Math.log(A) / Math.LN10 * 10000) / 10000;
+          n = rndInt(1, 4);
+        }
+        var big = A * Math.pow(10, n);
+        var val = Math.round((man + n) * 10000) / 10000;
+        var ans = String(val);
+        return {
+          stem:'已知 log ' + A + ' = ' + man.toFixed(4) + '，求 log ' + (Math.round(big * 100) / 100) + ' 之值。',
+          choices:shuffleChoices(ans, [String(Math.round((man * (n + 1)) * 10000) / 10000),
+                                       String(Math.round((man + n + 1) * 10000) / 10000),
+                                       String(Math.round((man - n) * 10000) / 10000),
+                                       String(Math.round((man * Math.pow(10, n)) * 10000) / 10000)]),
+          answerHtml:ans,
+          steps:[
+            {eq:(Math.round(big * 100) / 100) + ' = ' + A + ' × 10<sup>' + n + '</sup>', why:'先把真數拆成「查表範圍的數 × 10 的次方」'},
+            {eq:'log ' + (Math.round(big * 100) / 100) + ' = log ' + A + ' ＋ log 10<sup>' + n + '</sup>', why:'相乘變相加'},
+            {eq:'= ' + man.toFixed(4) + ' ＋ ' + n, why:'log 10<sup>' + n + '</sup> = ' + n},
+            {eq:'= ' + ans, why:'小數部分（尾數）完全沒變，只有整數部分（首數）加了 ' + n}
+          ]
+        };
+      }
+    },
+    {
+      id:'digitCount', book:'第3冊', section:'4-5 常用對數及其應用', name:'正首數與整數的位數',
+      concept:[
+        '一個正數 N 若 log N 的首數是 k（即 k ≤ log N ＜ k ＋ 1），則 N 是 ( k ＋ 1 ) 位數。',
+        '所以求位數就是：算出 log N，取整數部分再加 1。',
+        '計算時用 log ( a<sup>n</sup> ) ＝ n log a。'
+      ],
+      formula:'位數 = [ log N ] ＋ 1　（[ ] 表示取整數部分）',
+      example:function(){ return this.gen({base:2, n:40}); },
+      gen:function(fix){
+        var LOGS = { 2:0.3010, 3:0.4771, 5:0.6990, 7:0.8451 };
+        var base = fix ? fix.base : rndPick([2, 3, 5, 7]);
+        var n = fix ? fix.n : rndInt(15, 60);
+        var lg = LOGS[base] * n;
+        var digits = Math.floor(lg) + 1;
+        var ans = String(digits) + ' 位數';
+        return {
+          stem:'已知 log ' + base + ' = ' + LOGS[base].toFixed(4) + '，試問 ' + base + '<sup>' + n + '</sup> 是幾位數？',
+          choices:shuffleChoices(ans, [String(digits + 1) + ' 位數', String(digits - 1) + ' 位數',
+                                       String(Math.floor(lg)) + ' 位數', String(digits + 2) + ' 位數']),
+          answerHtml:ans,
+          steps:[
+            {eq:'log ' + base + '<sup>' + n + '</sup> = ' + n + ' log ' + base, why:'次方搬到前面'},
+            {eq:'= ' + n + ' × ' + LOGS[base].toFixed(4) + ' = ' + (Math.round(lg * 10000) / 10000), why:'代入查表值'},
+            {eq:'首數（整數部分）= ' + Math.floor(lg), why:'也就是 ' + Math.floor(lg) + ' ≤ log N ＜ ' + (Math.floor(lg) + 1)},
+            {eq:'位數 = ' + Math.floor(lg) + ' ＋ 1 = ' + digits, why:'首數加 1 就是位數'}
+          ]
+        };
+      }
+    },
+    {
+      id:'decimalPos', book:'第3冊', section:'4-5 常用對數及其應用', name:'負首數與小數的位數',
+      concept:[
+        '小於 1 的正數，log 值是負的，首數要取「比它小的最大整數」（例如 －10.458 的首數是 －11）。',
+        '若 log N 的首數是 －k，則 N 從小數點後第 k 位開始出現不為 0 的數字。',
+        '算的時候：log 0.3 ＝ log 3 － log 10 ＝ log 3 － 1。'
+      ],
+      formula:'log N 的首數為 －k ⇒ N 從小數點後第 k 位才出現不為 0 的數字',
+      example:function(){ return this.gen({d:3, n:20}); },
+      gen:function(fix){
+        var LOGS = { 2:0.3010, 3:0.4771, 5:0.6990, 7:0.8451 };
+        var d = fix ? fix.d : rndPick([2, 3, 5, 7]);
+        var n = fix ? fix.n : rndInt(8, 40);
+        var lgOne = LOGS[d] - 1;              // log 0.d
+        var lg = lgOne * n;
+        var k = Math.floor(-lg) + 1;          // 首數 = -(k)，從小數點後第 k 位開始
+        var ans = '第 ' + k + ' 位';
+        return {
+          stem:'已知 log ' + d + ' = ' + LOGS[d].toFixed(4) + '，試問 ( 0.' + d + ' )<sup>' + n +
+               '</sup> 的值從小數點後第幾位開始出現不為 0 的數字？',
+          choices:shuffleChoices(ans, ['第 ' + (k + 1) + ' 位', '第 ' + (k - 1) + ' 位',
+                                       '第 ' + Math.floor(-lg) + ' 位', '第 ' + (k + 2) + ' 位']),
+          answerHtml:ans,
+          steps:[
+            {eq:'log 0.' + d + ' = log ' + d + ' － log 10 = ' + LOGS[d].toFixed(4) + ' － 1 = ' + (Math.round(lgOne * 10000) / 10000),
+             why:'0.' + d + ' = ' + fracH(d, 10)},
+            {eq:'log ( 0.' + d + ' )<sup>' + n + '</sup> = ' + n + ' × ' + (Math.round(lgOne * 10000) / 10000) + ' = ' + (Math.round(lg * 10000) / 10000),
+             why:'次方搬到前面'},
+            {eq:'首數要取比 ' + (Math.round(lg * 10000) / 10000) + ' 小的最大整數 ⇒ 首數 = －' + k, why:'負數的首數要再往下取一格'},
+            {eq:'首數為 －' + k + ' ⇒ 從小數點後第 ' + k + ' 位開始不為 0', why:'負首數與小數位數的關係'}
+          ]
         };
       }
     }
@@ -8647,6 +9977,8 @@
         currentUser = { role: res.role, account: res.account, sid: res.sid, name: res.name, className: res.className };
         currentPassword = pwVal;
         adminClassList = res.classes || [];
+        var rememberEl = document.getElementById('loginRemember');
+        rememberMe = rememberEl ? rememberEl.checked : false;
         saveSessionToStorage();
         loginForm.reset();
         closeLoginModal();
