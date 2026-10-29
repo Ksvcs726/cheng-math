@@ -613,6 +613,12 @@
   svg.prac-fig .pf-axis-label{fill:var(--ink-soft);font-size:11px;font-style:italic;}
   svg.prac-fig .pf-line{stroke:var(--red);stroke-width:2;}
   svg.prac-fig .pf-line.is-dash{stroke-dasharray:5 4;}
+  svg.prac-fig .pf-curve{stroke:var(--red);stroke-width:2.2;stroke-linejoin:round;}
+  svg.prac-fig .pf-curve.is-dash{stroke-dasharray:5 4;}
+  svg.prac-fig .pf-range{stroke:var(--teal);stroke-width:4;stroke-linecap:round;}
+  svg.prac-fig .pf-end{fill:var(--teal);stroke:var(--teal);stroke-width:2;}
+  svg.prac-fig .pf-end.is-open{fill:var(--surface);}
+  svg.prac-numline{max-width:360px;}
   svg.prac-fig .pf-seg{stroke:var(--indigo);stroke-width:1.8;}
   svg.prac-fig .pf-seg.is-dash{stroke-dasharray:4 3;}
   svg.prac-fig .pf-shade{fill:var(--teal);opacity:.28;}
@@ -4093,6 +4099,12 @@
         return X(pt.x).toFixed(1) + ',' + Y(pt.y).toFixed(1);
       }).join(' ') + '"/>');
     });
+    // 曲線（例如拋物線）
+    (cfg.curves || []).forEach(function(cv){
+      if (!cv.pts || cv.pts.length < 2) return;
+      out.push('<polyline class="pf-curve' + (cv.dash ? ' is-dash' : '') + '" fill="none" points="' +
+        cv.pts.map(function(pt){ return X(pt.x).toFixed(1) + ',' + Y(pt.y).toFixed(1); }).join(' ') + '"/>');
+    });
     // 線段（三角形的三個邊之類）
     (cfg.segs || []).forEach(function(g){
       out.push('<line class="pf-seg' + (g.dash ? ' is-dash' : '') + '" x1="' + X(g.x1).toFixed(1) +
@@ -4200,6 +4212,137 @@
     }
     return { a1:2, b1:1, c1:20, a2:1, b2:1, c2:12,
              verts:[{x:12,y:0},{x:8,y:4},{x:0,y:20}] };
+  }
+
+
+  /* ============ 第一冊 CH1／2-3／CH3 練功坊：共用小工具 ============ */
+  // 多項式排版：coefs 由高次到低次，例如 [3,0,-2,5] → 3x³ － 2x ＋ 5
+  function polyHtml(coefs, v){
+    v = v || 'x';
+    var n = coefs.length - 1, s = '';
+    var sup = ['', '', '²', '³', '⁴', '⁵', '⁶', '⁷', '⁸', '⁹', '¹⁰', '¹¹'];
+    for (var i = 0; i <= n; i++){
+      var c = coefs[i], d = n - i;
+      if (Math.abs(c) < 1e-9) continue;
+      var sym = (d === 0) ? '' : (v + (d === 1 ? '' : (sup[d] || ('^' + d))));
+      s += termStr(c, sym, s === '');
+    }
+    return s === '' ? '0' : s;
+  }
+  // 負數用全形減號顯示，跟其他算式一致
+  function nStr(n){ return (n < 0) ? ('－' + Math.abs(n)) : String(n); }
+  // ( x － m )，m = 0 時直接寫 x
+  function xMinus(m){ return (m === 0) ? 'x' : ('x ' + (m < 0 ? '＋ ' + (-m) : '－ ' + m)); }
+  // a ( x － m )²，m = 0 時寫成 a x²；a = ±1 時省略係數
+  function sqBody(a, m){
+    var head = (a === 1) ? '' : (a === -1 ? '－' : String(a));
+    return (m === 0) ? (head + 'x²') : (head + '( ' + xMinus(m) + ' )²');
+  }
+  // 平方的底數若是負數要加括號：(-3)²
+  function sq2(n){ return (n < 0 ? '(' + n + ')' : String(n)) + '²'; }
+  // 根號化簡：√n → k√m（m 無平方因數）；完全平方數直接回整數
+  function simpRadical(n){
+    var k = 1, m = Math.round(n);
+    for (var d = 2; d * d <= m; d++){
+      while (m % (d * d) === 0){ m /= d * d; k *= d; }
+    }
+    return { k:k, m:m };
+  }
+  function radHtml(n){
+    var r = simpRadical(n);
+    if (r.m === 1) return String(r.k);
+    return (r.k === 1 ? '' : r.k) + '√' + r.m;
+  }
+  // 距離：|t| ÷ √m，有理化之後顯示成分數
+  function distHtml(t, m){
+    t = Math.abs(t);
+    var r = simpRadical(m);
+    if (r.m === 1){                      // 分母是整數
+      var g = gcdInt(t, r.k) || 1;
+      return (t / g === 1 && r.k / g === 1) ? '1' : fracSpan(false, t / g, r.k / g);
+    }
+    // t / (k√m) = t√m / (k·m)
+    var num = t, den = r.k * r.m;
+    var g2 = gcdInt(num, den) || 1;
+    num /= g2; den /= g2;
+    var numTxt = (num === 1 ? '' : num) + '√' + r.m;
+    return den === 1 ? numTxt : '<span class="frac"><span class="num">' + numTxt + '</span><span class="den">' + den + '</span></span>';
+  }
+  // 解的範圍：'between' = r1 ＜ x ＜ r2，'outside' = x ＜ r1 或 x ＞ r2
+  function rangeHtml(kind, r1, r2, closed, v){
+    v = v || 'x';
+    var lt = closed ? ' ≤ ' : ' ＜ ', gt = closed ? ' ≥ ' : ' ＞ ';
+    var a = (typeof r1 === 'object') ? ratHtml(r1) : String(r1);
+    var b = (typeof r2 === 'object') ? ratHtml(r2) : String(r2);
+    if (kind === 'between') return a + lt + v + lt + b;
+    if (kind === 'outside') return v + lt + a + ' 或 ' + v + gt + b;
+    if (kind === 'lt') return v + lt + a;
+    if (kind === 'gt') return v + gt + a;
+    if (kind === 'all') return '所有實數';
+    if (kind === 'none') return '無實數解';
+    if (kind === 'only') return v + ' = ' + a;
+    if (kind === 'notone') return v + ' ≠ ' + a + ' 的所有實數';
+    return '';
+  }
+
+  /* ---- 數線圖：把解的範圍畫在數線上 ----
+     cfg = { min, max, segs:[{from,to,openFrom,openTo}], dots:[{x,open}] } */
+  function numLineFig(cfg){
+    var W = 320, H = 72, M = 24;
+    var lo = cfg.min, hi = cfg.max;
+    var sx = (W - 2 * M) / (hi - lo);
+    function X(x){ return M + (Math.max(lo, Math.min(hi, x)) - lo) * sx; }
+    var y = 40;
+    var out = ['<svg class="prac-fig prac-numline" viewBox="0 0 ' + W + ' ' + H + '" role="img">'];
+    // 解的區間（先畫，才不會蓋住數線）
+    (cfg.segs || []).forEach(function(g){
+      var x1 = (g.from === null) ? lo : g.from, x2 = (g.to === null) ? hi : g.to;
+      out.push('<line class="pf-range" x1="' + X(x1).toFixed(1) + '" y1="' + y + '" x2="' + X(x2).toFixed(1) + '" y2="' + y + '"/>');
+      if (g.from === null) out.push('<path class="pf-range" d="M' + (X(lo) + 9) + ' ' + (y - 5) + ' L' + X(lo) + ' ' + y + ' L' + (X(lo) + 9) + ' ' + (y + 5) + '" fill="none"/>');
+      if (g.to === null) out.push('<path class="pf-range" d="M' + (X(hi) - 9) + ' ' + (y - 5) + ' L' + X(hi) + ' ' + y + ' L' + (X(hi) - 9) + ' ' + (y + 5) + '" fill="none"/>');
+    });
+    // 數線本體與刻度
+    out.push('<line class="pf-axis" x1="' + X(lo) + '" y1="' + y + '" x2="' + X(hi) + '" y2="' + y + '"/>');
+    var step = Math.max(1, Math.round((hi - lo) / 10));
+    for (var t = Math.ceil(lo / step) * step; t <= hi; t += step){
+      out.push('<line class="pf-grid" x1="' + X(t).toFixed(1) + '" y1="' + (y - 4) + '" x2="' + X(t).toFixed(1) + '" y2="' + (y + 4) + '"/>');
+      out.push('<text class="pf-label" x="' + X(t).toFixed(1) + '" y="' + (y + 18) + '" text-anchor="middle">' + t + '</text>');
+    }
+    // 端點：空心＝不含，實心＝含
+    (cfg.dots || []).forEach(function(d){
+      out.push('<circle class="pf-end' + (d.open ? ' is-open' : '') + '" cx="' + X(d.x).toFixed(1) + '" cy="' + y + '" r="4.5"/>');
+      if (d.label !== undefined){
+        out.push('<text class="pf-label" x="' + X(d.x).toFixed(1) + '" y="' + (y - 11) + '" text-anchor="middle">' + d.label + '</text>');
+      }
+    });
+    out.push('</svg>');
+    return '<span class="prac-fig-wrap">' + out.join('') + '</span>';
+  }
+
+  /* ---- 二次函數圖形：y = ax² + bx + c ---- */
+  function parabolaFig(a, b, c, opts){
+    opts = opts || {};
+    var h = -b / (2 * a), k = a * h * h + b * h + c;
+    var spanX = opts.spanX || Math.max(5, Math.ceil(Math.abs(h)) + 4);
+    var xMin = Math.round(h) - spanX, xMax = Math.round(h) + spanX;
+    var ys = [];
+    for (var x = xMin; x <= xMax; x += 0.25) ys.push(a * x * x + b * x + c);
+    var yLo = Math.min(k, 0) - 2, yHi = Math.max(k, 0) + 2;
+    ys.forEach(function(v){ if (v > yLo - 40 && v < yHi + 40){ yLo = Math.min(yLo, v); yHi = Math.max(yHi, v); } });
+    yLo = Math.max(yLo, k - 24); yHi = Math.min(yHi, k + 24);
+    var pts = [];
+    for (var x2 = xMin; x2 <= xMax + 0.001; x2 += 0.1){
+      var yv = a * x2 * x2 + b * x2 + c;
+      if (yv >= yLo - 1 && yv <= yHi + 1) pts.push({x:x2, y:yv});
+    }
+    var marks = [{x:h, y:k, label:'V(' + (Math.round(h * 100) / 100) + ',' + (Math.round(k * 100) / 100) + ')'}];
+    (opts.marks || []).forEach(function(m){ marks.push(m); });
+    return pracFig({
+      xMin:xMin, xMax:xMax, yMin:yLo, yMax:yHi,
+      curves:[{pts:pts}],
+      lines:opts.axis === false ? [] : [{a:1, b:0, c:-h, dash:true}],
+      marks:marks
+    });
   }
 
   var PRACTICE_TYPES = [
@@ -5365,6 +5508,1656 @@
           ]
         };
       }
+    },
+    /* ---------------- 第1冊 1-1 數線與絕對值 ---------------- */
+    {
+      id:'absDist', book:'第1冊', section:'1-1 數線與絕對值', name:'數線上兩點的距離',
+      concept:[
+        '數線上一點 A(a) 到原點的距離就是 |a|。',
+        '數線上相異兩點 A(a)、B(b) 的距離是兩個數之差的絕對值：AB ＝ |a － b| ＝ |b － a|。',
+        '距離一定是非負數，所以算完記得取絕對值。'
+      ],
+      formula:'AB = | a － b | = | b － a |',
+      example:function(){ return this.gen({kind:'dist', a:-4, b:7}); },
+      gen:function(fix){
+        var kind = fix ? fix.kind : rndPick(['dist', 'dist', 'find']);
+        if (kind === 'dist'){
+          var a = fix ? fix.a : rndInt(-12, 12);
+          var b = fix ? fix.b : rndInt(-12, 12);
+          while (a === b) b = rndInt(-12, 12);
+          var d = Math.abs(a - b);
+          return {
+            stem:'數線上有兩點 A( ' + a + ' )、B( ' + b + ' )，求 A、B 兩點的距離。',
+            choices:shuffleChoices(String(d), [String(a - b), String(b - a), String(Math.abs(a) + Math.abs(b)), String(d + 1)]),
+            answerHtml:String(d),
+            steps:[
+              {eq:'AB = | a － b |', why:'數線上兩點距離公式'},
+              {eq:'= | ' + a + ' － ' + (b < 0 ? '(' + b + ')' : b) + ' | = | ' + (a - b) + ' |', why:'代入兩點的坐標（負數要加括號）'},
+              {eq:'= ' + d, why:'取絕對值，距離一定是非負數'},
+              {eq:numLineFig({ min:Math.min(a, b) - 3, max:Math.max(a, b) + 3,
+                               segs:[{from:Math.min(a, b), to:Math.max(a, b)}],
+                               dots:[{x:a, label:'A'}, {x:b, label:'B'}] }),
+               why:'畫在數線上就是這兩個點中間那一段的長度'}
+            ]
+          };
+        }
+        var a2 = fix ? fix.a : rndInt(-9, 9);
+        var d2 = fix ? fix.d : rndInt(2, 9);
+        var ans = 'x = ' + (a2 + d2) + ' 或 x = ' + (a2 - d2);
+        return {
+          stem:'數線上 A 點的坐標為 ' + a2 + '，若 B( x ) 與 A 的距離為 ' + d2 + '，求 x 的值。',
+          choices:shuffleChoices(ans, ['x = ' + (a2 + d2), 'x = ' + (a2 - d2),
+                                       'x = ' + (a2 + d2) + ' 或 x = ' + (-a2 - d2),
+                                       'x = ' + (a2 * d2)]),
+          answerHtml:ans,
+          steps:[
+            {eq:'| x － ' + (a2 < 0 ? '(' + a2 + ')' : a2) + ' | = ' + d2, why:'距離 ＝ 兩數之差的絕對值'},
+            {eq:'x － ' + (a2 < 0 ? '(' + a2 + ')' : a2) + ' = ' + d2 + ' 或 x － ' + (a2 < 0 ? '(' + a2 + ')' : a2) + ' = －' + d2,
+             why:'絕對值等於正數 ⇒ 裡面可以是正的也可以是負的（兩種情形）'},
+            {eq:ans, why:'所以在 A 的左右各有一個點'},
+            {eq:numLineFig({ min:a2 - d2 - 3, max:a2 + d2 + 3,
+                             dots:[{x:a2, label:'A'}, {x:a2 - d2}, {x:a2 + d2}] }),
+             why:'A 的左右各距離 ' + d2 + ' 的那兩個點'}
+          ]
+        };
+      }
+    },
+    {
+      id:'linIneq', book:'第1冊', section:'1-1 數線與絕對值', name:'一元一次不等式',
+      concept:[
+        '不等式兩邊同加（減）一個數，不等號方向不變。',
+        '兩邊同乘（除）一個<b>正數</b>，不等號方向不變；同乘（除）一個<b>負數</b>，不等號方向要<b>反過來</b>。',
+        '解完可以畫在數線上檢查：空心點表示不含、實心點表示含。'
+      ],
+      formula:'移項整理成 ax ＞ b ⇒ 兩邊同除 a（a ＜ 0 時不等號要變號）',
+      example:function(){ return this.gen({a:5, b:2, c:3, d:-5, rel:'≥'}); },
+      gen:function(fix){
+        var a, b, c, d, rel;
+        if (fix){ a = fix.a; b = fix.b; c = fix.c; d = fix.d; rel = fix.rel; }
+        else {
+          do {
+            a = rndNonZero(-6, 6); c = rndNonZero(-6, 6);
+            b = rndInt(-9, 9); d = rndInt(-9, 9);
+          } while (a === c);
+          rel = rndPick(['＞', '≥', '＜', '≤']);
+        }
+        // ax + b (rel) cx + d  ⇒  (a-c)x (rel) d-b
+        var A = a - c, B = d - b;
+        var flip = A < 0;
+        var root = ratMake(B, A);
+        var finalRel = flip ? ({ '＞':'＜', '≥':'≤', '＜':'＞', '≤':'≥' })[rel] : rel;
+        var ans = 'x ' + finalRel + ' ' + ratHtml(root);
+        var wrongs = ['x ' + rel + ' ' + ratHtml(root),
+                      'x ' + finalRel + ' ' + ratHtml(ratNeg(root)),
+                      'x ' + ({ '＞':'＜', '≥':'≤', '＜':'＞', '≤':'≥' })[finalRel] + ' ' + ratHtml(ratNeg(root)),
+                      'x ' + finalRel + ' ' + ratHtml(ratMake(B + A, A))];
+        var open = (finalRel === '＞' || finalRel === '＜');
+        var toRight = (finalRel === '＞' || finalRel === '≥');
+        var rv = ratVal(root);
+        return {
+          stem:'解一元一次不等式 ' + (termStr(a, 'x', true) + termStr(b, '', false)) + ' ' + rel + ' ' +
+               (termStr(c, 'x', true) + termStr(d, '', false)) + ' 。',
+          choices:shuffleChoices(ans, wrongs),
+          answerHtml:ans,
+          steps:[
+            {eq:'把含 x 的項移到左邊、常數移到右邊', why:'移項時記得變號'},
+            {eq:termStr(A, 'x', true) + ' ' + rel + ' ' + B, why:'合併同類項'},
+            {eq:'兩邊同除以 ' + A + (flip ? '（負數 ⇒ 不等號要反過來）' : '（正數 ⇒ 不等號不變）'),
+             why:flip ? '這是最常錯的地方：除以負數一定要變號' : '除以正數方向不變'},
+            {eq:ans, why:'得到解'},
+            {eq:numLineFig({ min:Math.floor(rv) - 5, max:Math.ceil(rv) + 5,
+                             segs:[toRight ? {from:rv, to:null} : {from:null, to:rv}],
+                             dots:[{x:rv, open:open}] }),
+             why:'畫在數線上：' + (open ? '空心點代表不含這個點' : '實心點代表包含這個點')}
+          ]
+        };
+      }
+    },
+    {
+      id:'absIneq', book:'第1冊', section:'1-1 數線與絕對值', name:'絕對值不等式',
+      concept:[
+        '|x| ＜ c（c ＞ 0）⇒ －c ＜ x ＜ c，解是「夾在中間」的一段。',
+        '|x| ＞ c（c ＞ 0）⇒ x ＜ －c 或 x ＞ c，解是「分開的兩段」。',
+        '遇到 |ax＋b| 就把整個 ax＋b 看成一個東西，先去絕對值再解。'
+      ],
+      formula:'| ax ＋ b | ＜ c ⇒ －c ＜ ax ＋ b ＜ c　；　| ax ＋ b | ＞ c ⇒ ax ＋ b ＜ －c 或 ax ＋ b ＞ c',
+      example:function(){ return this.gen({a:2, b:-1, c:5, rel:'≤'}); },
+      gen:function(fix){
+        var a, b, c, rel;
+        if (fix){ a = fix.a; b = fix.b; c = fix.c; rel = fix.rel; }
+        else {
+          a = rndInt(1, 4); b = rndInt(-8, 8); c = rndInt(2, 12);
+          rel = rndPick(['＜', '≤', '＞', '≥']);
+        }
+        var lo = ratMake(-c - b, a), hi = ratMake(c - b, a);
+        var closed = (rel === '≤' || rel === '≥');
+        var between = (rel === '＜' || rel === '≤');
+        var ans = between ? rangeHtml('between', lo, hi, closed) : rangeHtml('outside', lo, hi, closed);
+        var wrongs = [between ? rangeHtml('outside', lo, hi, closed) : rangeHtml('between', lo, hi, closed),
+                      between ? rangeHtml('between', lo, hi, !closed) : rangeHtml('outside', lo, hi, !closed),
+                      rangeHtml(between ? 'between' : 'outside', ratMake(-c + b, a), ratMake(c + b, a), closed)];
+        var loV = ratVal(lo), hiV = ratVal(hi);
+        return {
+          stem:'解絕對值不等式 | ' + (termStr(a, 'x', true) + termStr(b, '', false)) + ' | ' + rel + ' ' + c + ' 。',
+          choices:shuffleChoices(ans, wrongs),
+          answerHtml:ans,
+          steps:[
+            {eq:between ? ('－' + c + ' ' + rel + ' ' + (termStr(a, 'x', true) + termStr(b, '', false)) + ' ' + rel + ' ' + c)
+                        : ((termStr(a, 'x', true) + termStr(b, '', false)) + ' ' + ({'＞':'＜','≥':'≤'})[rel] + ' －' + c +
+                           ' 或 ' + (termStr(a, 'x', true) + termStr(b, '', false)) + ' ' + rel + ' ' + c),
+             why:between ? '「小於」⇒ 夾在 －' + c + ' 與 ' + c + ' 之間' : '「大於」⇒ 分成左右兩段'},
+            {eq:(b < 0 ? ('各項同加 ' + (-b)) : ('各項同減 ' + b)) + '（移項）', why:'先把常數移掉'},
+            {eq:'再同除以 ' + a + '（正數，不等號不變）', why:'x 的係數是正的，方向不用變'},
+            {eq:ans, why:'整理成最後的解'},
+            {eq:numLineFig({ min:Math.floor(Math.min(loV, hiV)) - 4, max:Math.ceil(Math.max(loV, hiV)) + 4,
+                             segs:between ? [{from:loV, to:hiV}] : [{from:null, to:loV}, {from:hiV, to:null}],
+                             dots:[{x:loV, open:!closed}, {x:hiV, open:!closed}] }),
+             why:between ? '解是中間連成一段' : '解是左右分開的兩段'}
+          ]
+        };
+      }
+    },
+    {
+      id:'absInv', book:'第1冊', section:'1-1 數線與絕對值', name:'由解反求絕對值不等式',
+      concept:[
+        '|x － a| ＜ b 的解一定是以 a 為中心、左右各 b 的一段。',
+        '所以 a 就是解的「正中間」＝兩端點的平均；b 就是解的「半徑」＝兩端點差的一半。',
+        '解若是分開的兩段，代表原來的不等號是「＞」。'
+      ],
+      formula:'a = ( 左端 ＋ 右端 ) ÷ 2　，　b = ( 右端 － 左端 ) ÷ 2',
+      example:function(){ return this.gen({m:2, n:10, kind:'between'}); },
+      gen:function(fix){
+        var m, n, kind;
+        if (fix){ m = fix.m; n = fix.n; kind = fix.kind; }
+        else {
+          m = rndInt(-10, 6);
+          n = m + 2 * rndInt(1, 7);
+          kind = rndPick(['between', 'outside']);
+        }
+        var a = (m + n) / 2, b = (n - m) / 2;
+        var ans = 'a = ' + a + '，b = ' + b;
+        return {
+          stem:'若不等式 | x － a | ' + (kind === 'between' ? '＜' : '＞') + ' b 的解為 ' +
+               (kind === 'between' ? (m + ' ＜ x ＜ ' + n) : ('x ＜ ' + m + ' 或 x ＞ ' + n)) +
+               '，試求 a、b 之值。',
+          choices:shuffleChoices(ans, ['a = ' + b + '，b = ' + a, 'a = ' + m + '，b = ' + n,
+                                       'a = ' + a + '，b = ' + (n - m), 'a = ' + (-a) + '，b = ' + b]),
+          answerHtml:ans,
+          steps:[
+            {eq:'| x － a | ' + (kind === 'between' ? '＜' : '＞') + ' b ⇒ ' +
+                (kind === 'between' ? 'a － b ＜ x ＜ a ＋ b' : 'x ＜ a － b 或 x ＞ a ＋ b'), why:'先寫出一般形式的解'},
+            {eq:'比較兩邊：a － b = ' + m + '，a ＋ b = ' + n, why:'跟題目給的解對照'},
+            {eq:'a = <span class="frac"><span class="num">' + m + ' ＋ ' + n + '</span><span class="den">2</span></span> = ' + a, why:'兩式相加除以 2 ⇒ a 是中心點'},
+            {eq:'b = <span class="frac"><span class="num">' + n + ' － ' + (m < 0 ? '(' + m + ')' : m) + '</span><span class="den">2</span></span> = ' + b, why:'兩式相減除以 2 ⇒ b 是半徑'},
+            {eq:numLineFig({ min:m - 3, max:n + 3,
+                             segs:kind === 'between' ? [{from:m, to:n}] : [{from:null, to:m}, {from:n, to:null}],
+                             dots:[{x:m, open:true}, {x:a, label:'a'}, {x:n, open:true}] }),
+             why:'a 在正中間，到兩個端點的距離都是 b'}
+          ]
+        };
+      }
+    },
+
+    /* ---------------- 第1冊 1-2 平面坐標系與線型函數 ---------------- */
+    {
+      id:'quadrant', book:'第1冊', section:'1-2 平面坐標系與線型函數', name:'點在第幾象限',
+      concept:[
+        '第一象限 (＋,＋)、第二象限 (－,＋)、第三象限 (－,－)、第四象限 (＋,－)。',
+        '先判斷 a、b 各自的正負，再看新的點的兩個坐標各是什麼符號。',
+        '坐標對調（把 (a, b) 換成 (b, a)）會改變象限，要小心。'
+      ],
+      formula:'Ⅰ (＋,＋)　Ⅱ (－,＋)　Ⅲ (－,－)　Ⅳ (＋,－)',
+      example:function(){ return this.gen({q:2, t:0}); },
+      gen:function(fix){
+        var q = fix ? fix.q : rndInt(1, 4);
+        var t = fix ? fix.t : rndInt(0, 4);
+        var sx = (q === 1 || q === 4) ? 1 : -1;
+        var sy = (q === 1 || q === 2) ? 1 : -1;
+        var T = [
+          { txt:'( －a , b )', nx:-sx, ny:sy },
+          { txt:'( a , －b )', nx:sx, ny:-sy },
+          { txt:'( －a , －b )', nx:-sx, ny:-sy },
+          { txt:'( b , a )', nx:sy, ny:sx },
+          { txt:'( －b , a )', nx:-sy, ny:sx }
+        ][t];
+        var name = ['', '第一象限', '第二象限', '第三象限', '第四象限'];
+        function quadOf(x, y){ return (x > 0 && y > 0) ? 1 : (x < 0 && y > 0) ? 2 : (x < 0 && y < 0) ? 3 : 4; }
+        var ansQ = quadOf(T.nx, T.ny);
+        return {
+          stem:'已知點 P ( a , b ) 在' + name[q] + '，則點 Q ' + T.txt + ' 在第幾象限？',
+          choices:shuffleChoices(name[ansQ], [name[1], name[2], name[3], name[4]].filter(function(n){ return n !== name[ansQ]; })),
+          answerHtml:name[ansQ],
+          steps:[
+            {eq:'P ( a , b ) 在' + name[q] + ' ⇒ a ' + (sx > 0 ? '＞' : '＜') + ' 0，b ' + (sy > 0 ? '＞' : '＜') + ' 0', why:'先判斷 a、b 的正負'},
+            {eq:'Q 的 x 坐標是 ' + (T.nx > 0 ? '正' : '負') + '的，y 坐標是 ' + (T.ny > 0 ? '正' : '負') + '的', why:'把符號代進去看'},
+            {eq:'( ' + (T.nx > 0 ? '＋' : '－') + ' , ' + (T.ny > 0 ? '＋' : '－') + ' ) ⇒ ' + name[ansQ], why:'對照四個象限的符號'}
+          ]
+        };
+      }
+    },
+    {
+      id:'midDist', book:'第1冊', section:'1-2 平面坐標系與線型函數', name:'中點公式與兩點距離',
+      concept:[
+        '中點公式：M ＝ ( (x₁＋x₂)/2 , (y₁＋y₂)/2 )，就是兩個坐標各自取平均。',
+        '兩點距離公式：AB ＝ √( (x₂－x₁)² ＋ (y₂－y₁)² )，由畢氏定理而來。',
+        '根號算完要化到最簡（把完全平方因數提出來）。'
+      ],
+      formula:'M = ( <span class="frac"><span class="num">x₁＋x₂</span><span class="den">2</span></span> , <span class="frac"><span class="num">y₁＋y₂</span><span class="den">2</span></span> )　，　AB = √( Δx² ＋ Δy² )',
+      example:function(){ return this.gen({x1:-10, y1:5, x2:2, y2:-3}); },
+      gen:function(fix){
+        var x1, y1, x2, y2;
+        if (fix){ x1 = fix.x1; y1 = fix.y1; x2 = fix.x2; y2 = fix.y2; }
+        else {
+          do {
+            x1 = rndInt(-9, 9); y1 = rndInt(-9, 9);
+            x2 = rndInt(-9, 9); y2 = rndInt(-9, 9);
+          } while ((x1 === x2 && y1 === y2) || (x1 + x2) % 2 !== 0 || (y1 + y2) % 2 !== 0);
+        }
+        var mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+        var dx = x2 - x1, dy = y2 - y1, d2 = dx * dx + dy * dy;
+        var ans = 'M ( ' + mx + ' , ' + my + ' )　，　AB = ' + radHtml(d2);
+        return {
+          stem:'設 A ( ' + x1 + ' , ' + y1 + ' )、B ( ' + x2 + ' , ' + y2 +
+               ' )，求 AB 的中點 M 的坐標與 AB 的長度。',
+          choices:shuffleChoices(ans, [
+            'M ( ' + my + ' , ' + mx + ' )　，　AB = ' + radHtml(d2),
+            'M ( ' + mx + ' , ' + my + ' )　，　AB = ' + radHtml(Math.abs(dx * dx - dy * dy)),
+            'M ( ' + (x2 - x1) / 2 + ' , ' + (y2 - y1) / 2 + ' )　，　AB = ' + radHtml(d2),
+            'M ( ' + mx + ' , ' + my + ' )　，　AB = ' + (Math.abs(dx) + Math.abs(dy))
+          ]),
+          answerHtml:ans,
+          steps:[
+            {eq:'M = ( <span class="frac"><span class="num">' + x1 + ' ＋ ' + (x2 < 0 ? '(' + x2 + ')' : x2) + '</span><span class="den">2</span></span> , ' +
+                '<span class="frac"><span class="num">' + y1 + ' ＋ ' + (y2 < 0 ? '(' + y2 + ')' : y2) + '</span><span class="den">2</span></span> ) = ( ' + mx + ' , ' + my + ' )',
+             why:'兩個坐標各自取平均'},
+            {eq:'Δx = ' + x2 + ' － ' + (x1 < 0 ? '(' + x1 + ')' : x1) + ' = ' + dx + '，Δy = ' + y2 + ' － ' + (y1 < 0 ? '(' + y1 + ')' : y1) + ' = ' + dy,
+             why:'先算水平與鉛直的變化量'},
+            {eq:'AB = √( ' + dx + '² ＋ ' + dy + '² ) = √' + d2 + ' = ' + radHtml(d2), why:'畢氏定理，根號要化到最簡'},
+            {eq:(function(){
+                 var lo = Math.min(x1, x2, y1, y2) - 2, hi = Math.max(x1, x2, y1, y2) + 2;
+                 return pracFig({ xMin:lo, xMax:hi, yMin:lo, yMax:hi,
+                   segs:[{x1:x1, y1:y1, x2:x2, y2:y2}, {x1:x1, y1:y1, x2:x2, y2:y1, dash:true}, {x1:x2, y1:y1, x2:x2, y2:y2, dash:true}],
+                   marks:[{x:x1, y:y1, label:'A'}, {x:x2, y:y2, label:'B'}, {x:mx, y:my, label:'M'}] });
+               })(),
+             why:'虛線就是 Δx、Δy 圍成的直角三角形，AB 是它的斜邊'}
+          ]
+        };
+      }
+    },
+    {
+      id:'section', book:'第1冊', section:'1-2 平面坐標系與線型函數', name:'分點公式',
+      concept:[
+        'P 在 AB 上且 AP : PB ＝ m : n 時，P 的坐標是 A、B 的「加權平均」。',
+        '公式：P = ( (n·x₁＋m·x₂)/(m＋n) , (n·y₁＋m·y₂)/(m＋n) )。',
+        '注意分子的權重是「對面」那一段：靠近 B 的比例 m 要乘 x₂。'
+      ],
+      formula:'P = ( <span class="frac"><span class="num">n x₁ ＋ m x₂</span><span class="den">m ＋ n</span></span> , <span class="frac"><span class="num">n y₁ ＋ m y₂</span><span class="den">m ＋ n</span></span> )　（AP : PB = m : n）',
+      example:function(){ return this.gen({x1:-1, y1:5, x2:4, y2:-2, m:2, n:3}); },
+      gen:function(fix){
+        var x1, y1, x2, y2, m, n;
+        if (fix){ x1 = fix.x1; y1 = fix.y1; x2 = fix.x2; y2 = fix.y2; m = fix.m; n = fix.n; }
+        else {
+          do {
+            m = rndInt(1, 4); n = rndInt(1, 4);
+            x1 = rndInt(-8, 8); y1 = rndInt(-8, 8);
+            x2 = rndInt(-8, 8); y2 = rndInt(-8, 8);
+          } while ((x1 === x2 && y1 === y2) ||
+                   (n * x1 + m * x2) % (m + n) !== 0 || (n * y1 + m * y2) % (m + n) !== 0);
+        }
+        var px = (n * x1 + m * x2) / (m + n), py = (n * y1 + m * y2) / (m + n);
+        var ans = '( ' + px + ' , ' + py + ' )';
+        var qx = (m * x1 + n * x2) / (m + n), qy = (m * y1 + n * y2) / (m + n);
+        return {
+          stem:'設 A ( ' + x1 + ' , ' + y1 + ' )、B ( ' + x2 + ' , ' + y2 + ' )，點 P 在線段 AB 上且 AP : PB = ' +
+               m + ' : ' + n + '，求 P 點的坐標。',
+          choices:shuffleChoices(ans, ['( ' + (Math.round(qx * 100) / 100) + ' , ' + (Math.round(qy * 100) / 100) + ' )',
+                                       '( ' + py + ' , ' + px + ' )',
+                                       '( ' + ((x1 + x2) / 2) + ' , ' + ((y1 + y2) / 2) + ' )',
+                                       '( ' + (px + 1) + ' , ' + (py - 1) + ' )']),
+          answerHtml:ans,
+          steps:[
+            {eq:'AP : PB = ' + m + ' : ' + n + ' ⇒ 權重要交叉乘', why:'靠近 B 的比例 ' + m + ' 要乘 B 的坐標'},
+            {eq:'x = <span class="frac"><span class="num">' + n + '×' + (x1 < 0 ? '(' + x1 + ')' : x1) + ' ＋ ' + m + '×' + (x2 < 0 ? '(' + x2 + ')' : x2) +
+                '</span><span class="den">' + m + ' ＋ ' + n + '</span></span> = ' + px, why:'代入分點公式求 x'},
+            {eq:'y = <span class="frac"><span class="num">' + n + '×' + (y1 < 0 ? '(' + y1 + ')' : y1) + ' ＋ ' + m + '×' + (y2 < 0 ? '(' + y2 + ')' : y2) +
+                '</span><span class="den">' + m + ' ＋ ' + n + '</span></span> = ' + py, why:'同樣方式求 y'},
+            {eq:'故 P ' + ans, why:'寫出答案'},
+            {eq:(function(){
+                 var lo = Math.min(x1, x2, y1, y2, px, py) - 2, hi = Math.max(x1, x2, y1, y2, px, py) + 2;
+                 return pracFig({ xMin:lo, xMax:hi, yMin:lo, yMax:hi,
+                   segs:[{x1:x1, y1:y1, x2:x2, y2:y2}],
+                   marks:[{x:x1, y:y1, label:'A'}, {x:x2, y:y2, label:'B'}, {x:px, y:py, label:'P'}] });
+               })(),
+             why:'P 把 AB 分成 ' + m + ' : ' + n + ' 兩段'}
+          ]
+        };
+      }
+    },
+    {
+      id:'paral4', book:'第1冊', section:'1-2 平面坐標系與線型函數', name:'平行四邊形的第四個頂點',
+      concept:[
+        '平行四邊形 ABCD 的兩條對角線 AC 與 BD 互相平分，也就是它們的中點是同一點。',
+        '所以 (A＋C)/2 ＝ (B＋D)/2，推得 D ＝ A ＋ C － B。',
+        '頂點的順序很重要：ABCD 代表 AC、BD 是對角線。'
+      ],
+      formula:'平行四邊形 ABCD ⇒ A ＋ C = B ＋ D ⇒ D = A ＋ C － B',
+      example:function(){ return this.gen({ax:3, ay:5, bx:-1, by:2, cx:6, cy:-1}); },
+      gen:function(fix){
+        var ax, ay, bx, by, cx, cy;
+        if (fix){ ax = fix.ax; ay = fix.ay; bx = fix.bx; by = fix.by; cx = fix.cx; cy = fix.cy; }
+        else {
+          do {
+            ax = rndInt(-7, 7); ay = rndInt(-7, 7);
+            bx = rndInt(-7, 7); by = rndInt(-7, 7);
+            cx = rndInt(-7, 7); cy = rndInt(-7, 7);
+          } while ((bx - ax) * (cy - ay) - (cx - ax) * (by - ay) === 0);
+        }
+        var dx = ax + cx - bx, dy = ay + cy - by;
+        var ans = '( ' + dx + ' , ' + dy + ' )';
+        return {
+          stem:'平行四邊形 ABCD 中，已知 A ( ' + ax + ' , ' + ay + ' )、B ( ' + bx + ' , ' + by + ' )、C ( ' + cx + ' , ' + cy +
+               ' )，求頂點 D 的坐標。',
+          choices:shuffleChoices(ans, ['( ' + (ax + bx - cx) + ' , ' + (ay + by - cy) + ' )',
+                                       '( ' + (bx + cx - ax) + ' , ' + (by + cy - ay) + ' )',
+                                       '( ' + dy + ' , ' + dx + ' )',
+                                       '( ' + (ax + cx) + ' , ' + (ay + cy) + ' )']),
+          answerHtml:ans,
+          steps:[
+            {eq:'平行四邊形 ABCD ⇒ 對角線 AC 與 BD 互相平分', why:'兩條對角線的中點是同一個點'},
+            {eq:'AC 的中點 = ( <span class="frac"><span class="num">' + ax + ' ＋ ' + (cx < 0 ? '(' + cx + ')' : cx) + '</span><span class="den">2</span></span> , ' +
+                '<span class="frac"><span class="num">' + ay + ' ＋ ' + (cy < 0 ? '(' + cy + ')' : cy) + '</span><span class="den">2</span></span> )', why:'先算 AC 的中點'},
+            {eq:'BD 的中點也要等於它 ⇒ D = A ＋ C － B', why:'把 B、D 的中點公式反推'},
+            {eq:'D = ( ' + ax + ' ＋ ' + cx + ' － ' + (bx < 0 ? '(' + bx + ')' : bx) + ' , ' + ay + ' ＋ ' + cy + ' － ' + (by < 0 ? '(' + by + ')' : by) + ' ) = ' + ans,
+             why:'代數字進去'},
+            {eq:(function(){
+                 var lo = Math.min(ax, bx, cx, dx, ay, by, cy, dy) - 2, hi = Math.max(ax, bx, cx, dx, ay, by, cy, dy) + 2;
+                 return pracFig({ xMin:lo, xMax:hi, yMin:lo, yMax:hi,
+                   segs:[{x1:ax, y1:ay, x2:bx, y2:by}, {x1:bx, y1:by, x2:cx, y2:cy},
+                         {x1:cx, y1:cy, x2:dx, y2:dy}, {x1:dx, y1:dy, x2:ax, y2:ay},
+                         {x1:ax, y1:ay, x2:cx, y2:cy, dash:true}, {x1:bx, y1:by, x2:dx, y2:dy, dash:true}],
+                   marks:[{x:ax, y:ay, label:'A'}, {x:bx, y:by, label:'B'}, {x:cx, y:cy, label:'C'}, {x:dx, y:dy, label:'D'}] });
+               })(),
+             why:'兩條虛線（對角線）會交在同一個中點'}
+          ]
+        };
+      }
+    },
+    {
+      id:'centroid2', book:'第1冊', section:'1-2 平面坐標系與線型函數', name:'三角形的重心坐標',
+      concept:[
+        '三角形的重心是三條中線的交點，坐標就是三個頂點坐標的平均。',
+        'G = ( (x₁＋x₂＋x₃)/3 , (y₁＋y₂＋y₃)/3 )。',
+        '重心把每條中線分成 2 : 1（靠頂點那一段比較長）。'
+      ],
+      formula:'G = ( <span class="frac"><span class="num">x₁＋x₂＋x₃</span><span class="den">3</span></span> , <span class="frac"><span class="num">y₁＋y₂＋y₃</span><span class="den">3</span></span> )',
+      example:function(){ return this.gen({ax:-3, ay:4, bx:5, by:2, cx:1, cy:-3}); },
+      gen:function(fix){
+        var ax, ay, bx, by, cx, cy;
+        if (fix){ ax = fix.ax; ay = fix.ay; bx = fix.bx; by = fix.by; cx = fix.cx; cy = fix.cy; }
+        else {
+          do {
+            ax = rndInt(-8, 8); ay = rndInt(-8, 8);
+            bx = rndInt(-8, 8); by = rndInt(-8, 8);
+            cx = rndInt(-8, 8); cy = rndInt(-8, 8);
+          } while ((bx - ax) * (cy - ay) - (cx - ax) * (by - ay) === 0);
+        }
+        var gx = ratMake(ax + bx + cx, 3), gy = ratMake(ay + by + cy, 3);
+        var ans = '( ' + ratHtml(gx) + ' , ' + ratHtml(gy) + ' )';
+        return {
+          stem:'設 △ABC 的三頂點為 A ( ' + ax + ' , ' + ay + ' )、B ( ' + bx + ' , ' + by + ' )、C ( ' + cx + ' , ' + cy +
+               ' )，求 △ABC 的重心 G 的坐標。',
+          choices:shuffleChoices(ans, ['( ' + ratHtml(ratMake(ax + bx + cx, 2)) + ' , ' + ratHtml(ratMake(ay + by + cy, 2)) + ' )',
+                                       '( ' + ratHtml(gy) + ' , ' + ratHtml(gx) + ' )',
+                                       '( ' + (ax + bx + cx) + ' , ' + (ay + by + cy) + ' )',
+                                       '( ' + ratHtml(ratMake(ax + bx, 2)) + ' , ' + ratHtml(ratMake(ay + by, 2)) + ' )']),
+          answerHtml:ans,
+          steps:[
+            {eq:'G = ( <span class="frac"><span class="num">x₁＋x₂＋x₃</span><span class="den">3</span></span> , <span class="frac"><span class="num">y₁＋y₂＋y₃</span><span class="den">3</span></span> )', why:'重心公式'},
+            {eq:'x = <span class="frac"><span class="num">' + ax + ' ＋ ' + bx + ' ＋ ' + cx + '</span><span class="den">3</span></span> = ' + ratHtml(gx), why:'三個 x 坐標相加除以 3'},
+            {eq:'y = <span class="frac"><span class="num">' + ay + ' ＋ ' + by + ' ＋ ' + cy + '</span><span class="den">3</span></span> = ' + ratHtml(gy), why:'三個 y 坐標相加除以 3'},
+            {eq:'故 G ' + ans, why:'答案常常是分數，不用化成小數'},
+            {eq:triFig({x:ax, y:ay}, {x:bx, y:by}, {x:cx, y:cy},
+                 { marks:[{x:ratVal(gx), y:ratVal(gy), label:'G'}],
+                   segs:[{x1:ax, y1:ay, x2:(bx + cx) / 2, y2:(by + cy) / 2, dash:true},
+                         {x1:bx, y1:by, x2:(ax + cx) / 2, y2:(ay + cy) / 2, dash:true},
+                         {x1:cx, y1:cy, x2:(ax + bx) / 2, y2:(ay + by) / 2, dash:true}] }),
+             why:'三條虛線是中線，交點就是重心 G'}
+          ]
+        };
+      }
+    },
+    {
+      id:'fnValue', book:'第1冊', section:'1-2 平面坐標系與線型函數', name:'分段函數求值',
+      concept:[
+        '分段函數要先看「x 落在哪一段」，再用那一段的式子去算。',
+        '判斷時要注意端點有沒有等號（≤ 還是 ＜）。',
+        '題目要你算兩個函數值相加時，兩個 x 可能落在不同段，要分開判斷。'
+      ],
+      formula:'先判斷 x 屬於哪一段 ⇒ 再代入那一段的式子',
+      example:function(){ return this.gen({p:2, q:5, m:3, a:3, b:2, c:-4}); },
+      gen:function(fix){
+        var p, q, m, a, b, c;
+        if (fix){ p = fix.p; q = fix.q; m = fix.m; a = fix.a; b = fix.b; c = fix.c; }
+        else {
+          m = rndInt(1, 4);                    // 分界點
+          p = rndInt(-3, m - 1);               // 落在第一段
+          q = rndInt(m, m + 5);                // 落在第二段
+          a = rndNonZero(-4, 4); b = rndInt(-6, 6); c = rndInt(-8, 8);
+        }
+        var f1 = a * p + b;                    // 第一段：ax + b（x ＜ m）
+        var f2 = q * q + c;                    // 第二段：x² + c（x ≥ m）
+        var sum = f1 + f2;
+        var seg1 = termStr(a, 'x', true) + termStr(b, '', false);
+        var seg2 = 'x²' + termStr(c, '', false);
+        return {
+          stem:'設函數 f ( x ) = ' + braceHtml([seg1 + '　，　x ＜ ' + m, seg2 + '　，　x ≥ ' + m]) +
+               '，試求 f ( ' + p + ' ) ＋ f ( ' + q + ' ) 的值。',
+          choices:shuffleChoices(String(sum), [String(f1 - f2), String(f2 - f1),
+                                               String((a * q + b) + (p * p + c)), String(sum + a)]),
+          answerHtml:String(sum),
+          steps:[
+            {eq:p + ' ＜ ' + m + ' ⇒ 用上面那一段 f ( x ) = ' + seg1, why:'先判斷 ' + p + ' 落在哪一段'},
+            {eq:'f ( ' + p + ' ) = ' + (a === 1 ? '' : (a === -1 ? '－' : a + '×')) + '( ' + p + ' )' + termStr(b, '', false) + ' = ' + f1, why:'代入第一段的式子'},
+            {eq:q + ' ≥ ' + m + ' ⇒ 用下面那一段 f ( x ) = ' + seg2, why:'再判斷 ' + q + ' 落在哪一段'},
+            {eq:'f ( ' + q + ' ) = ( ' + q + ' )²' + termStr(c, '', false) + ' = ' + f2, why:'代入第二段的式子'},
+            {eq:'f ( ' + p + ' ) ＋ f ( ' + q + ' ) = ' + f1 + ' ＋ ' + (f2 < 0 ? '(' + f2 + ')' : f2) + ' = ' + sum, why:'兩個值相加'}
+          ]
+        };
+      }
+    },
+
+    /* ---------------- 第1冊 1-3 二次函數 ---------------- */
+    {
+      id:'vertexForm', book:'第1冊', section:'1-3 二次函數', name:'由頂點式讀出圖形特徵',
+      concept:[
+        'y ＝ a(x－h)² ＋ k 叫做「頂點式」，一眼就能看出圖形的特徵。',
+        'a ＞ 0 開口向上（有最小值 k）；a ＜ 0 開口向下（有最大值 k）；|a| 越大開口越窄。',
+        '頂點是 V(h, k)，對稱軸是直線 x ＝ h。注意括號裡是「x － h」，所以 h 的正負要小心。'
+      ],
+      formula:'y = a ( x － h )² ＋ k ⇒ 頂點 V( h , k )，對稱軸 x = h',
+      example:function(){ return this.gen({a:2, h:-3, k:5}); },
+      gen:function(fix){
+        var a = fix ? fix.a : rndNonZero(-3, 3);
+        var h = fix ? fix.h : rndInt(-5, 5);
+        var k = fix ? fix.k : rndInt(-6, 6);
+        var body = 'y = ' + sqBody(a, h) + termStr(k, '', false);
+        var dirTxt = a > 0 ? '開口向上' : '開口向下';
+        var extTxt = a > 0 ? ('最小值 ' + k) : ('最大值 ' + k);
+        var ans = dirTxt + '，頂點 ( ' + h + ' , ' + k + ' )，對稱軸 x = ' + h + '，' + extTxt;
+        var wrongs = [
+          (a > 0 ? '開口向下' : '開口向上') + '，頂點 ( ' + h + ' , ' + k + ' )，對稱軸 x = ' + h + '，' + extTxt,
+          dirTxt + '，頂點 ( ' + (-h) + ' , ' + k + ' )，對稱軸 x = ' + (-h) + '，' + extTxt,
+          dirTxt + '，頂點 ( ' + k + ' , ' + h + ' )，對稱軸 x = ' + k + '，' + (a > 0 ? '最小值 ' + h : '最大值 ' + h),
+          dirTxt + '，頂點 ( ' + h + ' , ' + k + ' )，對稱軸 y = ' + k + '，' + extTxt
+        ];
+        return {
+          stem:'已知二次函數 ' + body + '，下列關於它的圖形的敘述何者正確？',
+          choices:shuffleChoices(ans, wrongs),
+          answerHtml:ans,
+          steps:[
+            {eq:'a = ' + a + (a > 0 ? ' ＞ 0 ⇒ 開口向上' : ' ＜ 0 ⇒ 開口向下'), why:'先看 a 的正負'},
+            {eq:'括號裡是 ( ' + xMinus(h) + ' ) ⇒ h = ' + h, why:'公式是 ( x － h )，所以 ' + (h < 0 ? '＋' + (-h) + ' 代表 h = ' + h : 'h = ' + h)},
+            {eq:'頂點 V ( ' + h + ' , ' + k + ' )，對稱軸 x = ' + h, why:'直接從頂點式讀出來'},
+            {eq:extTxt + '（在 x = ' + h + ' 時發生）', why:a > 0 ? '開口向上 ⇒ 頂點是最低點' : '開口向下 ⇒ 頂點是最高點'},
+            {eq:parabolaFig(a, -2 * a * h, a * h * h + k), why:'圖形長這樣，虛線是對稱軸'}
+          ]
+        };
+      }
+    },
+    {
+      id:'completeSq', book:'第1冊', section:'1-3 二次函數', name:'配方法化成頂點式',
+      concept:[
+        '配方法：利用 (x ＋ m)² ＝ x² ＋ 2mx ＋ m²，把式子湊成完全平方。',
+        '步驟：先把 x² 的係數提出來 ⇒ 括號裡加上「一次項係數的一半的平方」再減掉 ⇒ 整理。',
+        '提出去的係數別忘了，括號裡補的數要乘以它才能扣掉。'
+      ],
+      formula:'ax² ＋ bx ＋ c = a ( x ＋ <span class="frac"><span class="num">b</span><span class="den">2a</span></span> )² ＋ c － <span class="frac"><span class="num">b²</span><span class="den">4a</span></span>',
+      example:function(){ return this.gen({a:2, m:3, n:-5}); },
+      gen:function(fix){
+        var a = fix ? fix.a : rndNonZero(-3, 3);
+        var m = fix ? fix.m : rndInt(-5, 5);
+        var n = fix ? fix.n : rndInt(-8, 8);
+        var b = -2 * a * m, c = a * m * m + n;
+        var vf = sqBody(a, m) + termStr(n, '', false);
+        var wrongs = [
+          sqBody(a, -m) + termStr(n, '', false),
+          sqBody(a, m) + termStr(-n, '', false),
+          sqBody(a, m) + termStr(c, '', false),
+          sqBody(a, m) + termStr(n - a * m * m, '', false)
+        ];
+        return {
+          stem:'利用配方法把 ' + polyHtml([a, b, c]) + ' 化成 a ( x － m )² ＋ n 的形式。',
+          choices:shuffleChoices(vf, wrongs),
+          answerHtml:vf,
+          steps:[
+            {eq:polyHtml([a, b, c]) + ' = ' + (a === 1 ? '' : (a === -1 ? '－' : a)) + '( x²' + termStr(b / a, 'x', false) + ' )' + termStr(c, '', false),
+             why:'先把 x² 的係數 ' + a + ' 提出來（常數項先留在外面）'},
+            {eq:'一次項係數的一半是 ' + (b / a / 2) + '，它的平方是 ' + ((b / a / 2) * (b / a / 2)), why:'配方要補的就是這個數'},
+            {eq:'= ' + (a === 1 ? '' : (a === -1 ? '－' : a)) + '( x²' + termStr(b / a, 'x', false) + ' ＋ ' + ((b / a / 2) * (b / a / 2)) +
+                ' － ' + ((b / a / 2) * (b / a / 2)) + ' )' + termStr(c, '', false), why:'括號裡「加一個、再減一個」，值不變'},
+            {eq:'= ' + vf, why:'前三項湊成完全平方，後面的常數整理一下（提出去的 ' + a + ' 要乘進來）'},
+            {eq:'⇒ 頂點 ( ' + m + ' , ' + n + ' )，對稱軸 x = ' + m, why:'配方完就是頂點式，圖形特徵一目了然'}
+          ]
+        };
+      }
+    },
+    {
+      id:'quadGraph', book:'第1冊', section:'1-3 二次函數', name:'二次函數的頂點與最大最小值',
+      concept:[
+        '一般式 y ＝ ax² ＋ bx ＋ c 先配方（或用公式）求頂點。',
+        '頂點的 x 坐標是 －b/(2a)，把它代回去就得到 y 坐標。',
+        'a ＞ 0 時頂點的 y 是最小值；a ＜ 0 時是最大值。'
+      ],
+      formula:'頂點 x = －<span class="frac"><span class="num">b</span><span class="den">2a</span></span>　，　再代回求 y',
+      example:function(){ return this.gen({a:2, m:1, n:-3}); },
+      gen:function(fix){
+        var a = fix ? fix.a : rndNonZero(-3, 3);
+        var m = fix ? fix.m : rndInt(-4, 4);
+        var n = fix ? fix.n : rndInt(-8, 8);
+        var b = -2 * a * m, c = a * m * m + n;
+        var ext = a > 0 ? '最小值' : '最大值';
+        var ans = '頂點 ( ' + m + ' , ' + n + ' )，' + ext + '為 ' + n;
+        return {
+          stem:'試求二次函數 f ( x ) = ' + polyHtml([a, b, c]) + ' 圖形的頂點坐標，以及它的' + ext + '。',
+          choices:shuffleChoices(ans, ['頂點 ( ' + (-m) + ' , ' + n + ' )，' + ext + '為 ' + n,
+                                       '頂點 ( ' + m + ' , ' + (-n) + ' )，' + ext + '為 ' + (-n),
+                                       '頂點 ( ' + n + ' , ' + m + ' )，' + ext + '為 ' + m,
+                                       '頂點 ( ' + m + ' , ' + c + ' )，' + ext + '為 ' + c]),
+          answerHtml:ans,
+          steps:[
+            {eq:'a = ' + a + '，b = ' + b + '，c = ' + c, why:'先把三個係數看清楚'},
+            {eq:'x = －<span class="frac"><span class="num">b</span><span class="den">2a</span></span> = －<span class="frac"><span class="num">' + b + '</span><span class="den">2×' + a + '</span></span> = ' + m,
+             why:'頂點（也是對稱軸）的 x 坐標'},
+            {eq:'f ( ' + m + ' ) = ' + a + '×(' + m + ')²' + termStr(b, '', false).replace('x', '') + '×(' + m + ')' + termStr(c, '', false) + ' = ' + n,
+             why:'把 x 代回原式求 y'},
+            {eq:'a = ' + a + (a > 0 ? ' ＞ 0 ⇒ 開口向上，頂點是最低點' : ' ＜ 0 ⇒ 開口向下，頂點是最高點') + '，' + ext + '為 ' + n, why:'由 a 的正負判斷是最大還是最小'},
+            {eq:parabolaFig(a, b, c), why:'圖形與頂點 V'}
+          ]
+        };
+      }
+    },
+    {
+      id:'quadInterval', book:'第1冊', section:'1-3 二次函數', name:'限定範圍內的最大最小值',
+      concept:[
+        '限定 x 的範圍時，最大最小值可能發生在「頂點」或「兩個端點」。',
+        '先看對稱軸 x ＝ h 有沒有落在範圍裡：有的話頂點要算進去。',
+        '把候選的點全部代進去比大小，就是答案。'
+      ],
+      formula:'候選點：兩個端點 ＋（對稱軸在範圍內時）頂點 ⇒ 全部代入比大小',
+      example:function(){ return this.gen({a:1, m:1, n:-4, p:-1, q:4}); },
+      gen:function(fix){
+        var a, m, n, p, q;
+        if (fix){ a = fix.a; m = fix.m; n = fix.n; p = fix.p; q = fix.q; }
+        else {
+          a = rndNonZero(-2, 2); m = rndInt(-3, 3); n = rndInt(-6, 6);
+          p = m - rndInt(0, 4); q = m + rndInt(1, 4);
+          if (rndInt(0, 2) === 0){ p = m + rndInt(1, 3); q = p + rndInt(1, 4); }   // 有時候頂點落在範圍外
+        }
+        var b = -2 * a * m, c = a * m * m + n;
+        var f = function(x){ return a * x * x + b * x + c; };
+        var cand = [p, q];
+        if (m > p && m < q) cand.push(m);
+        var vals = cand.map(f);
+        var mx = Math.max.apply(null, vals), mn = Math.min.apply(null, vals);
+        var ans = '最大值 ' + mx + '，最小值 ' + mn;
+        return {
+          stem:'設 f ( x ) = ' + polyHtml([a, b, c]) + '，且 ' + p + ' ≤ x ≤ ' + q + '，求 f ( x ) 的最大值與最小值。',
+          choices:shuffleChoices(ans, ['最大值 ' + mn + '，最小值 ' + mx,
+                                       '最大值 ' + mx + '，最小值 ' + n,
+                                       '最大值 ' + f(p) + '，最小值 ' + f(q),
+                                       '最大值 ' + (mx + 1) + '，最小值 ' + (mn - 1)]),
+          answerHtml:ans,
+          steps:[
+            {eq:'先配方：f ( x ) = ' + sqBody(a, m) + termStr(n, '', false) +
+                ' ⇒ 頂點 ( ' + m + ' , ' + n + ' )', why:'先找出對稱軸 x = ' + m},
+            {eq:(m > p && m < q) ? ('對稱軸 x = ' + m + ' 落在 ' + p + ' ≤ x ≤ ' + q + ' 之內 ⇒ 頂點要算進去')
+                                  : ('對稱軸 x = ' + m + ' 不在 ' + p + ' ≤ x ≤ ' + q + ' 之內 ⇒ 只要比兩個端點'),
+             why:'這一步決定要代哪幾個點'},
+            {eq:cand.map(function(x){ return 'f ( ' + x + ' ) = ' + f(x); }).join('，'), why:'把候選的點全部代進去'},
+            {eq:ans, why:'比大小，取最大與最小'},
+            {eq:parabolaFig(a, b, c, { marks:cand.map(function(x){ return { x:x, y:f(x), label:'(' + x + ',' + f(x) + ')' }; }) }),
+             why:'圖上標出來的就是候選點'}
+          ]
+        };
+      }
+    },
+    {
+      id:'quadIntercept', book:'第1冊', section:'1-3 二次函數', name:'拋物線與坐標軸的交點',
+      concept:[
+        '與 y 軸的交點：把 x ＝ 0 代進去，得到 ( 0 , c )。',
+        '與 x 軸的交點：解 ax² ＋ bx ＋ c ＝ 0，兩個根就是兩個交點的 x 坐標。',
+        '判別式 D ＞ 0 有兩個交點、D ＝ 0 只有一個（相切）、D ＜ 0 沒有交點。'
+      ],
+      formula:'與 y 軸交於 ( 0 , c )　；　與 x 軸交點 ⇒ 解 ax² ＋ bx ＋ c = 0',
+      example:function(){ return this.gen({r1:-1, r2:2, a:1}); },
+      gen:function(fix){
+        var r1, r2, a;
+        if (fix){ r1 = fix.r1; r2 = fix.r2; a = fix.a; }
+        else {
+          do { r1 = rndInt(-6, 6); r2 = rndInt(-6, 6); } while (r1 === r2);
+          if (r1 > r2){ var t = r1; r1 = r2; r2 = t; }
+          a = rndPick([1, 1, 1, -1, 2]);
+        }
+        var b = -a * (r1 + r2), c = a * r1 * r2;
+        var ans = '與 x 軸交於 ( ' + r1 + ' , 0 )、( ' + r2 + ' , 0 )，與 y 軸交於 ( 0 , ' + c + ' )';
+        return {
+          stem:'設拋物線 y = ' + polyHtml([a, b, c]) + '，求它與 x 軸、y 軸的交點坐標。',
+          choices:shuffleChoices(ans, [
+            '與 x 軸交於 ( ' + (-r1) + ' , 0 )、( ' + (-r2) + ' , 0 )，與 y 軸交於 ( 0 , ' + c + ' )',
+            '與 x 軸交於 ( ' + r1 + ' , 0 )、( ' + r2 + ' , 0 )，與 y 軸交於 ( 0 , ' + b + ' )',
+            '與 x 軸交於 ( 0 , ' + r1 + ' )、( 0 , ' + r2 + ' )，與 y 軸交於 ( ' + c + ' , 0 )',
+            '與 x 軸交於 ( ' + r1 + ' , 0 )、( ' + (r2 + 1) + ' , 0 )，與 y 軸交於 ( 0 , ' + c + ' )'
+          ]),
+          answerHtml:ans,
+          steps:[
+            {eq:'令 x = 0 ⇒ y = ' + c + '，與 y 軸交於 ( 0 , ' + c + ' )', why:'y 軸上的點 x 都是 0'},
+            {eq:'令 y = 0 ⇒ ' + polyHtml([a, b, c]) + ' = 0', why:'x 軸上的點 y 都是 0'},
+            {eq:(a === 1 ? '' : (a === -1 ? '－' : a)) + '( ' + xMinus(r1) + ' )( ' + xMinus(r2) + ' ) = 0',
+             why:'十字交乘法分解'},
+            {eq:'x = ' + r1 + ' 或 x = ' + r2, why:'兩個根就是與 x 軸的兩個交點'},
+            {eq:parabolaFig(a, b, c, { marks:[{x:r1, y:0, label:'(' + r1 + ',0)'}, {x:r2, y:0, label:'(' + r2 + ',0)'}, {x:0, y:c, label:'(0,' + c + ')'}] }),
+             why:'圖上三個交點的位置'}
+          ]
+        };
+      }
+    },
+
+    /* ---------------- 第1冊 1-4 一元二次不等式 ---------------- */
+    {
+      id:'crossFactor', book:'第1冊', section:'1-4 一元二次不等式', name:'十字交乘法因式分解',
+      concept:[
+        'Ax² ＋ Bx ＋ C 若能分解成 ( ax ＋ b )( cx ＋ d )，則 a×c ＝ A、b×d ＝ C、ad ＋ bc ＝ B。',
+        '作法：把 A 拆成兩個因數寫在左邊、C 拆成兩個因數寫在右邊，交叉相乘相加要等於 B。',
+        '分解完可以乘回去檢查，尤其要檢查中間那一項。'
+      ],
+      formula:'Ax² ＋ Bx ＋ C = ( ax ＋ b )( cx ＋ d )　，　ac = A、bd = C、ad ＋ bc = B',
+      example:function(){ return this.gen({p:1, q:-2, r:1, s:-5}); },
+      gen:function(fix){
+        var p, q, r, s;
+        if (fix){ p = fix.p; q = fix.q; r = fix.r; s = fix.s; }
+        else {
+          do {
+            p = rndPick([1, 1, 1, 2, 3]); r = rndPick([1, 1, 2, 3]);
+            q = rndNonZero(-6, 6); s = rndNonZero(-6, 6);
+          } while (gcdInt(p, q) !== 1 || gcdInt(r, s) !== 1 || (p * s + q * r) === 0);
+        }
+        var A = p * r, B = p * s + q * r, C = q * s;
+        function fac(p1, q1, p2, q2){
+          var f1 = '( ' + (p1 === 1 ? '' : p1) + 'x ' + (q1 < 0 ? '－ ' + (-q1) : '＋ ' + q1) + ' )';
+          var f2 = '( ' + (p2 === 1 ? '' : p2) + 'x ' + (q2 < 0 ? '－ ' + (-q2) : '＋ ' + q2) + ' )';
+          return f1 + f2;
+        }
+        var ans = fac(p, q, r, s);
+        return {
+          stem:'利用十字交乘法因式分解 ' + polyHtml([A, B, C]) + ' 。',
+          choices:shuffleChoices(ans, [fac(p, -q, r, -s), fac(p, s, r, q), fac(p, -q, r, s), fac(r, q, p, s)]),
+          answerHtml:ans,
+          steps:[
+            {eq:'A = ' + A + '，B = ' + B + '，C = ' + C, why:'先把三個係數看清楚'},
+            {eq:'把 ' + A + ' 拆成 ' + p + ' × ' + r + '，把 ' + C + ' 拆成 ' + q + ' × ' + s, why:'十字交乘的左右兩邊'},
+            {eq:'交叉相乘相加：' + p + '×' + (s < 0 ? '(' + s + ')' : s) + ' ＋ ' + (q < 0 ? '(' + q + ')' : q) + '×' + r + ' = ' + B + ' ✓',
+             why:'中間這一項要對得起來，才是正確的拆法'},
+            {eq:polyHtml([A, B, C]) + ' = ' + ans, why:'寫成兩個一次式相乘'},
+            {eq:'檢查：乘回去 ⇒ ' + polyHtml([A, B, C]) + ' ✓', why:'養成乘回去檢查的習慣'}
+          ]
+        };
+      }
+    },
+    {
+      id:'quadIneq', book:'第1冊', section:'1-4 一元二次不等式', name:'一元二次不等式的解',
+      concept:[
+        '先把不等式整理成「左邊是二次式、右邊是 0」，並讓 x² 的係數為正。',
+        '因式分解求出兩根 α ＜ β，再畫出開口向上的拋物線。',
+        '「＜ 0」取兩根之間（圖形在 x 軸下方）；「＞ 0」取兩根外側（圖形在 x 軸上方）。'
+      ],
+      formula:'( x － α )( x － β ) ＜ 0 ⇒ α ＜ x ＜ β　；　＞ 0 ⇒ x ＜ α 或 x ＞ β',
+      example:function(){ return this.gen({r1:-2, r2:3, rel:'＜'}); },
+      gen:function(fix){
+        var r1, r2, rel;
+        if (fix){ r1 = fix.r1; r2 = fix.r2; rel = fix.rel; }
+        else {
+          do { r1 = rndInt(-6, 6); r2 = rndInt(-6, 6); } while (r1 === r2);
+          if (r1 > r2){ var t = r1; r1 = r2; r2 = t; }
+          rel = rndPick(['＜', '≤', '＞', '≥']);
+        }
+        var b = -(r1 + r2), c = r1 * r2;
+        var closed = (rel === '≤' || rel === '≥');
+        var between = (rel === '＜' || rel === '≤');
+        var ans = between ? rangeHtml('between', r1, r2, closed) : rangeHtml('outside', r1, r2, closed);
+        var wrongs = [between ? rangeHtml('outside', r1, r2, closed) : rangeHtml('between', r1, r2, closed),
+                      between ? rangeHtml('between', -r1, -r2, closed) : rangeHtml('outside', -r2, -r1, closed),
+                      between ? rangeHtml('between', r1, r2, !closed) : rangeHtml('outside', r1, r2, !closed),
+                      rangeHtml(between ? 'between' : 'outside', r1 - 1, r2 + 1, closed)];
+        return {
+          stem:'解一元二次不等式 ' + polyHtml([1, b, c]) + ' ' + rel + ' 0 。',
+          choices:shuffleChoices(ans, wrongs),
+          answerHtml:ans,
+          steps:[
+            {eq:polyHtml([1, b, c]) + ' ' + rel + ' 0', why:'x² 的係數已經是正的，可以直接做'},
+            {eq:'( ' + xMinus(r1) + ' )( ' + xMinus(r2) + ' ) ' + rel + ' 0',
+             why:'十字交乘法分解'},
+            {eq:'兩根為 x = ' + r1 + '、x = ' + r2, why:'先求出兩個根'},
+            {eq:between ? '「' + rel + ' 0」⇒ 圖形在 x 軸下方 ⇒ 取兩根之間' : '「' + rel + ' 0」⇒ 圖形在 x 軸上方 ⇒ 取兩根外側',
+             why:'開口向上的拋物線，中間那段在 x 軸下方'},
+            {eq:ans, why:'寫出解'},
+            {eq:parabolaFig(1, b, c, { marks:[{x:r1, y:0, label:String(r1)}, {x:r2, y:0, label:String(r2)}] }),
+             why:'對照圖形就看得出來取哪一段'},
+            {eq:numLineFig({ min:r1 - 3, max:r2 + 3,
+                             segs:between ? [{from:r1, to:r2}] : [{from:null, to:r1}, {from:r2, to:null}],
+                             dots:[{x:r1, open:!closed}, {x:r2, open:!closed}] }),
+             why:'畫在數線上的樣子'}
+          ]
+        };
+      }
+    },
+    {
+      id:'quadIneqSpecial', book:'第1冊', section:'1-4 一元二次不等式', name:'判別式 D ≤ 0 的特殊情形',
+      concept:[
+        '當 D ＝ b² － 4ac ＝ 0，二次式是完全平方，圖形只碰到 x 軸一點。',
+        '當 D ＜ 0，圖形完全在 x 軸上方（a ＞ 0 時），永遠是正的。',
+        '這類題目答案常常是「所有實數」「無實數解」或「只有一個數」，不要硬套兩根的公式。'
+      ],
+      formula:'D = b² － 4ac　；　D = 0 ⇒ 完全平方　，　D ＜ 0 ⇒ 圖形不碰 x 軸',
+      example:function(){ return this.gen({kind:'sq', m:3, rel:'≥'}); },
+      gen:function(fix){
+        var kind = fix ? fix.kind : rndPick(['sq', 'sq', 'neg']);
+        if (kind === 'sq'){
+          var m = fix ? fix.m : rndNonZero(-5, 5);
+          var rel = fix ? fix.rel : rndPick(['≥', '＞', '≤', '＜']);
+          var b = -2 * m, c = m * m;
+          var ansKind = (rel === '≥') ? 'all' : (rel === '＞') ? 'notone' : (rel === '≤') ? 'only' : 'none';
+          var ans = rangeHtml(ansKind, m, m, true);
+          var all4 = [rangeHtml('all'), rangeHtml('notone', m), rangeHtml('only', m), rangeHtml('none')];
+          return {
+            stem:'解一元二次不等式 ' + polyHtml([1, b, c]) + ' ' + rel + ' 0 。',
+            choices:shuffleChoices(ans, all4.filter(function(t){ return t !== ans; })),
+            answerHtml:ans,
+            steps:[
+              {eq:'D = b² － 4ac = (' + b + ')² － 4×1×' + c + ' = 0', why:'先算判別式，D = 0 代表完全平方'},
+              {eq:polyHtml([1, b, c]) + ' = ( x ' + (m < 0 ? '＋ ' + (-m) : '－ ' + m) + ' )²', why:'配成完全平方'},
+              {eq:'平方一定 ≥ 0，而且只有 x = ' + m + ' 時等於 0', why:'這是解題的關鍵'},
+              {eq:'所以「' + rel + ' 0」的解是：' + ans, why:ansKind === 'all' ? '永遠成立' : (ansKind === 'notone' ? '除了讓它等於 0 的那一點以外都成立'
+                   : (ansKind === 'only' ? '只有等於 0 的那一點成立' : '永遠不可能小於 0'))},
+              {eq:parabolaFig(1, b, c, { marks:[{x:m, y:0, label:'x = ' + m}] }), why:'圖形只跟 x 軸相切於一點'}
+            ]
+          };
+        }
+        var h = fix ? fix.h : rndInt(-4, 4);
+        var k = fix ? fix.k : rndInt(1, 8);
+        var rel2 = fix ? fix.rel : rndPick(['＞', '≥', '＜', '≤']);
+        var b2 = -2 * h, c2 = h * h + k;
+        var pos = (rel2 === '＞' || rel2 === '≥');
+        var ans2 = pos ? rangeHtml('all') : rangeHtml('none');
+        return {
+          stem:'解一元二次不等式 ' + polyHtml([1, b2, c2]) + ' ' + rel2 + ' 0 。',
+          choices:shuffleChoices(ans2, [rangeHtml(pos ? 'none' : 'all'), rangeHtml('only', h), rangeHtml('notone', h),
+                                        rangeHtml('between', -k, k, true)]),
+          answerHtml:ans2,
+          steps:[
+            {eq:'D = (' + b2 + ')² － 4×1×' + c2 + ' = ' + (b2 * b2 - 4 * c2) + ' ＜ 0', why:'判別式小於 0 ⇒ 沒有實數根'},
+            {eq:polyHtml([1, b2, c2]) + ' = ( x ' + (h < 0 ? '＋ ' + (-h) : '－ ' + h) + ' )² ＋ ' + k, why:'配方後看得更清楚'},
+            {eq:'平方 ≥ 0，再加 ' + k + ' ⇒ 整個式子恆 ＞ 0', why:'所以圖形完全在 x 軸上方'},
+            {eq:ans2, why:pos ? '不等式永遠成立' : '不等式永遠不成立'},
+            {eq:parabolaFig(1, b2, c2), why:'圖形完全在 x 軸上方，不跟 x 軸相交'}
+          ]
+        };
+      }
+    },
+    {
+      id:'quadIneqInv', book:'第1冊', section:'1-4 一元二次不等式', name:'由解反求不等式的係數',
+      concept:[
+        '若 x² ＋ bx ＋ c ＜ 0 的解是 α ＜ x ＜ β，代表 α、β 就是 x² ＋ bx ＋ c ＝ 0 的兩根。',
+        '根與係數：兩根和 ＝ －b，兩根積 ＝ c。',
+        '若解是「兩段」（x ＜ α 或 x ＞ β），那原來的不等號是 ＞。'
+      ],
+      formula:'兩根 α、β ⇒ b = －( α ＋ β )　，　c = α × β',
+      example:function(){ return this.gen({r1:-3, r2:4, kind:'between'}); },
+      gen:function(fix){
+        var r1, r2, kind;
+        if (fix){ r1 = fix.r1; r2 = fix.r2; kind = fix.kind; }
+        else {
+          do { r1 = rndInt(-6, 6); r2 = rndInt(-6, 6); } while (r1 === r2);
+          if (r1 > r2){ var t = r1; r1 = r2; r2 = t; }
+          kind = rndPick(['between', 'outside']);
+        }
+        var b = -(r1 + r2), c = r1 * r2;
+        var ans = 'b = ' + b + '，c = ' + c;
+        return {
+          stem:'若不等式 x² ＋ bx ＋ c ' + (kind === 'between' ? '＜' : '＞') + ' 0 的解為 ' +
+               (kind === 'between' ? rangeHtml('between', r1, r2, false) : rangeHtml('outside', r1, r2, false)) +
+               '，試求 b、c 之值。',
+          choices:shuffleChoices(ans, ['b = ' + (r1 + r2) + '，c = ' + c,
+                                       'b = ' + b + '，c = ' + (-c),
+                                       'b = ' + c + '，c = ' + b,
+                                       'b = ' + (r1 + r2) + '，c = ' + (-c)]),
+          answerHtml:ans,
+          steps:[
+            {eq:'解的兩個端點 ' + r1 + '、' + r2 + ' 就是 x² ＋ bx ＋ c = 0 的兩根', why:'不等式的分界點＝方程式的根'},
+            {eq:'兩根和 = ' + r1 + ' ＋ ' + (r2 < 0 ? '(' + r2 + ')' : r2) + ' = ' + (r1 + r2) + ' = －b ⇒ b = ' + b, why:'根與係數的關係'},
+            {eq:'兩根積 = ' + r1 + ' × ' + (r2 < 0 ? '(' + r2 + ')' : r2) + ' = ' + c + ' = c', why:'兩根相乘就是常數項'},
+            {eq:'驗算：' + polyHtml([1, b, c]) + ' = ( x ' + (r1 < 0 ? '＋ ' + (-r1) : '－ ' + r1) + ' )( x ' + (r2 < 0 ? '＋ ' + (-r2) : '－ ' + r2) + ' ) ✓',
+             why:'乘回去檢查，解果然是' + (kind === 'between' ? '兩根之間' : '兩根外側')},
+            {eq:ans, why:'寫出答案'}
+          ]
+        };
+      }
+    },
+    {
+      id:'alwaysPos', book:'第1冊', section:'1-4 一元二次不等式', name:'二次式恆正（恆負）求範圍',
+      concept:[
+        'a ＞ 0 且 D ＜ 0 ⇒ 二次式對所有實數 x 都 ＞ 0（圖形完全在 x 軸上方）。',
+        'a ＜ 0 且 D ＜ 0 ⇒ 對所有實數 x 都 ＜ 0（圖形完全在 x 軸下方）。',
+        '所以這種題目就是解「D ＜ 0」這個關於 k 的不等式。'
+      ],
+      formula:'恆正：a ＞ 0 且 D = b² － 4ac ＜ 0',
+      example:function(){ return this.gen({t:3}); },
+      gen:function(fix){
+        var t = fix ? fix.t : rndInt(1, 6);        // c = t²，D ＜ 0 ⇒ －2t ＜ k ＜ 2t
+        var c = t * t;
+        var ans = rangeHtml('between', -2 * t, 2 * t, false, 'k');
+        return {
+          stem:'設 f ( x ) = x² ＋ k x ＋ ' + c + '。若 f ( x ) 對所有實數 x 都恆為正，求 k 的範圍。',
+          choices:shuffleChoices(ans, [rangeHtml('outside', -2 * t, 2 * t, false, 'k'),
+                                       rangeHtml('between', -2 * t, 2 * t, true, 'k'),
+                                       rangeHtml('between', -t, t, false, 'k'),
+                                       rangeHtml('between', -4 * t, 4 * t, false, 'k')]),
+          answerHtml:ans,
+          steps:[
+            {eq:'x² 的係數是 1 ＞ 0 ⇒ 開口向上', why:'開口向上又要恆正，代表圖形不能碰到 x 軸'},
+            {eq:'恆正 ⇒ 判別式 D ＜ 0', why:'沒有實數根＝不跟 x 軸相交'},
+            {eq:'D = k² － 4×1×' + c + ' = k² － ' + (4 * c) + ' ＜ 0', why:'算出判別式'},
+            {eq:'k² ＜ ' + (4 * c) + ' ⇒ | k | ＜ ' + (2 * t), why:'開根號，記得用絕對值'},
+            {eq:ans, why:'絕對值小於 ⇒ 夾在中間'}
+          ]
+        };
+      }
+    },
+
+    /* ---------------- 第1冊 2-3 直線的一般式與點到直線的距離 ---------------- */
+    {
+      id:'genSlope', book:'第1冊', section:'2-3 一般式與點到直線的距離', name:'由一般式求斜率與截距',
+      concept:[
+        '直線的一般式 ax ＋ by ＋ c ＝ 0（a、b 不同時為 0）。',
+        'b ≠ 0 時斜率 m ＝ －a/b；b ＝ 0 時是鉛直線，斜率不存在。',
+        'x 截距：令 y ＝ 0 解出 x；y 截距：令 x ＝ 0 解出 y。'
+      ],
+      formula:'m = －<span class="frac"><span class="num">a</span><span class="den">b</span></span>　，　x 截距 = －<span class="frac"><span class="num">c</span><span class="den">a</span></span>　，　y 截距 = －<span class="frac"><span class="num">c</span><span class="den">b</span></span>',
+      example:function(){ return this.gen({a:1, b:-3, c:2}); },
+      gen:function(fix){
+        var a = fix ? fix.a : rndNonZero(-6, 6);
+        var b = fix ? fix.b : rndNonZero(-6, 6);
+        var c = fix ? fix.c : rndNonZero(-9, 9);
+        var m = ratMake(-a, b), xi = ratMake(-c, a), yi = ratMake(-c, b);
+        var ans = 'm = ' + ratHtml(m) + '，x 截距 = ' + ratHtml(xi) + '，y 截距 = ' + ratHtml(yi);
+        return {
+          stem:'已知直線 L：' + linearExpr(a, b, c) + ' = 0，求 L 的斜率與兩個截距。',
+          choices:shuffleChoices(ans, [
+            'm = ' + ratHtml(ratMake(a, b)) + '，x 截距 = ' + ratHtml(xi) + '，y 截距 = ' + ratHtml(yi),
+            'm = ' + ratHtml(m) + '，x 截距 = ' + ratHtml(yi) + '，y 截距 = ' + ratHtml(xi),
+            'm = ' + ratHtml(ratMake(-b, a)) + '，x 截距 = ' + ratHtml(xi) + '，y 截距 = ' + ratHtml(yi),
+            'm = ' + ratHtml(m) + '，x 截距 = ' + ratHtml(ratMake(c, a)) + '，y 截距 = ' + ratHtml(ratMake(c, b))
+          ]),
+          answerHtml:ans,
+          steps:[
+            {eq:'a = ' + a + '，b = ' + b + '，c = ' + c, why:'先對照一般式 ax ＋ by ＋ c = 0'},
+            {eq:'m = －<span class="frac"><span class="num">a</span><span class="den">b</span></span> = －<span class="frac"><span class="num">' + a + '</span><span class="den">' + b + '</span></span> = ' + ratHtml(m), why:'斜率公式'},
+            {eq:'令 y = 0 ⇒ ' + termStr(a, 'x', true) + termStr(c, '', false) + ' = 0 ⇒ x = ' + ratHtml(xi), why:'求 x 截距'},
+            {eq:'令 x = 0 ⇒ ' + termStr(b, 'y', true) + termStr(c, '', false) + ' = 0 ⇒ y = ' + ratHtml(yi), why:'求 y 截距'},
+            {eq:(function(){
+                 var lim = Math.max(3, Math.ceil(Math.max(Math.abs(ratVal(xi)), Math.abs(ratVal(yi)))) + 2);
+                 return pracFig({ xMin:-lim, xMax:lim, yMin:-lim, yMax:lim, lines:[{a:a, b:b, c:c}],
+                   marks:[{x:ratVal(xi), y:0, label:'x 截距', dy:14}, {x:0, y:ratVal(yi), label:'y 截距', dx:6}] });
+               })(), why:'兩個截距就是跟兩個坐標軸的交點'}
+          ]
+        };
+      }
+    },
+    {
+      id:'paraPerpLine', book:'第1冊', section:'2-3 一般式與點到直線的距離', name:'平行或垂直於已知直線',
+      concept:[
+        '與 ax ＋ by ＋ c ＝ 0 平行的直線可以設成 ax ＋ by ＋ k ＝ 0（只有常數項不一樣）。',
+        '與它垂直的直線可以設成 bx － ay ＋ k ＝ 0（x、y 的係數對調再變號）。',
+        '設好之後把已知的點代進去，就能解出 k。'
+      ],
+      formula:'平行：ax ＋ by ＋ k = 0　　垂直：bx － ay ＋ k = 0　⇒ 代點求 k',
+      example:function(){ return this.gen({a:2, b:-1, c:3, px:1, py:4, kind:'para'}); },
+      gen:function(fix){
+        var a, b, c, px, py, kind;
+        if (fix){ a = fix.a; b = fix.b; c = fix.c; px = fix.px; py = fix.py; kind = fix.kind; }
+        else {
+          a = rndNonZero(-5, 5); b = rndNonZero(-5, 5); c = rndInt(-8, 8);
+          px = rndInt(-6, 6); py = rndInt(-6, 6);
+          kind = rndPick(['para', 'perp']);
+        }
+        var A = (kind === 'para') ? a : b;
+        var B = (kind === 'para') ? b : -a;
+        var k = -(A * px + B * py);
+        var L = lineNormalize(ratMake(A), ratMake(B), ratMake(k));
+        var other = (kind === 'para') ? lineNormalize(ratMake(b), ratMake(-a), ratMake(-(b * px - a * py)))
+                                      : lineNormalize(ratMake(a), ratMake(b), ratMake(-(a * px + b * py)));
+        return {
+          stem:'求通過點 ( ' + px + ' , ' + py + ' ) 且' + (kind === 'para' ? '平行' : '垂直') + '於直線 ' +
+               linearExpr(a, b, c) + ' = 0 的直線方程式（一般式）。',
+          choices:shuffleChoices(lineHtml(L), [lineHtml(other),
+                                               lineHtml(lineNormalize(ratMake(A), ratMake(B), ratMake(-k))),
+                                               lineHtml(lineNormalize(ratMake(A), ratMake(-B), ratMake(k))),
+                                               lineHtml(lineNormalize(ratMake(a), ratMake(b), ratMake(c)))]),
+          answerHtml:lineHtml(L),
+          steps:[
+            {eq:kind === 'para' ? ('平行 ⇒ 可設為 ' + linearExpr(a, b, 0) + ' ＋ k = 0')
+                                : ('垂直 ⇒ 把 x、y 的係數對調再變號，可設為 ' + linearExpr(b, -a, 0) + ' ＋ k = 0'),
+             why:kind === 'para' ? '平行的直線 x、y 係數完全一樣' : '垂直時斜率互為負倒數，係數對調變號最快'},
+            {eq:'把點 ( ' + px + ' , ' + py + ' ) 代入：' + nStr(A) + '×(' + px + ') ＋ ' + nStr(B) + '×(' + py + ') ＋ k = 0', why:'直線要通過這個點'},
+            {eq:'k = ' + k, why:'解出常數項'},
+            {eq:lineHtml(L), why:'整理成一般式（讓 x 的係數為正）'},
+            {eq:(function(){
+                 var lim = Math.max(6, Math.abs(px) + 3, Math.abs(py) + 3);
+                 return pracFig({ xMin:-lim, xMax:lim, yMin:-lim, yMax:lim,
+                   lines:[{a:a, b:b, c:c, dash:true}, {a:L.a, b:L.b, c:L.c}],
+                   marks:[{x:px, y:py, label:'P'}] });
+               })(), why:'虛線是題目給的直線，紅色實線是答案'}
+          ]
+        };
+      }
+    },
+    {
+      id:'ptLineDist', book:'第1冊', section:'2-3 一般式與點到直線的距離', name:'點到直線的距離',
+      concept:[
+        '點 P(x₀, y₀) 到直線 L：ax ＋ by ＋ c ＝ 0 的距離是 |ax₀ ＋ by₀ ＋ c| ÷ √(a² ＋ b²)。',
+        '分子要加絕對值（距離不會是負的），分母是係數平方和開根號。',
+        '算出來若分母有根號，要有理化並化到最簡。'
+      ],
+      formula:'d = <span class="frac"><span class="num">| a x₀ ＋ b y₀ ＋ c |</span><span class="den">√( a² ＋ b² )</span></span>',
+      example:function(){ return this.gen({a:3, b:4, c:1, px:2, py:5}); },
+      gen:function(fix){
+        var a, b, c, px, py;
+        if (fix){ a = fix.a; b = fix.b; c = fix.c; px = fix.px; py = fix.py; }
+        else {
+          do {
+            a = rndNonZero(-5, 5); b = rndNonZero(-5, 5); c = rndInt(-9, 9);
+            px = rndInt(-6, 6); py = rndInt(-6, 6);
+          } while (a * px + b * py + c === 0);
+        }
+        var t = a * px + b * py + c, m = a * a + b * b;
+        var ans = distHtml(t, m);
+        return {
+          stem:'求點 P ( ' + px + ' , ' + py + ' ) 到直線 L：' + linearExpr(a, b, c) + ' = 0 的距離。',
+          choices:shuffleChoices(ans, [distHtml(t, m * 2), distHtml(Math.abs(t) + 1, m),
+                                       distHtml(t, Math.abs(a) + Math.abs(b)), String(Math.abs(t))]),
+          answerHtml:ans,
+          steps:[
+            {eq:'a = ' + a + '，b = ' + b + '，c = ' + c + '，P ( ' + px + ' , ' + py + ' )', why:'先把數字對清楚'},
+            {eq:'分子 = | ' + nStr(a) + '×(' + px + ') ＋ ' + nStr(b) + '×(' + py + ')' + termStr(c, '', false) + ' | = | ' + t + ' | = ' + Math.abs(t),
+             why:'把點代進直線的左邊，再取絕對值'},
+            {eq:'分母 = √( ' + sq2(a) + ' ＋ ' + sq2(b) + ' ) = √' + m + ' = ' + radHtml(m), why:'係數平方和開根號'},
+            {eq:'d = <span class="frac"><span class="num">' + Math.abs(t) + '</span><span class="den">' + radHtml(m) + '</span></span> = ' + ans,
+             why:simpRadical(m).m === 1 ? '分母剛好是整數' : '分母有根號 ⇒ 分子分母同乘 √' + simpRadical(m).m + ' 有理化'},
+            {eq:(function(){
+                 var lim = Math.max(6, Math.abs(px) + 3, Math.abs(py) + 3);
+                 return pracFig({ xMin:-lim, xMax:lim, yMin:-lim, yMax:lim, lines:[{a:a, b:b, c:c}],
+                   segs:[{x1:px, y1:py, x2:px - a * t / m, y2:py - b * t / m, dash:true}],
+                   marks:[{x:px, y:py, label:'P'}] });
+               })(), why:'虛線就是 P 到 L 的垂直距離'}
+          ]
+        };
+      }
+    },
+    {
+      id:'paraDist', book:'第1冊', section:'2-3 一般式與點到直線的距離', name:'兩平行線的距離',
+      concept:[
+        '兩平行線 ax ＋ by ＋ c₁ ＝ 0 與 ax ＋ by ＋ c₂ ＝ 0 的距離是 |c₁ － c₂| ÷ √(a² ＋ b²)。',
+        '使用公式前，兩式的 x、y 係數一定要先化成一樣（必要時先同乘或同除一個數）。',
+        '也可以在其中一條線上隨便取一點，再用點到直線的距離公式算。'
+      ],
+      formula:'d = <span class="frac"><span class="num">| c₁ － c₂ |</span><span class="den">√( a² ＋ b² )</span></span>　（係數要先化成一樣）',
+      example:function(){ return this.gen({a:1, b:-3, c1:3, c2:-7, mul:1}); },
+      gen:function(fix){
+        var a, b, c1, c2, mul;
+        if (fix){ a = fix.a; b = fix.b; c1 = fix.c1; c2 = fix.c2; mul = fix.mul; }
+        else {
+          a = rndNonZero(-5, 5); b = rndNonZero(-5, 5);
+          c1 = rndInt(-9, 9);
+          do { c2 = rndInt(-9, 9); } while (c2 === c1);
+          mul = rndPick([1, 1, 2, 3]);                  // 第二條線的係數先乘上去，讓學生自己化簡
+        }
+        var m = a * a + b * b;
+        var ans = distHtml(c1 - c2, m);
+        return {
+          stem:'求兩平行線 L₁：' + linearExpr(a, b, c1) + ' = 0 與 L₂：' + linearExpr(a * mul, b * mul, c2 * mul) + ' = 0 的距離。',
+          choices:shuffleChoices(ans, [distHtml((c1 - c2) * 2, m), distHtml(c1 + c2, m),
+                                       distHtml(c1 - c2, m * 4), String(Math.abs(c1 - c2))]),
+          answerHtml:ans,
+          steps:[
+            (mul === 1
+              ? {eq:'兩式的 x、y 係數已經一樣了', why:'可以直接套公式'}
+              : {eq:'L₂ 兩邊同除以 ' + mul + ' ⇒ ' + linearExpr(a, b, c2) + ' = 0', why:'係數要先化成跟 L₁ 一樣才能用公式'}),
+            {eq:'c₁ = ' + c1 + '，c₂ = ' + c2, why:'兩個常數項'},
+            {eq:'分子 = | ' + c1 + ' － ' + (c2 < 0 ? '(' + c2 + ')' : c2) + ' | = ' + Math.abs(c1 - c2), why:'兩個常數項相減取絕對值'},
+            {eq:'分母 = √( ' + sq2(a) + ' ＋ ' + sq2(b) + ' ) = ' + radHtml(m), why:'係數平方和開根號'},
+            {eq:'d = ' + ans, why:'有根號就有理化並化到最簡'},
+            {eq:(function(){
+                 var lim = 8;
+                 return pracFig({ xMin:-lim, xMax:lim, yMin:-lim, yMax:lim,
+                   lines:[{a:a, b:b, c:c1}, {a:a, b:b, c:c2, dash:true}] });
+               })(), why:'兩條線平行，距離就是它們之間的垂直間隔'}
+          ]
+        };
+      }
+    },
+    {
+      id:'paraDistK', book:'第1冊', section:'2-3 一般式與點到直線的距離', name:'由平行線距離反求 k',
+      concept:[
+        '先把兩條線的 x、y 係數化成一樣，再用兩平行線距離公式。',
+        '會得到一個含 k 的絕對值方程式，解出來通常有兩個答案（k 在兩側各一個）。',
+        '別忘了絕對值方程式要分成正、負兩種情形。'
+      ],
+      formula:'<span class="frac"><span class="num">| c₁ － c₂ |</span><span class="den">√( a² ＋ b² )</span></span> = d ⇒ | c₁ － c₂ | = d √( a² ＋ b² )',
+      example:function(){ return this.gen({a:3, b:-1, c:5, t:2}); },
+      gen:function(fix){
+        var a, b, c, t;
+        if (fix){ a = fix.a; b = fix.b; c = fix.c; t = fix.t; }
+        else {
+          a = rndNonZero(-4, 4); b = rndNonZero(-4, 4);
+          c = rndInt(-8, 8); t = rndInt(1, 6);
+        }
+        var m = a * a + b * b;
+        // L1：2a x + 2b y = k（係數是 L2 的兩倍），L2：a x + b y = c
+        var k1 = 2 * (c + t), k2 = 2 * (c - t);
+        var ans = 'k = ' + k1 + ' 或 k = ' + k2;
+        return {
+          stem:'兩平行線 ' + linearExpr(2 * a, 2 * b, 0) + ' = k 與 ' + linearExpr(a, b, 0) + ' = ' + c +
+               ' 的距離為 ' + distHtml(t, m) + '，試求 k 之值。',
+          choices:shuffleChoices(ans, ['k = ' + (c + t) + ' 或 k = ' + (c - t),
+                                       'k = ' + k1, 'k = ' + k2,
+                                       'k = ' + (k1 + 1) + ' 或 k = ' + (k2 - 1)]),
+          answerHtml:ans,
+          steps:[
+            {eq:'第一條線兩邊同除以 2 ⇒ ' + linearExpr(a, b, 0) + ' = <span class="frac"><span class="num">k</span><span class="den">2</span></span>',
+             why:'先把係數化成跟第二條一樣'},
+            {eq:'d = <span class="frac"><span class="num">| <span class="frac"><span class="num">k</span><span class="den">2</span></span> － ' + c +
+                ' |</span><span class="den">' + radHtml(m) + '</span></span> = ' + distHtml(t, m), why:'套兩平行線距離公式'},
+            {eq:'| <span class="frac"><span class="num">k</span><span class="den">2</span></span> － ' + c + ' | = ' + t, why:'兩邊同乘分母，把根號約掉'},
+            {eq:'<span class="frac"><span class="num">k</span><span class="den">2</span></span> － ' + c + ' = ' + t + ' 或 = －' + t, why:'絕對值方程式要分兩種情形'},
+            {eq:ans, why:'兩邊同乘 2，得到兩個答案'}
+          ]
+        };
+      }
+    },
+
+    /* ---------------- 第1冊 3-1 多項式的基本概念與四則運算 ---------------- */
+    {
+      id:'polyCoefSum', book:'第1冊', section:'3-1 多項式與四則運算', name:'多項式的係數和與常數項',
+      concept:[
+        '把 x ＝ 1 代進去，得到的就是「所有項係數的總和」。',
+        '把 x ＝ 0 代進去，得到的就是「常數項」。',
+        '偶次項係數和 ＝ [ f(1) ＋ f(－1) ] ÷ 2，奇次項係數和 ＝ [ f(1) － f(－1) ] ÷ 2。'
+      ],
+      formula:'係數總和 = f ( 1 )　，　常數項 = f ( 0 )',
+      example:function(){ return this.gen({a:2, b:-3, c:1, n:3}); },
+      gen:function(fix){
+        var a = fix ? fix.a : rndNonZero(-3, 3);
+        var b = fix ? fix.b : rndNonZero(-4, 4);
+        var c = fix ? fix.c : rndNonZero(-4, 4);
+        var n = fix ? fix.n : rndInt(2, 4);
+        var s = Math.pow(a + b + c, n), k = Math.pow(c, n);
+        var ans = '係數和 = ' + s + '，常數項 = ' + k;
+        var body = '( ' + polyHtml([a, b, c]) + ' )' + ['', '', '²', '³', '⁴'][n];
+        return {
+          stem:'設 f ( x ) = ' + body + '，求 f ( x ) 展開後的「所有項係數總和」與「常數項」。',
+          choices:shuffleChoices(ans, ['係數和 = ' + k + '，常數項 = ' + s,
+                                       '係數和 = ' + (a + b + c) * n + '，常數項 = ' + (c * n),
+                                       '係數和 = ' + s + '，常數項 = ' + (c * n),
+                                       '係數和 = ' + Math.pow(a - b + c, n) + '，常數項 = ' + k]),
+          answerHtml:ans,
+          steps:[
+            {eq:'係數總和 = f ( 1 )', why:'把 x = 1 代進去，每個 xⁿ 都變成 1，剩下的就是係數相加'},
+            {eq:'f ( 1 ) = ( ' + a + ' ＋ ' + (b < 0 ? '(' + b + ')' : b) + ' ＋ ' + (c < 0 ? '(' + c + ')' : c) + ' )' + ['', '', '²', '³', '⁴'][n] +
+                ' = ( ' + (a + b + c) + ' )' + ['', '', '²', '³', '⁴'][n] + ' = ' + s, why:'代入計算'},
+            {eq:'常數項 = f ( 0 )', why:'把 x = 0 代進去，只剩常數項'},
+            {eq:'f ( 0 ) = ( ' + c + ' )' + ['', '', '²', '³', '⁴'][n] + ' = ' + k, why:'代入計算'},
+            {eq:ans, why:'不用真的展開，代值最快'}
+          ]
+        };
+      }
+    },
+    {
+      id:'polyEqual', book:'第1冊', section:'3-1 多項式與四則運算', name:'多項式相等（恆等式）求係數',
+      concept:[
+        '兩個多項式相等（對所有 x 都成立），代表「同次項的係數必須相等」。',
+        '也可以用「代特別的值」的技巧：代 x ＝ 1、0、－1 等等，可以快速解出係數。',
+        '這題代 x ＝ 1 可以馬上得到 c，再展開比較係數就能得到 a、b。'
+      ],
+      formula:'恆等式 ⇒ 同次項係數相等（或代特別的 x 值去解）',
+      example:function(){ return this.gen({a:2, b:-1, c:3}); },
+      gen:function(fix){
+        var a = fix ? fix.a : rndNonZero(-4, 4);
+        var b = fix ? fix.b : rndInt(-5, 5);
+        var c = fix ? fix.c : rndInt(-5, 5);
+        // a(x-1)² + b(x-1) + c = a x² + (b-2a) x + (a - b + c)
+        var A = a, B = b - 2 * a, C = a - b + c;
+        var ans = 'a = ' + a + '，b = ' + b + '，c = ' + c;
+        return {
+          stem:'若 a ( x － 1 )² ＋ b ( x － 1 ) ＋ c = ' + polyHtml([A, B, C]) + ' 對所有實數 x 都成立，求 a、b、c 之值。',
+          choices:shuffleChoices(ans, ['a = ' + A + '，b = ' + B + '，c = ' + C,
+                                       'a = ' + c + '，b = ' + b + '，c = ' + a,
+                                       'a = ' + a + '，b = ' + (-b) + '，c = ' + c,
+                                       'a = ' + a + '，b = ' + b + '，c = ' + C]),
+          answerHtml:ans,
+          steps:[
+            {eq:'代 x = 1：左邊 = c，右邊 = ' + A + ' ＋ ' + (B < 0 ? '(' + B + ')' : B) + ' ＋ ' + (C < 0 ? '(' + C + ')' : C) + ' = ' + c,
+             why:'代 x = 1 時 ( x － 1 ) 都變 0，馬上得到 c'},
+            {eq:'比較 x² 的係數：a = ' + A, why:'左邊展開後 x² 的係數就是 a'},
+            {eq:'比較 x 的係數：b － 2a = ' + B + ' ⇒ b = ' + B + ' ＋ 2×' + a + ' = ' + b, why:'展開 a(x－1)² 會多出 －2a x'},
+            {eq:ans, why:'三個係數都求出來了'},
+            {eq:'檢查常數項：a － b ＋ c = ' + a + ' － ' + (b < 0 ? '(' + b + ')' : b) + ' ＋ ' + (c < 0 ? '(' + c + ')' : c) + ' = ' + C + ' ✓',
+             why:'用沒用到的那一項驗算'}
+          ]
+        };
+      }
+    },
+    {
+      id:'polyMul', book:'第1冊', section:'3-1 多項式與四則運算', name:'多項式乘法求指定項的係數',
+      concept:[
+        '要求展開式中某一項的係數，不必整個乘開，只要找出「相乘之後會變成那一項」的組合。',
+        '例如求 x² 的係數：把兩個多項式中「次數加起來等於 2」的項配對相乘再相加。',
+        '這招在次數高的時候特別省時間。'
+      ],
+      formula:'x<sup>k</sup> 的係數 = Σ（次數相加等於 k 的那些項的係數乘積）',
+      example:function(){ return this.gen({a:2, b:-1, c:3, d:1, e:4, f:-2}); },
+      gen:function(fix){
+        var a, b, c, d, e, f;
+        if (fix){ a = fix.a; b = fix.b; c = fix.c; d = fix.d; e = fix.e; f = fix.f; }
+        else {
+          a = rndNonZero(-4, 4); b = rndInt(-5, 5); c = rndInt(-5, 5);
+          d = rndNonZero(-4, 4); e = rndInt(-5, 5); f = rndInt(-5, 5);
+        }
+        // (a x² + b x + c)(d x² + e x + f) 的 x² 係數 = a f + b e + c d
+        var k = a * f + b * e + c * d;
+        return {
+          stem:'求 ( ' + polyHtml([a, b, c]) + ' )( ' + polyHtml([d, e, f]) + ' ) 展開後 x² 項的係數。',
+          choices:shuffleChoices(String(k), [String(a * d), String(c * f), String(a * e + b * d), String(k + a)]),
+          answerHtml:String(k),
+          steps:[
+            {eq:'會變成 x² 的組合有三種：x²×常數、x×x、常數×x²', why:'次數相加要等於 2'},
+            {eq:'x² × 常數：' + a + ' × ' + (f < 0 ? '(' + f + ')' : f) + ' = ' + (a * f), why:'第一式的 x² 配第二式的常數項'},
+            {eq:'x × x：' + (b < 0 ? '(' + b + ')' : b) + ' × ' + (e < 0 ? '(' + e + ')' : e) + ' = ' + (b * e), why:'兩個一次項相乘'},
+            {eq:'常數 × x²：' + (c < 0 ? '(' + c + ')' : c) + ' × ' + d + ' = ' + (c * d), why:'第一式的常數配第二式的 x²'},
+            {eq:'係數 = ' + (a * f) + ' ＋ ' + ((b * e) < 0 ? '(' + (b * e) + ')' : (b * e)) + ' ＋ ' + ((c * d) < 0 ? '(' + (c * d) + ')' : (c * d)) + ' = ' + k,
+             why:'三個加起來就是 x² 的係數'}
+          ]
+        };
+      }
+    },
+    {
+      id:'synDiv', book:'第1冊', section:'3-1 多項式與四則運算', name:'綜合除法求商式與餘式',
+      concept:[
+        '以 x － a 除多項式時，可以用綜合除法：把係數排好，一路「乘 a 再相加」。',
+        '最後一個數是餘式，前面的數就是商式的係數（次數比原來少一次）。',
+        '如果除式是 px － q，先用 x － q/p 做綜合除法，最後商式還要再除以 p。'
+      ],
+      formula:'以 x － a 除 ⇒ 綜合除法：下一個數 = 上一個結果 × a ＋ 本項係數',
+      example:function(){ return this.gen({a:2, q2:1, q1:-3, q0:4, r:5}); },
+      gen:function(fix){
+        var a, q2, q1, q0, r;
+        if (fix){ a = fix.a; q2 = fix.q2; q1 = fix.q1; q0 = fix.q0; r = fix.r; }
+        else {
+          a = rndNonZero(-4, 4); q2 = rndNonZero(-3, 3);
+          q1 = rndInt(-6, 6); q0 = rndInt(-6, 6); r = rndInt(-9, 9);
+        }
+        // f(x) = (x - a)(q2 x² + q1 x + q0) + r
+        var c3 = q2, c2 = q1 - a * q2, c1 = q0 - a * q1, c0 = r - a * q0;
+        var quo = polyHtml([q2, q1, q0]);
+        var ans = '商式 ' + quo + '，餘式 ' + r;
+        return {
+          stem:'用綜合除法求 ' + polyHtml([c3, c2, c1, c0]) + ' 除以 ( x ' + (a < 0 ? '＋ ' + (-a) : '－ ' + a) + ' ) 的商式與餘式。',
+          choices:shuffleChoices(ans, ['商式 ' + quo + '，餘式 ' + (-r),
+                                       '商式 ' + polyHtml([q2, q1, r]) + '，餘式 ' + q0,
+                                       '商式 ' + polyHtml([q2, -q1, q0]) + '，餘式 ' + r,
+                                       '商式 ' + polyHtml([c3, c2, c1]) + '，餘式 ' + c0]),
+          answerHtml:ans,
+          steps:[
+            {eq:'除式是 x ' + (a < 0 ? '＋ ' + (-a) : '－ ' + a) + ' ⇒ 綜合除法用 a = ' + a, why:'注意符號：x － a 的 a 要變號取出來'},
+            {eq:'係數排好：' + c3 + '　' + c2 + '　' + c1 + '　' + c0, why:'缺項要補 0'},
+            {eq:c3 + ' × ' + a + ' ＋ ' + c2 + ' = ' + q1 + '　；　' + q1 + ' × ' + a + ' ＋ ' + c1 + ' = ' + q0,
+             why:'一路「乘 ' + a + ' 再相加」'},
+            {eq:q0 + ' × ' + a + ' ＋ ' + c0 + ' = ' + r + ' ← 這個就是餘式', why:'最後一個數是餘式'},
+            {eq:ans, why:'前面三個數 ' + q2 + '、' + q1 + '、' + q0 + ' 就是商式的係數（降一次）'},
+            {eq:'驗算：( x ' + (a < 0 ? '＋ ' + (-a) : '－ ' + a) + ' )( ' + quo + ' ) ＋ ' + r + ' = ' + polyHtml([c3, c2, c1, c0]) + ' ✓',
+             why:'被除式 = 除式 × 商式 ＋ 餘式'}
+          ]
+        };
+      }
+    },
+
+    /* ---------------- 第1冊 3-2 除法原理與餘式定理 ---------------- */
+    {
+      id:'divPrinciple', book:'第1冊', section:'3-2 除法原理與餘式定理', name:'除法原理',
+      concept:[
+        '除法原理：被除式 ＝ 除式 × 商式 ＋ 餘式。',
+        '餘式的次數一定要比除式低（除式是二次，餘式最多一次）。',
+        '題目給了除式、商式、餘式，直接乘回去再加就能還原被除式。'
+      ],
+      formula:'f ( x ) = g ( x ) × q ( x ) ＋ r ( x )　，　deg r ＜ deg g',
+      example:function(){ return this.gen({g1:-2, g0:1, q1:1, q0:3, r1:0, r0:2}); },
+      gen:function(fix){
+        var g1, g0, q1, q0, r1, r0;
+        if (fix){ g1 = fix.g1; g0 = fix.g0; q1 = fix.q1; q0 = fix.q0; r1 = fix.r1; r0 = fix.r0; }
+        else {
+          g1 = rndInt(-5, 5); g0 = rndInt(-5, 5);
+          q1 = rndNonZero(-4, 4); q0 = rndInt(-6, 6);
+          r1 = rndInt(-5, 5); r0 = rndInt(-6, 6);
+        }
+        // g(x) = x² + g1 x + g0 ，q(x) = q1 x + q0 ，r(x) = r1 x + r0
+        var f3 = q1, f2 = q0 + g1 * q1, f1 = g1 * q0 + g0 * q1 + r1, f0 = g0 * q0 + r0;
+        var gH = polyHtml([1, g1, g0]), qH = polyHtml([q1, q0]), rH = polyHtml([r1, r0]);
+        var ans = polyHtml([f3, f2, f1, f0]);
+        return {
+          stem:'多項式 f ( x ) 除以 ' + gH + ' 得商式 ' + qH + '、餘式 ' + rH + '，求 f ( x )。',
+          choices:shuffleChoices(ans, [polyHtml([f3, f2, f1 - r1, f0 - r0]),
+                                       polyHtml([f3, f2, f1 + r1, f0 + r0]),
+                                       polyHtml([q1, q0 + g1, g0, r0]),
+                                       polyHtml([f3, f2, f0, f1])]),
+          answerHtml:ans,
+          steps:[
+            {eq:'f ( x ) = 除式 × 商式 ＋ 餘式', why:'除法原理'},
+            {eq:'= ( ' + gH + ' )( ' + qH + ' ) ＋ ( ' + rH + ' )', why:'把題目給的三個式子放進去'},
+            {eq:'先乘開：( ' + gH + ' )( ' + qH + ' ) = ' + polyHtml([f3, f2, g1 * q0 + g0 * q1, g0 * q0]), why:'逐項相乘再合併'},
+            {eq:'再加上餘式 ' + rH + ' ⇒ ' + ans, why:'一次項與常數項要再加上餘式'},
+            {eq:'檢查：餘式 ' + rH + ' 的次數比除式（二次）低 ✓', why:'餘式次數一定要比除式低'}
+          ]
+        };
+      }
+    },
+    {
+      id:'remTheorem', book:'第1冊', section:'3-2 除法原理與餘式定理', name:'餘式定理',
+      concept:[
+        '餘式定理：f ( x ) 除以 ( x － a ) 的餘式就是 f ( a )。',
+        '因為 f(x) = (x－a)q(x) + r，把 x ＝ a 代進去，前面那一項變 0，只剩 r。',
+        '所以求餘式不用真的做除法，代一個數進去就好。'
+      ],
+      formula:'f ( x ) ÷ ( x － a ) 的餘式 = f ( a )',
+      example:function(){ return this.gen({c3:1, c2:-2, c1:5, c0:-3, a:2}); },
+      gen:function(fix){
+        var c3, c2, c1, c0, a;
+        if (fix){ c3 = fix.c3; c2 = fix.c2; c1 = fix.c1; c0 = fix.c0; a = fix.a; }
+        else {
+          c3 = rndNonZero(-3, 3); c2 = rndInt(-6, 6); c1 = rndInt(-6, 6); c0 = rndInt(-9, 9);
+          a = rndNonZero(-4, 4);
+        }
+        var r = c3 * a * a * a + c2 * a * a + c1 * a + c0;
+        return {
+          stem:'求 f ( x ) = ' + polyHtml([c3, c2, c1, c0]) + ' 除以 ( x ' + (a < 0 ? '＋ ' + (-a) : '－ ' + a) + ' ) 的餘式。',
+          choices:shuffleChoices(String(r), [String(c3 * (-a) * a * a + c2 * a * a - c1 * a + c0),
+                                             String(r - c0), String(c0), String(r + a)]),
+          answerHtml:String(r),
+          steps:[
+            {eq:'除式是 x ' + (a < 0 ? '＋ ' + (-a) : '－ ' + a) + ' ⇒ 令它等於 0 得 x = ' + a, why:'餘式定理要代的就是這個數'},
+            {eq:'餘式 = f ( ' + a + ' )', why:'f(x) = (x－a)q(x) ＋ r，代 x = a 後只剩 r'},
+            {eq:'f ( ' + a + ' ) = ' + c3 + '×(' + a + ')³ ＋ ' + c2 + '×(' + a + ')² ＋ ' + c1 + '×(' + a + ')' + termStr(c0, '', false),
+             why:'把 x = ' + a + ' 代進去'},
+            {eq:'= ' + (c3 * a * a * a) + ' ＋ ' + (c2 * a * a) + ' ＋ ' + (c1 * a) + ' ＋ ' + c0 + ' = ' + r, why:'算出來就是餘式'}
+          ]
+        };
+      }
+    },
+    {
+      id:'remLinear', book:'第1冊', section:'3-2 除法原理與餘式定理', name:'以 ax － b 除的餘式',
+      concept:[
+        '除式是 px － q 時，先令 px － q ＝ 0 得 x ＝ q / p。',
+        '餘式仍然是把這個數代進 f ( x )：餘式 ＝ f ( q / p )。',
+        '（注意：商式會差一個 p 倍，但「餘式」不受影響。）'
+      ],
+      formula:'f ( x ) ÷ ( p x － q ) 的餘式 = f ( <span class="frac"><span class="num">q</span><span class="den">p</span></span> )',
+      example:function(){ return this.gen({c3:16, c2:8, c1:-2, c0:1, p:2, q:1}); },
+      gen:function(fix){
+        var c3, c2, c1, c0, p, q;
+        if (fix){ c3 = fix.c3; c2 = fix.c2; c1 = fix.c1; c0 = fix.c0; p = fix.p; q = fix.q; }
+        else {
+          p = rndPick([2, 2, 3]); q = rndNonZero(-3, 3);
+          c3 = rndNonZero(-8, 8); c2 = rndInt(-8, 8); c1 = rndInt(-8, 8); c0 = rndInt(-9, 9);
+          while (gcdInt(p, q) !== 1) q = rndNonZero(-3, 3);
+        }
+        var num = c3 * q * q * q + c2 * q * q * p + c1 * q * p * p + c0 * p * p * p;
+        var r = ratMake(num, p * p * p);
+        var ans = ratHtml(r);
+        return {
+          stem:'求 f ( x ) = ' + polyHtml([c3, c2, c1, c0]) + ' 除以 ( ' + polyHtml([p, -q]) + ' ) 的餘式。',
+          choices:shuffleChoices(ans, [ratHtml(ratNeg(r)), String(c0), ratHtml(ratMake(num, p)), ratHtml(ratMake(num + 1, p * p * p))]),
+          answerHtml:ans,
+          steps:[
+            {eq:polyHtml([p, -q]) + ' = 0 ⇒ x = ' + ratHtml(ratMake(q, p)), why:'先解出讓除式等於 0 的 x'},
+            {eq:'餘式 = f ( ' + ratHtml(ratMake(q, p)) + ' )', why:'餘式定理（除式是一次式就可以這樣用）'},
+            {eq:'= ' + c3 + '×(' + ratHtml(ratMake(q, p)) + ')³ ＋ ' + c2 + '×(' + ratHtml(ratMake(q, p)) + ')² ＋ ' + c1 + '×(' + ratHtml(ratMake(q, p)) + ')' + termStr(c0, '', false),
+             why:'代進去算'},
+            {eq:'= ' + ans, why:'分數要算到最簡'}
+          ]
+        };
+      }
+    },
+    {
+      id:'remTwo', book:'第1冊', section:'3-2 除法原理與餘式定理', name:'以二次式除求餘式',
+      concept:[
+        '除以二次式 ( x － a )( x － b ) 時，餘式最多是一次式，可以設成 r ( x ) ＝ mx ＋ n。',
+        '寫成 f ( x ) ＝ ( x － a )( x － b ) q ( x ) ＋ mx ＋ n。',
+        '分別代 x ＝ a、x ＝ b，前面那一項都變 0，就得到兩個方程式解 m、n。'
+      ],
+      formula:'設餘式 = mx ＋ n ⇒ 代 x = a、x = b 解聯立',
+      example:function(){ return this.gen({a:1, b:-2, p:5, q:-4}); },
+      gen:function(fix){
+        var a, b, p, q;
+        if (fix){ a = fix.a; b = fix.b; p = fix.p; q = fix.q; }
+        else {
+          do { a = rndInt(-4, 4); b = rndInt(-4, 4); } while (a === b);
+          do { p = rndInt(-9, 9); q = rndInt(-9, 9); } while (p === q || (p - q) % (a - b) !== 0);
+        }
+        var m = (p - q) / (a - b), n = p - m * a;
+        var ans = polyHtml([m, n]);
+        return {
+          stem:'多項式 f ( x ) 除以 ( ' + xMinus(a) + ' ) 的餘式為 ' + p +
+               '，除以 ( ' + xMinus(b) + ' ) 的餘式為 ' + q +
+               '，求 f ( x ) 除以 ( ' + xMinus(a) + ' )( ' + xMinus(b) + ' ) 的餘式。',
+          choices:shuffleChoices(ans, [polyHtml([n, m]), polyHtml([-m, n]), polyHtml([m, -n]), String(p + q)]),
+          answerHtml:ans,
+          steps:[
+            {eq:'設餘式為 r ( x ) = mx ＋ n', why:'除式是二次，餘式最多一次'},
+            {eq:'f ( x ) = ( ' + xMinus(a) + ' )( ' + xMinus(b) + ' ) q ( x ) ＋ mx ＋ n', why:'寫出除法原理'},
+            {eq:'代 x = ' + a + '：f ( ' + a + ' ) = ' + m + 'a… ⇒ ' + a + 'm ＋ n = ' + p, why:'前面那一項變 0，而 f(' + a + ') 就是第一個餘式'},
+            {eq:'代 x = ' + b + '：' + b + 'm ＋ n = ' + q, why:'同理得到第二個式子'},
+            {eq:'兩式相減：' + (a - b) + 'm = ' + (p - q) + ' ⇒ m = ' + m + '，n = ' + n, why:'解聯立方程組'},
+            {eq:'故餘式為 ' + ans, why:'寫出一次式'}
+          ]
+        };
+      }
+    },
+    {
+      id:'factorTheorem', book:'第1冊', section:'3-2 除法原理與餘式定理', name:'因式定理求未知係數',
+      concept:[
+        '因式定理：( x － a ) 是 f ( x ) 的因式 ⇔ f ( a ) ＝ 0。',
+        '「整除」「是因式」「餘式為 0」講的是同一件事。',
+        '把 x ＝ a 代進去令它等於 0，就能解出未知的係數。'
+      ],
+      formula:'( x － a ) 整除 f ( x ) ⇔ f ( a ) = 0',
+      example:function(){ return this.gen({a:2, c3:3, c2:-2, c0:-2}); },
+      gen:function(fix){
+        var a, c3, c2, c0;
+        if (fix){ a = fix.a; c3 = fix.c3; c2 = fix.c2; c0 = fix.c0; }
+        else {
+          do {
+            a = rndNonZero(-4, 4);
+            c3 = rndNonZero(-4, 4); c2 = rndInt(-6, 6); c0 = rndInt(-9, 9);
+          } while ((c3 * a * a * a + c2 * a * a + c0) % a !== 0);
+        }
+        var m = -(c3 * a * a * a + c2 * a * a + c0) / a;
+        return {
+          stem:'已知 ( x ' + (a < 0 ? '＋ ' + (-a) : '－ ' + a) + ' ) 整除 f ( x ) = ' +
+               termStr(c3, 'x³', true) + termStr(c2, 'x²', false) + ' ＋ m x' + termStr(c0, '', false) + '，求 m 之值。',
+          choices:shuffleChoices(String(m), [String(-m), String(m + a), String(m * a), String(c0)]),
+          answerHtml:String(m),
+          steps:[
+            {eq:'( x ' + (a < 0 ? '＋ ' + (-a) : '－ ' + a) + ' ) 整除 f ( x ) ⇒ f ( ' + a + ' ) = 0', why:'因式定理'},
+            {eq:'f ( ' + a + ' ) = ' + c3 + '×(' + a + ')³ ＋ ' + c2 + '×(' + a + ')² ＋ m×(' + a + ')' + termStr(c0, '', false) + ' = 0', why:'把 x = ' + a + ' 代進去'},
+            {eq:(c3 * a * a * a) + ' ＋ ' + (c2 * a * a) + ' ＋ ' + a + 'm ＋ ' + c0 + ' = 0', why:'整理數字'},
+            {eq:a + 'm = ' + (-(c3 * a * a * a + c2 * a * a + c0)) + ' ⇒ m = ' + m, why:'解出 m'}
+          ]
+        };
+      }
+    },
+
+    /* ---------------- 第1冊 3-3 因式分解與分式 ---------------- */
+    {
+      id:'expandFormula', book:'第1冊', section:'3-3 因式分解與分式', name:'乘法公式的展開',
+      concept:[
+        '完全平方：( a ＋ b )² ＝ a² ＋ 2ab ＋ b²；( a － b )² ＝ a² － 2ab ＋ b²。',
+        '平方差：( a ＋ b )( a － b ) ＝ a² － b²，中間項會消掉。',
+        '完全立方：( a ＋ b )³ ＝ a³ ＋ 3a²b ＋ 3ab² ＋ b³。'
+      ],
+      formula:'( a ± b )² = a² ± 2ab ＋ b²　；　( a ＋ b )( a － b ) = a² － b²　；　( a ± b )³ = a³ ± 3a²b ＋ 3ab² ± b³',
+      example:function(){ return this.gen({kind:'sq', a:3, b:-2}); },
+      gen:function(fix){
+        var kind = fix ? fix.kind : rndPick(['sq', 'sq', 'diff', 'cube']);
+        var a = fix ? fix.a : rndInt(1, 5);
+        var b = fix ? fix.b : rndNonZero(-6, 6);
+        if (kind === 'diff'){
+          var stemD = '( ' + polyHtml([a, b]) + ' )( ' + polyHtml([a, -b]) + ' )';
+          var ansD = polyHtml([a * a, 0, -b * b]);
+          return {
+            stem:'展開 ' + stemD + ' 。',
+            choices:shuffleChoices(ansD, [polyHtml([a * a, 0, b * b]), polyHtml([a * a, 2 * a * b, -b * b]),
+                                          polyHtml([a * a, -2 * a * b, b * b]), polyHtml([a, 0, -b])]),
+            answerHtml:ansD,
+            steps:[
+              {eq:'這是平方差公式 ( A ＋ B )( A － B ) = A² － B²', why:'兩個括號只差中間的正負號'},
+              {eq:'A = ' + (a === 1 ? 'x' : a + 'x') + '，B = ' + Math.abs(b), why:'對照公式找出 A、B'},
+              {eq:'A² = ' + (a * a) + 'x²，B² = ' + (b * b), why:'各自平方'},
+              {eq:ansD, why:'中間項相消，只剩 A² － B²'}
+            ]
+          };
+        }
+        if (kind === 'cube'){
+          var ansC = polyHtml([1, 3 * b, 3 * b * b, b * b * b]);
+          return {
+            stem:'展開 ( x ' + (b < 0 ? '－ ' + (-b) : '＋ ' + b) + ' )³ 。',
+            choices:shuffleChoices(ansC, [polyHtml([1, b, b * b, b * b * b]),
+                                          polyHtml([1, 3 * b, 3 * b * b, -b * b * b]),
+                                          polyHtml([1, 2 * b, b * b, 0]),
+                                          polyHtml([1, 3 * b * b, 3 * b, b * b * b])]),
+            answerHtml:ansC,
+            steps:[
+              {eq:'( a ＋ b )³ = a³ ＋ 3a²b ＋ 3ab² ＋ b³', why:'完全立方公式'},
+              {eq:'a = x，b = ' + b, why:'對照公式'},
+              {eq:'3a²b = 3×x²×(' + b + ') = ' + (3 * b) + 'x²　；　3ab² = 3×x×(' + b + ')² = ' + (3 * b * b) + 'x', why:'中間兩項'},
+              {eq:'b³ = (' + b + ')³ = ' + (b * b * b), why:'常數項'},
+              {eq:ansC, why:'合起來就是答案'}
+            ]
+          };
+        }
+        var sign = (b >= 0) ? 1 : -1;
+        var ansS = polyHtml([a * a, 2 * a * b, b * b]);
+        return {
+          stem:'展開 ( ' + polyHtml([a, b]) + ' )² 。',
+          choices:shuffleChoices(ansS, [polyHtml([a * a, a * b, b * b]),
+                                        polyHtml([a * a, 2 * a * b, -b * b]),
+                                        polyHtml([a * a, 0, b * b]),
+                                        polyHtml([a, 2 * a * b, b * b])]),
+          answerHtml:ansS,
+          steps:[
+            {eq:'( a ' + (sign > 0 ? '＋' : '－') + ' b )² = a² ' + (sign > 0 ? '＋' : '－') + ' 2ab ＋ b²', why:'完全平方公式'},
+            {eq:'a = ' + (a === 1 ? 'x' : a + 'x') + '，b = ' + Math.abs(b), why:'對照公式找出 a、b'},
+            {eq:'a² = ' + (a * a) + 'x²　；　2ab = 2×' + a + '×(' + b + ') = ' + (2 * a * b) + '（x 項）　；　b² = ' + (b * b), why:'三項各自算'},
+            {eq:ansS, why:'中間項最容易漏掉 2 倍，要特別小心'}
+          ]
+        };
+      }
+    },
+    {
+      id:'factorGroup', book:'第1冊', section:'3-3 因式分解與分式', name:'提公因式與分組分解',
+      concept:[
+        '每一項都有的共同因式先提出來。',
+        '沒有共同因式時，把式子「適當分組」，讓每一組各自提完公因式後出現相同的括號。',
+        '最後再把那個共同的括號提出來。'
+      ],
+      formula:'x³ ＋ p x² ＋ q x ＋ pq = x² ( x ＋ p ) ＋ q ( x ＋ p ) = ( x ＋ p )( x² ＋ q )',
+      example:function(){ return this.gen({p:3, q:-4}); },
+      gen:function(fix){
+        var p = fix ? fix.p : rndNonZero(-5, 5);
+        var q = fix ? fix.q : rndNonZero(-6, 6);
+        var poly = polyHtml([1, p, q, p * q]);
+        var ans = '( ' + xMinus(-p) + ' )( x²' + termStr(q, '', false) + ' )';
+        return {
+          stem:'因式分解 ' + poly + ' 。',
+          choices:shuffleChoices(ans, [
+            '( ' + xMinus(p) + ' )( x²' + termStr(q, '', false) + ' )',
+            '( ' + xMinus(-p) + ' )( x²' + termStr(-q, '', false) + ' )',
+            '( x²' + termStr(p, '', false) + ' )( x' + termStr(q, '', false) + ' )',
+            '( ' + xMinus(-p) + ' )²( x' + termStr(q, '', false) + ' )'
+          ]),
+          answerHtml:ans,
+          steps:[
+            {eq:'四項沒有共同因式 ⇒ 試著分成兩組：( x³' + termStr(p, 'x²', false) + ' ) ＋ ( ' + polyHtml([q, p * q]) + ' )', why:'前兩項一組、後兩項一組'},
+            {eq:'前一組提 x²：x² ( ' + xMinus(-p) + ' )', why:'提出共同的 x²'},
+            {eq:'後一組提 ' + q + '：' + (q < 0 ? '(' + q + ')' : q) + ' ( ' + xMinus(-p) + ' )', why:'提出共同的 ' + q},
+            {eq:'兩組都出現 ( ' + xMinus(-p) + ' ) ⇒ 再提一次', why:'這就是分組分解的關鍵'},
+            {eq:ans, why:'完成因式分解'}
+          ]
+        };
+      }
+    },
+    {
+      id:'fracMul', book:'第1冊', section:'3-3 因式分解與分式', name:'分式的乘除化簡',
+      concept:[
+        '分式化簡的第一步永遠是「上下都先因式分解」。',
+        '除以一個分式 ＝ 乘以它的倒數。',
+        '約分時只能約「整個因式」，不能只約其中一部分。'
+      ],
+      formula:'先因式分解 ⇒ 除法改成乘倒數 ⇒ 約掉相同的因式',
+      example:function(){ return this.gen({a:2, b:3, c:-2, d:5, e:-1, f:4}); },
+      gen:function(fix){
+        var a, b, c, d, e, f;
+        if (fix){ a = fix.a; b = fix.b; c = fix.c; d = fix.d; e = fix.e; f = fix.f; }
+        else {
+          var pool = [];
+          while (pool.length < 6){
+            var v = rndNonZero(-6, 6);
+            if (pool.indexOf(v) === -1) pool.push(v);
+          }
+          a = pool[0]; b = pool[1]; c = pool[2]; d = pool[3]; e = pool[4]; f = pool[5];
+        }
+        function q(u, v){ return polyHtml([1, u + v, u * v]); }
+        function lin(u){ return 'x ' + (u < 0 ? '－ ' + (-u) : '＋ ' + u); }
+        function frac(n, dn){ return '<span class="frac"><span class="num">' + n + '</span><span class="den">' + dn + '</span></span>'; }
+        var expr = frac(q(a, b), q(c, d)) + ' × ' + frac(q(c, e), q(a, f));   // 四個二次式都可因式分解
+        var ans = frac('( ' + lin(b) + ' )( ' + lin(e) + ' )', '( ' + lin(d) + ' )( ' + lin(f) + ' )');
+        return {
+          stem:'化簡 ' + expr + ' 。',
+          choices:shuffleChoices(ans, [
+            frac('( ' + lin(d) + ' )( ' + lin(f) + ' )', '( ' + lin(b) + ' )( ' + lin(e) + ' )'),
+            frac('( ' + lin(a) + ' )( ' + lin(c) + ' )', '( ' + lin(d) + ' )( ' + lin(f) + ' )'),
+            frac('( ' + lin(b) + ' )( ' + lin(f) + ' )', '( ' + lin(d) + ' )( ' + lin(e) + ' )'),
+            frac('( ' + lin(b) + ' ) ＋ ( ' + lin(e) + ' )', '( ' + lin(d) + ' ) ＋ ( ' + lin(f) + ' )')
+          ]),
+          answerHtml:ans,
+          steps:[
+            {eq:'先把四個二次式都因式分解', why:'這是分式化簡一定要先做的事'},
+            {eq:q(a, b) + ' = ( ' + lin(a) + ' )( ' + lin(b) + ' )　；　' + q(c, d) + ' = ( ' + lin(c) + ' )( ' + lin(d) + ' )', why:'十字交乘'},
+            {eq:q(c, e) + ' = ( ' + lin(c) + ' )( ' + lin(e) + ' )　；　' + q(a, f) + ' = ( ' + lin(a) + ' )( ' + lin(f) + ' )', why:'同樣分解'},
+            {eq:'約掉 ( ' + lin(a) + ' ) 與 ( ' + lin(c) + ' )', why:'上下都有的整個因式才能約'},
+            {eq:ans, why:'剩下的就是答案'}
+          ]
+        };
+      }
+    },
+    {
+      id:'fracAdd', book:'第1冊', section:'3-3 因式分解與分式', name:'分式的加減（通分）',
+      concept:[
+        '分母不同就要先通分：把各分式同時擴分，讓分母一樣。',
+        '最簡公分母就是各分母的最小公倍式（這裡是兩個一次式相乘）。',
+        '分子相加減之後要再檢查能不能約分。'
+      ],
+      formula:'<span class="frac"><span class="num">A</span><span class="den">P</span></span> ＋ <span class="frac"><span class="num">B</span><span class="den">Q</span></span> = <span class="frac"><span class="num">A Q ＋ B P</span><span class="den">P Q</span></span>',
+      example:function(){ return this.gen({a:2, p:1, b:3, q:-2}); },
+      gen:function(fix){
+        var a, p, b, q;
+        if (fix){ a = fix.a; p = fix.p; b = fix.b; q = fix.q; }
+        else {
+          a = rndNonZero(-5, 5); b = rndNonZero(-5, 5);
+          do { p = rndInt(-5, 5); q = rndInt(-5, 5); } while (p === q);
+        }
+        function lin(u){ return 'x ' + (u < 0 ? '－ ' + (-u) : '＋ ' + u); }
+        function frac(n, dn){ return '<span class="frac"><span class="num">' + n + '</span><span class="den">' + dn + '</span></span>'; }
+        var num1 = a + b, num0 = a * q + b * p;
+        var ans = frac(polyHtml([num1, num0]), '( ' + lin(p) + ' )( ' + lin(q) + ' )');
+        return {
+          stem:'化簡 ' + frac(nStr(a), lin(p)) + (b < 0 ? ' － ' : ' ＋ ') + frac(Math.abs(b), lin(q)) + ' 。',
+          choices:shuffleChoices(ans, [
+            frac(polyHtml([num1, a * p + b * q]), '( ' + lin(p) + ' )( ' + lin(q) + ' )'),
+            frac(nStr(a + b), '( ' + lin(p) + ' )( ' + lin(q) + ' )'),
+            frac(polyHtml([num1, num0]), polyHtml([1, p + q, p * q])) + '　（分母沒乘開）',
+            frac(nStr(a + b), lin(p + q))
+          ]),
+          answerHtml:ans,
+          steps:[
+            {eq:'最簡公分母 = ( ' + lin(p) + ' )( ' + lin(q) + ' )', why:'兩個分母都不一樣，直接相乘就是公分母'},
+            {eq:frac(nStr(a), lin(p)) + ' = ' + frac(nStr(a) + ' ( ' + lin(q) + ' )', '( ' + lin(p) + ' )( ' + lin(q) + ' )'), why:'第一個分式上下同乘 ( ' + lin(q) + ' )'},
+            {eq:frac(nStr(b), lin(q)) + ' = ' + frac(nStr(b) + ' ( ' + lin(p) + ' )', '( ' + lin(p) + ' )( ' + lin(q) + ' )'), why:'第二個分式上下同乘 ( ' + lin(p) + ' )'},
+            {eq:'分子 = ' + nStr(a) + '( ' + lin(q) + ' ) ＋ ' + nStr(b) + '( ' + lin(p) + ' ) = ' + polyHtml([num1, num0]), why:'分母一樣了，分子直接相加'},
+            {eq:ans, why:'整理完成'}
+          ]
+        };
+      }
+    },
+    {
+      id:'fracEqSolve', book:'第1冊', section:'3-3 因式分解與分式', name:'分式方程式',
+      concept:[
+        '分式方程式先「兩邊同乘最簡公分母」把分母清掉，再解整式方程式。',
+        '非常重要：讓分母等於 0 的數不能當解，最後一定要檢查並排除。',
+        '去分母後通常變成一元二次方程式，用因式分解解。'
+      ],
+      formula:'兩邊同乘分母 ⇒ 解方程式 ⇒ 檢查分母不可為 0',
+      example:function(){ return this.gen({p:-1, r1:4, r2:2}); },
+      gen:function(fix){
+        var p, r1, r2;
+        if (fix){ p = fix.p; r1 = fix.r1; r2 = fix.r2; }
+        else {
+          do {
+            p = rndNonZero(-4, 4);
+            r1 = rndInt(-6, 6); r2 = rndInt(-6, 6);
+          } while (r1 === r2 || r1 === -p || r2 === -p ||
+                   (p + r1 + r2) === 0 || (r1 * r2 + (p + r1 + r2) * p) === 0);
+        }
+        // x + k/(x+p) = c，去分母後 x² + (p-c)x + (k-cp) = 0，根為 r1、r2
+        var c = p + r1 + r2, k = r1 * r2 + c * p;
+        function frac(n, dn){ return '<span class="frac"><span class="num">' + n + '</span><span class="den">' + dn + '</span></span>'; }
+        var lo = Math.min(r1, r2), hi = Math.max(r1, r2);
+        var ans = 'x = ' + lo + ' 或 x = ' + hi;
+        return {
+          stem:'解分式方程式 x ' + (k < 0 ? '－ ' : '＋ ') + frac(Math.abs(k), xMinus(-p)) + ' = ' + nStr(c) + ' 。',
+          choices:shuffleChoices(ans, ['x = ' + lo, 'x = ' + hi,
+                                       'x = ' + (-lo) + ' 或 x = ' + (-hi),
+                                       'x = ' + lo + ' 或 x = ' + (-p)]),
+          answerHtml:ans,
+          steps:[
+            {eq:'兩邊同乘 ( ' + xMinus(-p) + ' )（分母不可為 0 ⇒ x ≠ ' + (-p) + '）', why:'先把分母清掉，順便記下不能取的值'},
+            {eq:'x ( ' + xMinus(-p) + ' ) ' + (k < 0 ? '－ ' + Math.abs(k) : '＋ ' + k) + ' = ' + nStr(c) + ' ( ' + xMinus(-p) + ' )', why:'每一項都要乘到'},
+            {eq:polyHtml([1, p - c, k - c * p]) + ' = 0', why:'展開、移項整理成一元二次方程式'},
+            {eq:'( ' + xMinus(r1) + ' )( ' + xMinus(r2) + ' ) = 0 ⇒ ' + ans, why:'十字交乘法求解'},
+            {eq:'檢查：兩個解都不等於 ' + (-p) + ' ✓', why:'分式方程式一定要檢查分母不為 0'}
+          ]
+        };
+      }
+    },
+    {
+      id:'xPlusInv', book:'第1冊', section:'3-3 因式分解與分式', name:'由 x ＋ 1/x 求值',
+      concept:[
+        '( x ＋ 1/x )² ＝ x² ＋ 2 ＋ 1/x²，所以 x² ＋ 1/x² ＝ ( x ＋ 1/x )² － 2。',
+        '( x ＋ 1/x )³ ＝ x³ ＋ 3x ＋ 3/x ＋ 1/x³，整理得 x³ ＋ 1/x³ ＝ ( x ＋ 1/x )³ － 3( x ＋ 1/x )。',
+        '重點是把 x·(1/x) ＝ 1 這件事用出來。'
+      ],
+      formula:'x² ＋ <span class="frac"><span class="num">1</span><span class="den">x²</span></span> = t² － 2　；　x³ ＋ <span class="frac"><span class="num">1</span><span class="den">x³</span></span> = t³ － 3t　（t = x ＋ 1/x）',
+      example:function(){ return this.gen({t:3, want:2}); },
+      gen:function(fix){
+        var t = fix ? fix.t : rndPick([2, 3, 4, 5, -2, -3, -4]);
+        var want = fix ? fix.want : rndPick([2, 2, 3]);
+        var v2 = t * t - 2, v3 = t * t * t - 3 * t;
+        var ans = String(want === 2 ? v2 : v3);
+        function frac(n, dn){ return '<span class="frac"><span class="num">' + n + '</span><span class="den">' + dn + '</span></span>'; }
+        return {
+          stem:'已知 x ＋ ' + frac(1, 'x') + ' = ' + t + '，求 x' + (want === 2 ? '²' : '³') + ' ＋ ' + frac(1, 'x' + (want === 2 ? '²' : '³')) + ' 之值。',
+          choices:shuffleChoices(ans, [String(want === 2 ? t * t : t * t * t),
+                                       String(want === 2 ? t * t + 2 : t * t * t + 3 * t),
+                                       String(want === 2 ? v3 : v2),
+                                       String(want === 2 ? v2 + 1 : v3 - 1)]),
+          answerHtml:ans,
+          steps:want === 2
+            ? [{eq:'( x ＋ ' + frac(1, 'x') + ' )² = x² ＋ 2·x·' + frac(1, 'x') + ' ＋ ' + frac(1, 'x²'), why:'先把左邊平方展開'},
+               {eq:'= x² ＋ 2 ＋ ' + frac(1, 'x²'), why:'中間那一項 x × 1/x = 1，所以是 2'},
+               {eq:'x² ＋ ' + frac(1, 'x²') + ' = ( ' + t + ' )² － 2', why:'移項'},
+               {eq:'= ' + (t * t) + ' － 2 = ' + v2, why:'算出答案'}]
+            : [{eq:'( x ＋ ' + frac(1, 'x') + ' )³ = x³ ＋ 3x ＋ ' + frac(3, 'x') + ' ＋ ' + frac(1, 'x³'), why:'完全立方展開並化簡中間兩項'},
+               {eq:'= x³ ＋ ' + frac(1, 'x³') + ' ＋ 3( x ＋ ' + frac(1, 'x') + ' )', why:'把中間兩項提出 3'},
+               {eq:'x³ ＋ ' + frac(1, 'x³') + ' = ( ' + t + ' )³ － 3×( ' + t + ' )', why:'移項'},
+               {eq:'= ' + (t * t * t) + ' － ' + (3 * t) + ' = ' + v3, why:'算出答案'}]
+        };
+      }
     }
 
   ];
@@ -5412,6 +7205,13 @@
       if (!seen[key]){ seen[key] = []; groups.push(key); }
       seen[key].push(t);
     });
+    // 依「第幾冊 → 第幾章 → 第幾節」排序，題型加到哪裡都不會亂掉
+    function orderKey(k){
+      var bm = /第(\d+)冊/.exec(k);
+      var sm = /(\d+)\s*-\s*(\d+)/.exec(k);
+      return (bm ? +bm[1] : 9) * 10000 + (sm ? +sm[1] : 99) * 100 + (sm ? +sm[2] : 99);
+    }
+    groups.sort(function(a, b){ return orderKey(a) - orderKey(b); });
     groups.forEach(function(sec, gi){
       var det = document.createElement('details');
       det.className = 'book';
