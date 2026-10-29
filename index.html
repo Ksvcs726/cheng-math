@@ -127,7 +127,8 @@
   nav.tabs a:nth-of-type(7){border-left-color:var(--teal);}
   nav.tabs a:nth-of-type(8){border-left-color:var(--red);}
   nav.tabs a:nth-of-type(9){border-left-color:var(--indigo);}
-  nav.tabs a:nth-of-type(10){border-left-color:var(--teal);}
+  nav.tabs a:nth-of-type(10){border-left-color:var(--red);}
+  nav.tabs a:nth-of-type(11){border-left-color:var(--teal);}
   nav.tabs a.is-active{background:var(--surface-2);color:var(--ink);font-weight:700;}
 
   /* 管理者子選單（小考成績登錄／帳號與權限管理／檔案連結管理）：巢狀在左側主選單「小考成績」下方，
@@ -551,6 +552,54 @@
     border-radius:3px;background:var(--surface);color:var(--ink);width:100%;
   }
   .tri-howto{font-size:.78rem;color:var(--ink-soft);line-height:1.7;}
+
+  /* ---------- 互動式練功坊 ---------- */
+  .prac-type-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;padding:14px 20px 18px;}
+  .prac-type-card{
+    display:flex;flex-direction:column;gap:6px;align-items:flex-start;text-align:left;
+    padding:14px 16px;border:1px solid var(--border);border-radius:4px;background:var(--surface-2);
+    color:var(--ink);cursor:pointer;font-family:inherit;transition:border-color .12s,transform .12s;
+  }
+  .prac-type-card:hover{border-color:var(--indigo);transform:translateY(-1px);}
+  .prac-type-name{font-size:.95rem;font-weight:600;}
+  .prac-type-formula{font-family:"JetBrains Mono",monospace;font-size:.74rem;color:var(--ink-soft);line-height:1.7;}
+  .prac-learn-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:20px;}
+  .prac-quiz-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;}
+  @media (max-width:860px){.prac-learn-grid,.prac-quiz-grid{grid-template-columns:1fr;}}
+  .prac-concept{list-style:disc;margin:0 0 12px;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:.84rem;color:var(--ink);line-height:1.7;}
+  .prac-stem{font-size:.95rem;line-height:1.9;margin:0 0 16px;color:var(--ink);}
+  .prac-choices{display:flex;flex-direction:column;gap:10px;}
+  .prac-choice{
+    display:flex;align-items:center;gap:12px;text-align:left;padding:12px 14px;cursor:pointer;
+    border:1px solid var(--border);border-radius:4px;background:var(--surface-2);color:var(--ink);
+    font-family:inherit;font-size:.9rem;
+  }
+  .prac-choice:hover:not(:disabled){border-color:var(--indigo);}
+  .prac-choice:disabled{cursor:default;}
+  .prac-choice-tag{
+    flex-shrink:0;width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
+    background:var(--border);color:var(--ink);font-family:"JetBrains Mono",monospace;font-size:.8rem;font-weight:700;
+  }
+  .prac-choice-body{font-family:"JetBrains Mono",monospace;font-size:.88rem;line-height:1.8;}
+  .prac-choice.is-correct{border-color:var(--teal);background:var(--teal-tint);}
+  .prac-choice.is-correct .prac-choice-tag{background:var(--teal);color:var(--surface);}
+  .prac-choice.is-wrong{border-color:var(--red);background:var(--red-tint);}
+  .prac-choice.is-wrong .prac-choice-tag{background:var(--red);color:var(--surface);}
+  .prac-feedback{margin-top:14px;padding:12px 14px;border-radius:4px;font-size:.9rem;line-height:1.8;}
+  .prac-feedback.is-correct{background:var(--teal-tint);color:var(--teal);}
+  .prac-feedback.is-wrong{background:var(--red-tint);color:var(--red);}
+  .prac-feedback-sub{font-size:.8rem;opacity:.9;}
+  .prac-selfcheck{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:16px;padding-top:14px;border-top:1px dashed var(--border);}
+  .prac-selfcheck-label{font-size:.84rem;color:var(--ink-soft);}
+  .prac-selfcheck .btn.is-picked{background:var(--indigo);border-color:var(--indigo);color:var(--surface);}
+  .prac-result-msg{font-size:.95rem;line-height:1.9;padding:14px 16px;border-radius:4px;margin-bottom:14px;}
+  .prac-result-msg.is-great{background:var(--teal-tint);color:var(--teal);}
+  .prac-result-msg.is-ok{background:var(--indigo-tint);color:var(--indigo-strong);}
+  .prac-result-msg.is-work{background:var(--red-tint);color:var(--red);}
+  .prac-ok{color:var(--teal);font-weight:600;}
+  .prac-no{color:var(--red);font-weight:600;}
+  .prac-save-status{font-size:.8rem;color:var(--ink-soft);margin:10px 0 0;}
+  .prac-low{color:var(--red);font-weight:700;}
   /* 聯立不等式：圖形接近正方形，寬螢幕時不要被拉成巨大的方塊，
      多出來的寬度拿去把兩個不等式面板並排，整體高度也比較短。 */
   .demo-body-sys{grid-template-columns:minmax(340px,560px) minmax(320px,700px);}
@@ -729,9 +778,11 @@
       <div class="sidebar-subnav" id="adminSidebarNav" hidden>
         <button type="button" data-tab="entry" aria-pressed="true">小考成績登錄</button>
         <button type="button" data-tab="accounts" aria-pressed="false">帳號與權限管理</button>
+        <button type="button" data-tab="practice" aria-pressed="false">練習紀錄</button>
       </div>
       <a href="#videos">教學影片</a>
       <a href="#demos">互動動畫</a>
+      <a href="#practice">互動式練功坊</a>
       <a href="#goodlinks">好站連結</a>
       <a href="#links" id="linksNavLink" hidden>檔案連結管理</a>
     </nav>
@@ -970,6 +1021,43 @@
             <button type="button" class="btn btn-primary" id="adminQueryBtn">查詢</button>
           </div>
           <div class="query-result" id="adminQueryResult"></div>
+        </div>
+
+        <!-- 練習紀錄（管理者專用）：學生在互動式練功坊的作答都會記在這裡 -->
+        <div class="demo-shell" id="practiceLogPanel" hidden>
+          <div class="demo-head">
+            <h3>練習紀錄（互動式練功坊）</h3>
+            <span class="badge">平時分數參考</span>
+          </div>
+          <div class="exam-meta">
+            <label>班級<select id="pracLogClass"></select></label>
+            <label>範圍<select id="pracLogRange">
+              <option value="all">全部</option>
+              <option value="30">最近 30 天</option>
+              <option value="7">最近 7 天</option>
+            </select></label>
+          </div>
+          <div class="roster-actions" style="margin-top:0;">
+            <button type="button" class="btn btn-ghost" id="pracLogRefresh">重新整理</button>
+            <button type="button" class="btn btn-primary" id="pracLogExport">匯出 Excel（CSV）</button>
+            <span class="roster-status" id="pracLogStatus"></span>
+          </div>
+
+          <h3 class="ledger-subhead">每位學生的彙總</h3>
+          <div class="ledger-wrap">
+            <table class="ledger">
+              <thead><tr><th>學號</th><th>姓名</th><th>練習題數</th><th>答對</th><th>正確率</th><th>我懂了</th><th>有些不懂</th><th>完全不懂</th><th>最後練習</th></tr></thead>
+              <tbody id="pracLogStudentBody"></tbody>
+            </table>
+          </div>
+
+          <h3 class="ledger-subhead" style="margin-top:24px;">各題型的全班表現（找出要補強的地方）</h3>
+          <div class="ledger-wrap">
+            <table class="ledger">
+              <thead><tr><th>章節</th><th>題型</th><th>作答數</th><th>正確率</th><th>完全不懂</th></tr></thead>
+              <tbody id="pracLogTypeBody"></tbody>
+            </table>
+          </div>
         </div>
 
         <!-- student query panel: monitor + plain student -->
@@ -1446,6 +1534,117 @@
     </div>
   </section>
 
+
+  <!-- ================= 互動式練功坊 ================= -->
+  <section class="block" id="practice">
+    <div class="page">
+      <div class="block-head">
+        <div>
+          <h2>互動式練功坊</h2>
+          <p class="block-desc" style="max-width:none;">照著課本「老師講解」的題型出題，數字每次都不一樣。先看觀念與重點公式、跟著老師做一題，再自己練 5 題；答錯會一步一步帶你檢討，練完可以勾選自己懂不懂，練習紀錄會送給程老師當平時分數的參考。</p>
+        </div>
+        <span class="block-tag">需登入</span>
+      </div>
+
+      <div class="content-gate" id="practiceLoginGate" hidden>
+        <strong>登入後才能使用練功坊</strong>
+        練習紀錄要記在你的學號下，所以要先登入（帳號＝學號）。
+        <button type="button" class="btn btn-primary" data-open-login>前往登入</button>
+      </div>
+
+      <div id="practiceContent" hidden>
+        <!-- 第一步：選題型 -->
+        <div id="pracPickerView">
+          <div class="book-list" id="pracTypeList"></div>
+        </div>
+
+        <!-- 第二步：觀念＋老師帶做 -->
+        <div class="demo-shell" id="pracLearnView" hidden>
+          <div class="demo-head">
+            <h3 id="pracLearnTitle"></h3>
+            <button type="button" class="btn btn-ghost" data-prac-back>← 換一個題型</button>
+          </div>
+          <div class="prac-learn-grid">
+            <div class="demo-subpanel">
+              <div class="demo-subpanel-title">① 這個題型要用到的觀念</div>
+              <ul class="prac-concept" id="pracConcept"></ul>
+              <div class="formula" id="pracFormula"></div>
+            </div>
+            <div class="steps-panel">
+              <div class="steps-head">
+                <span class="steps-title">② 老師帶你做一題</span>
+                <div class="steps-btns">
+                  <button type="button" class="btn btn-ghost" id="pracExPrev">上一步</button>
+                  <button type="button" class="btn btn-ghost" id="pracExNext">下一步</button>
+                  <button type="button" class="btn btn-ghost" id="pracExAll">全部展開</button>
+                  <button type="button" class="btn btn-ghost" id="pracExReset">只看第一步</button>
+                </div>
+              </div>
+              <p class="prac-stem" id="pracExStem"></p>
+              <ol class="steps-list" id="pracExSteps"></ol>
+            </div>
+          </div>
+          <div class="roster-actions">
+            <button type="button" class="btn btn-primary" id="pracStartBtn">③ 開始練習（5 題）</button>
+            <span class="roster-status" style="color:var(--ink-soft);">題目的數字每次都會重新隨機產生，可以一直練。</span>
+          </div>
+        </div>
+
+        <!-- 第三步：練習 -->
+        <div class="demo-shell" id="pracQuizView" hidden>
+          <div class="demo-head">
+            <h3 id="pracQuizTitle"></h3>
+            <span class="badge" id="pracProgress"></span>
+          </div>
+          <div class="prac-quiz-grid">
+            <div>
+              <p class="prac-stem" id="pracStem"></p>
+              <div class="prac-choices" id="pracChoices"></div>
+              <div class="prac-feedback" id="pracFeedback" hidden></div>
+            </div>
+            <div class="steps-panel" id="pracReviewPanel" hidden>
+              <div class="steps-head">
+                <span class="steps-title">一步一步檢討</span>
+                <div class="steps-btns">
+                  <button type="button" class="btn btn-ghost" id="pracRvPrev">上一步</button>
+                  <button type="button" class="btn btn-ghost" id="pracRvNext">下一步</button>
+                  <button type="button" class="btn btn-ghost" id="pracRvAll">全部展開</button>
+                  <button type="button" class="btn btn-ghost" id="pracRvReset">只看第一步</button>
+                </div>
+              </div>
+              <ol class="steps-list" id="pracRvSteps"></ol>
+            </div>
+          </div>
+          <div class="prac-selfcheck" id="pracSelfCheck" hidden>
+            <span class="prac-selfcheck-label">這一題你覺得自己：</span>
+            <button type="button" class="btn btn-ghost" data-self="got">(1) 我懂了</button>
+            <button type="button" class="btn btn-ghost" data-self="partial">(2) 有些不懂</button>
+            <button type="button" class="btn btn-ghost" data-self="lost">(3) 完全不懂</button>
+          </div>
+          <div class="roster-actions">
+            <button type="button" class="btn btn-primary" id="pracNextBtn" hidden>下一題 →</button>
+            <button type="button" class="btn btn-ghost" data-prac-back>結束，換題型</button>
+          </div>
+        </div>
+
+        <!-- 第四步：本輪結果 -->
+        <div class="demo-shell" id="pracResultView" hidden>
+          <div class="demo-head">
+            <h3>這一輪的結果</h3>
+            <span class="badge" id="pracScoreBadge"></span>
+          </div>
+          <div class="prac-result-msg" id="pracResultMsg"></div>
+          <ul class="lp-vertex-list" id="pracResultList"></ul>
+          <p class="prac-save-status" id="pracSaveStatus"></p>
+          <div class="roster-actions">
+            <button type="button" class="btn btn-primary" id="pracAgainBtn">再練一輪（新題目）</button>
+            <button type="button" class="btn btn-ghost" data-prac-back>換一個題型</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- ================= GOOD LINKS ================= -->
   <section class="block" id="goodlinks">
     <div class="page">
@@ -1574,7 +1773,7 @@
   }
 
   /* ============ View switching (sidebar acts like page navigation, no scrolling) ============ */
-  var VIEW_IDS = ['notes', 'workbook', 'exams', 'mocks', 'pastexams', 'grades', 'videos', 'demos', 'goodlinks', 'links'];
+  var VIEW_IDS = ['notes', 'workbook', 'exams', 'mocks', 'pastexams', 'grades', 'videos', 'demos', 'practice', 'goodlinks', 'links'];
   var ALL_VIEW_IDS = ['home'].concat(VIEW_IDS);
   var heroEl = document.querySelector('.hero');
 
@@ -3702,6 +3901,831 @@
     note.textContent = '';
   }
 
+
+  /* ============ 互動式練功坊：題庫 ============
+     每個題型都照課本「老師講解」的範例設計，gen() 每次呼叫都會換一組新數字，
+     並回傳：題目、四個選項（錯的選項故意做成學生常犯的錯）、正確答案、逐步解析。
+     算式一律用前面那套有理數工具，所以答案永遠是漂亮的分數或整數。 */
+  function rndInt(lo, hi){ return lo + Math.floor(Math.random() * (hi - lo + 1)); }
+  function rndNonZero(lo, hi){
+    var v = 0;
+    while (v === 0) v = rndInt(lo, hi);
+    return v;
+  }
+  function rndPick(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
+  function shuffleChoices(correctHtml, wrongHtmls){
+    var all = [{html:correctHtml, ok:true}];
+    var seen = {};
+    seen[correctHtml] = true;
+    wrongHtmls.forEach(function(w){
+      if (!w || seen[w]) return;          // 跟正解重複的干擾選項就丟掉
+      seen[w] = true;
+      all.push({html:w, ok:false});
+    });
+    while (all.length > 4) all.pop();
+    for (var i = all.length - 1; i > 0; i--){
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = all[i]; all[i] = all[j]; all[j] = t;
+    }
+    return all;
+  }
+  function ptLabel(name, x, y){ return name + '( ' + x + ' , ' + y + ' )'; }
+  // 產生兩個「不會讓分母為 0、斜率也不會太醜」的點
+  function rndTwoPoints(){
+    var x1, y1, x2, y2;
+    do {
+      x1 = rndInt(-6, 6); y1 = rndInt(-6, 6);
+      x2 = rndInt(-6, 6); y2 = rndInt(-6, 6);
+    } while (x1 === x2 || (x1 === x2 && y1 === y2) || Math.abs(x2 - x1) > 7 || Math.abs(y2 - y1) > 9);
+    return {x1:x1, y1:y1, x2:x2, y2:y2};
+  }
+
+  var PRACTICE_TYPES = [
+    /* ---------------- 2-1 斜率 ---------------- */
+    {
+      id:'slope2pt', section:'2-1 斜率', name:'由兩點求斜率',
+      concept:[
+        '斜率就是「上升量 ÷ 水平移動量」，也就是 y 的變化量除以 x 的變化量。',
+        '同一條直線上不管選哪兩點，算出來的斜率都一樣。',
+        'm > 0：直線由左下往右上；m < 0：由左上往右下；m = 0 是水平線；x₁ = x₂ 時斜率不存在（鉛直線）。'
+      ],
+      formula:'m = ( y₂ － y₁ ) ÷ ( x₂ － x₁ )',
+      example:function(){ return this.gen({x1:5, y1:5, x2:-2, y2:-4}); },
+      gen:function(fix){
+        var P = fix || rndTwoPoints();
+        var dy = P.y2 - P.y1, dx = P.x2 - P.x1;
+        var m = ratMake(dy, dx);
+        var wrongs = [ratHtml(ratMake(dx, dy)), ratHtml(ratMake(-dy, dx)), ratHtml(ratMake(dy + dx, dx)), ratHtml(ratMake(-dx, dy))];
+        return {
+          stem:'設 ' + ptLabel('A', P.x1, P.y1) + '、' + ptLabel('B', P.x2, P.y2) + ' 為坐標平面上兩點，求通過 A、B 兩點的直線 L 的斜率 m。',
+          choices:shuffleChoices(ratHtml(m), wrongs),
+          answerHtml:ratHtml(m),
+          steps:[
+            {eq:'m = <span class="frac"><span class="num">y₂ － y₁</span><span class="den">x₂ － x₁</span></span>', why:'斜率的定義'},
+            {eq:'= <span class="frac"><span class="num">' + P.y2 + ' － ' + (P.y1 < 0 ? '(' + P.y1 + ')' : P.y1) +
+                '</span><span class="den">' + P.x2 + ' － ' + (P.x1 < 0 ? '(' + P.x1 + ')' : P.x1) + '</span></span>', why:'把 A、B 的座標代進去（負數記得加括號）'},
+            {eq:'= <span class="frac"><span class="num">' + dy + '</span><span class="den">' + dx + '</span></span> = ' + ratHtml(m), why:'上下各自算出來後約分'},
+            {eq:'m ' + (ratVal(m) > 0 ? '> 0 → 直線由左下向右上傾斜' : (ratVal(m) < 0 ? '< 0 → 直線由左上向右下傾斜' : '= 0 → 水平線')), why:'順便判斷傾斜方向'}
+          ]
+        };
+      }
+    },
+    {
+      id:'collinear', section:'2-1 斜率', name:'三點共線求未知數',
+      concept:[
+        '三點共線代表任兩點連起來的斜率都一樣。',
+        '所以只要讓 m(AB) = m(AC)，就可以解出未知數。',
+        '列式時要注意分母不可以是 0。'
+      ],
+      formula:'A、B、C 三點共線　⇔　m<sub>AB</sub> = m<sub>AC</sub>',
+      example:function(){ return this.gen({x1:1, y1:2, x2:3, y2:6, x3:5}); },
+      gen:function(fix){
+        var x1, y1, x2, y2, x3, m;
+        if (fix){ x1 = fix.x1; y1 = fix.y1; x2 = fix.x2; y2 = fix.y2; x3 = fix.x3; }
+        else {
+          do {
+            x1 = rndInt(-5, 3); y1 = rndInt(-5, 5);
+            x2 = x1 + rndNonZero(1, 4); y2 = y1 + rndNonZero(-5, 5);
+            x3 = x2 + rndNonZero(1, 4);
+          } while ((y2 - y1) * (x3 - x1) % (x2 - x1) !== 0);
+        }
+        var slope = ratMake(y2 - y1, x2 - x1);
+        var k = ratVal(ratAdd(ratMake(y1), ratMul(slope, ratMake(x3 - x1))));
+        var wrongs = [String(k + rndNonZero(1, 3)), String(k - rndNonZero(1, 3)), String(-k), String(k + (x3 - x2))];
+        return {
+          stem:'已知 ' + ptLabel('A', x1, y1) + '、' + ptLabel('B', x2, y2) + '、C ( ' + x3 + ' , k ) 三點共線，求 k 的值。',
+          choices:shuffleChoices(String(k), wrongs),
+          answerHtml:String(k),
+          steps:[
+            {eq:'三點共線 ⇒ m<sub>AB</sub> = m<sub>AC</sub>', why:'共線的判斷方式'},
+            {eq:'m<sub>AB</sub> = <span class="frac"><span class="num">' + y2 + ' － ' + (y1 < 0 ? '(' + y1 + ')' : y1) +
+                '</span><span class="den">' + x2 + ' － ' + (x1 < 0 ? '(' + x1 + ')' : x1) + '</span></span> = ' + ratHtml(slope), why:'先算 A、B 的斜率'},
+            {eq:'m<sub>AC</sub> = <span class="frac"><span class="num">k － ' + (y1 < 0 ? '(' + y1 + ')' : y1) +
+                '</span><span class="den">' + x3 + ' － ' + (x1 < 0 ? '(' + x1 + ')' : x1) + '</span></span>', why:'再用 A、C 列出含 k 的斜率'},
+            {eq:'k = ' + y1 + ' ＋ ' + ratHtml(slope) + ' × ( ' + x3 + ' － ' + x1 + ' ) = ' + k, why:'兩個斜率相等，解出 k'}
+          ]
+        };
+      }
+    },
+    {
+      id:'parperp', section:'2-1 斜率', name:'兩直線平行與垂直的斜率',
+      concept:[
+        '兩直線平行 ⇒ 斜率相同（m₁ = m₂）。',
+        '兩直線垂直 ⇒ 斜率相乘等於 －1（m₁ × m₂ = －1），也就是互為「負倒數」。',
+        '特例：水平線（m = 0）與鉛直線（斜率不存在）互相垂直。'
+      ],
+      formula:'平行：m₁ = m₂　　垂直：m₁ × m₂ = －1',
+      example:function(){ return this.gen({p:2, q:3, kind:'perp'}); },
+      gen:function(fix){
+        var p = fix ? fix.p : rndNonZero(-6, 6);
+        var q = fix ? fix.q : rndNonZero(1, 6);
+        var kind = fix ? fix.kind : rndPick(['par', 'perp']);
+        var m1 = ratMake(p, q);
+        var ans = (kind === 'par') ? m1 : perpSlope(m1);
+        var wrongs = [ratHtml(kind === 'par' ? perpSlope(m1) : m1), ratHtml(ratMake(q, p)), ratHtml(ratNeg(m1))];
+        return {
+          stem:'設直線 L₁ 的斜率為 ' + ratHtml(m1) + '，直線 L₂ ' + (kind === 'par' ? '平行' : '垂直') + ' L₁，求 L₂ 的斜率。',
+          choices:shuffleChoices(ratHtml(ans), wrongs),
+          answerHtml:ratHtml(ans),
+          steps:(kind === 'par')
+            ? [{eq:'兩直線平行 ⇒ 斜率相同', why:'平行的判斷方式'},
+               {eq:'m<sub>L₂</sub> = m<sub>L₁</sub> = ' + ratHtml(m1), why:'直接照抄 L₁ 的斜率'}]
+            : [{eq:'兩直線垂直 ⇒ m<sub>L₁</sub> × m<sub>L₂</sub> = －1', why:'垂直的判斷方式'},
+               {eq:ratHtml(m1) + ' × m<sub>L₂</sub> = －1', why:'把 L₁ 的斜率代進去'},
+               {eq:'m<sub>L₂</sub> = －1 ÷ ' + ratHtmlParen(m1) + ' = ' + ratHtml(ans), why:'取負倒數（分子分母對調再變號）'}]
+        };
+      }
+    },
+
+    /* ---------------- 2-2 直線方程式 ---------------- */
+    {
+      id:'pointslope', section:'2-2 直線方程式', name:'點斜式求直線方程式',
+      concept:[
+        '已知「一個點」加上「斜率」，就可以用點斜式寫出直線方程式。',
+        '代入後把分母乘掉、展開、再把所有項移到等號左邊，就是一般式 ax + by + c = 0。',
+        '習慣上會整理成 x 的係數為正、而且 a、b、c 沒有公因數。'
+      ],
+      formula:'y － y₁ = m ( x － x₁ )',
+      example:function(){ return this.gen({x1:1, y1:3, p:2, q:3}); },
+      gen:function(fix){
+        var x1 = fix ? fix.x1 : rndInt(-6, 6);
+        var y1 = fix ? fix.y1 : rndInt(-6, 6);
+        var p = fix ? fix.p : rndNonZero(-6, 6);
+        var q = fix ? fix.q : rndNonZero(1, 5);
+        var m = ratMake(p, q);
+        var L = lineFromPointSlope(ratMake(x1), ratMake(y1), m);
+        var wrongs = [
+          lineHtml(lineFromPointSlope(ratMake(x1), ratMake(y1), ratNeg(m))),
+          lineHtml(lineFromPointSlope(ratMake(y1), ratMake(x1), m)),
+          lineHtml(lineNormalize(ratMake(L.a), ratMake(L.b), ratMake(-L.c)))
+        ];
+        return {
+          stem:'求通過點 ' + ptLabel('A', x1, y1) + '、且斜率為 ' + ratHtml(m) + ' 的直線方程式（化成一般式）。',
+          choices:shuffleChoices(lineHtml(L), wrongs),
+          answerHtml:lineHtml(L),
+          steps:[
+            {eq:'y － y₁ = m ( x － x₁ )', why:'點斜式的公式'},
+            {eq:'y － ' + (y1 < 0 ? '(' + y1 + ')' : y1) + ' = ' + ratHtmlParen(m) + ' ( x － ' + (x1 < 0 ? '(' + x1 + ')' : x1) + ' )', why:'把點與斜率代進去'},
+            {eq:(q === 1 ? '展開：' : '兩邊同乘 ' + q + '（去分母）後展開：') + lineHtml(L).replace(' = 0', '') + ' = 0', why:'去分母、展開後把每一項都移到左邊'},
+            {eq:lineHtml(L), why:'整理成一般式（約分，並讓 x 的係數為正）'}
+          ]
+        };
+      }
+    },
+    {
+      id:'twopoints', section:'2-2 直線方程式', name:'過兩點求直線方程式',
+      concept:[
+        '先用兩點求斜率，再挑其中一點套點斜式，就能寫出直線方程式。',
+        '如果兩點的 x 相同就是鉛直線 x = x₁；y 相同就是水平線 y = y₁。',
+        '最後一樣整理成一般式。'
+      ],
+      formula:'先求 m = ( y₂ － y₁ ) ÷ ( x₂ － x₁ )，再代點斜式',
+      example:function(){ return this.gen({x1:2, y1:5, x2:-1, y2:-3}); },
+      gen:function(fix){
+        var P = fix || rndTwoPoints();
+        var m = ratMake(P.y2 - P.y1, P.x2 - P.x1);
+        var L = lineFromPointSlope(ratMake(P.x1), ratMake(P.y1), m);
+        var wrongs = [
+          lineHtml(lineFromPointSlope(ratMake(P.x1), ratMake(P.y1), ratNeg(m))),
+          lineHtml(lineFromPointSlope(ratMake(P.x1), ratMake(P.y1), ratMake(P.x2 - P.x1, P.y2 - P.y1))),
+          lineHtml(lineNormalize(ratMake(L.a), ratMake(L.b), ratMake(-L.c)))
+        ];
+        return {
+          stem:'求通過 ' + ptLabel('A', P.x1, P.y1) + ' 與 ' + ptLabel('B', P.x2, P.y2) + ' 的直線方程式（化成一般式）。',
+          choices:shuffleChoices(lineHtml(L), wrongs),
+          answerHtml:lineHtml(L),
+          steps:[
+            {eq:'m<sub>AB</sub> = <span class="frac"><span class="num">' + P.y2 + ' － ' + (P.y1 < 0 ? '(' + P.y1 + ')' : P.y1) +
+                '</span><span class="den">' + P.x2 + ' － ' + (P.x1 < 0 ? '(' + P.x1 + ')' : P.x1) + '</span></span> = ' + ratHtml(m), why:'先用兩點求斜率'},
+            {eq:'y － ' + (P.y1 < 0 ? '(' + P.y1 + ')' : P.y1) + ' = ' + ratHtmlParen(m) + ' ( x － ' + (P.x1 < 0 ? '(' + P.x1 + ')' : P.x1) + ' )', why:'挑 A 點代點斜式（代 B 點答案也一樣）'},
+            {eq:lineHtml(L), why:'去分母、移項，整理成一般式'}
+          ]
+        };
+      }
+    },
+    {
+      id:'hvline', section:'2-2 直線方程式', name:'水平線與鉛直線',
+      concept:[
+        '兩點的 x 座標相同 → 鉛直線，方程式是 x = x₁（斜率不存在）。',
+        '兩點的 y 座標相同 → 水平線，方程式是 y = y₁（斜率為 0）。',
+        '寫成一般式就是把常數移到左邊，例如 x = －2 寫成 x ＋ 2 = 0。'
+      ],
+      formula:'鉛直線 x = x₁　　水平線 y = y₁',
+      example:function(){ return this.gen({kind:'v', c:-2, other1:1, other2:-1}); },
+      gen:function(fix){
+        var kind = fix ? fix.kind : rndPick(['v', 'h']);
+        var c = fix ? fix.c : rndNonZero(-6, 6);
+        var o1 = fix ? fix.other1 : rndInt(-5, 5);
+        var o2 = fix ? fix.other2 : rndNonZero(-5, 5) + 1;
+        if (o1 === o2) o2 = o1 + 1;
+        var A, B, L;
+        if (kind === 'v'){ A = [c, o1]; B = [c, o2]; L = lineNormalize(ratMake(1), ratMake(0), ratMake(-c)); }
+        else { A = [o1, c]; B = [o2, c]; L = lineNormalize(ratMake(0), ratMake(1), ratMake(-c)); }
+        var wrongLine = (kind === 'v') ? lineNormalize(ratMake(0), ratMake(1), ratMake(-c))
+                                       : lineNormalize(ratMake(1), ratMake(0), ratMake(-c));
+        var wrongs = [lineHtml(wrongLine),
+                      lineHtml(lineNormalize(ratMake(kind === 'v' ? 1 : 0), ratMake(kind === 'v' ? 0 : 1), ratMake(c))),
+                      lineHtml(lineNormalize(ratMake(1), ratMake(1), ratMake(-c)))];
+        return {
+          stem:'求通過 ' + ptLabel('A', A[0], A[1]) + ' 與 ' + ptLabel('B', B[0], B[1]) + ' 的直線方程式（化成一般式）。',
+          choices:shuffleChoices(lineHtml(L), wrongs),
+          answerHtml:lineHtml(L),
+          steps:(kind === 'v')
+            ? [{eq:'兩點的 x 相同：x₁ = x₂ = ' + c, why:'先比較兩個點的座標'},
+               {eq:'所以直線是鉛直線 x = ' + c, why:'x 相同 → 鉛直線（斜率不存在）'},
+               {eq:lineHtml(L), why:'移項寫成一般式'}]
+            : [{eq:'兩點的 y 相同：y₁ = y₂ = ' + c, why:'先比較兩個點的座標'},
+               {eq:'所以直線是水平線 y = ' + c, why:'y 相同 → 水平線（斜率為 0）'},
+               {eq:lineHtml(L), why:'移項寫成一般式'}]
+        };
+      }
+    },
+    {
+      id:'slopeint', section:'2-2 直線方程式', name:'斜截式與一般式互換',
+      concept:[
+        '斜截式 y = mx + b 裡的 m 是斜率、b 是 y 截距（直線與 y 軸交點的 y 值）。',
+        '把一般式 ax + by + c = 0 整理成 y = … 的形式，就能一眼看出斜率與 y 截距。',
+        '由一般式直接看：m = －a / b，y 截距 = －c / b（b ≠ 0）。'
+      ],
+      formula:'y = m x ＋ b　　（由 ax + by + c = 0 得 m = －a/b）',
+      example:function(){ return this.gen({a:2, b:-3, c:-6}); },
+      gen:function(fix){
+        var a = fix ? fix.a : rndNonZero(-6, 6);
+        var b = fix ? fix.b : rndNonZero(-6, 6);
+        var c = fix ? fix.c : rndInt(-10, 10);
+        var L = lineNormalize(ratMake(a), ratMake(b), ratMake(c));
+        var m = ratMake(-L.a, L.b), yi = ratMake(-L.c, L.b);
+        var ansHtml = 'm = ' + ratHtml(m) + '　，　y 截距 = ' + ratHtml(yi);
+        var wrongs = ['m = ' + ratHtml(ratNeg(m)) + '　，　y 截距 = ' + ratHtml(yi),
+                      'm = ' + ratHtml(m) + '　，　y 截距 = ' + ratHtml(ratNeg(yi)),
+                      'm = ' + ratHtml(ratMake(L.a, L.b)) + '　，　y 截距 = ' + ratHtml(ratMake(L.c, L.b))];
+        return {
+          stem:'已知直線 L：' + lineHtml(L) + '，求 L 的斜率 m 與 y 截距。',
+          choices:shuffleChoices(ansHtml, wrongs),
+          answerHtml:ansHtml,
+          steps:[
+            {eq:lineHtml(L), why:'從一般式開始'},
+            {eq:fmtInt(L.b) + ' y = ' + fmtInt(-L.a) + ' x ' + (L.c > 0 ? '－ ' + L.c : '＋ ' + Math.abs(L.c)), why:'把 x 項與常數移到右邊'},
+            {eq:'y = ' + ratHtmlParen(m) + ' x ' + (ratVal(yi) < 0 ? '－ ' + ratHtml(ratNeg(yi)) : '＋ ' + ratHtml(yi)), why:'兩邊同除以 ' + L.b + '，變成斜截式'},
+            {eq:'m = ' + ratHtml(m) + '　，　y 截距 = ' + ratHtml(yi), why:'對照 y = mx + b 讀出答案'}
+          ]
+        };
+      }
+    },
+    {
+      id:'intercept', section:'2-2 直線方程式', name:'截距式與截距所圍面積',
+      concept:[
+        'x 截距 a 是直線與 x 軸交點 (a, 0) 的 x 值；y 截距 b 是與 y 軸交點 (0, b) 的 y 值。',
+        '截距不是距離，可以是負的，但 a、b 都不能為 0 才寫得成截距式。',
+        '直線與兩坐標軸圍成的三角形面積 = ½ |a × b|。'
+      ],
+      formula:'<span class="frac"><span class="num">x</span><span class="den">a</span></span> ＋ <span class="frac"><span class="num">y</span><span class="den">b</span></span> = 1　，　面積 = ½ |a × b|',
+      example:function(){ return this.gen({a:5, b:-4}); },
+      gen:function(fix){
+        var a = fix ? fix.a : rndNonZero(-8, 8);
+        var b = fix ? fix.b : rndNonZero(-8, 8);
+        var L = lineNormalize(ratMake(b), ratMake(a), ratMake(-a * b));
+        var area = ratMake(Math.abs(a * b), 2);
+        var ansHtml = lineHtml(L) + '　，　面積 = ' + ratHtml(area);
+        var wrongs = [lineHtml(lineNormalize(ratMake(a), ratMake(b), ratMake(-a * b))) + '　，　面積 = ' + ratHtml(area),
+                      lineHtml(L) + '　，　面積 = ' + ratHtml(ratMake(Math.abs(a * b), 1)),
+                      lineHtml(lineNormalize(ratMake(b), ratMake(a), ratMake(a * b))) + '　，　面積 = ' + ratHtml(area)];
+        return {
+          stem:'已知直線 L 的 x 截距為 ' + a + '、y 截距為 ' + b + '，求 L 的方程式（一般式）以及 L 與兩坐標軸圍成的三角形面積。',
+          choices:shuffleChoices(ansHtml, wrongs),
+          answerHtml:ansHtml,
+          steps:[
+            {eq:'<span class="frac"><span class="num">x</span><span class="den">' + a + '</span></span> ＋ <span class="frac"><span class="num">y</span><span class="den">' + b + '</span></span> = 1', why:'把兩個截距代進截距式'},
+            {eq:fmtInt(b) + ' x ' + signedTermInt(a, 'y') + ' = ' + fmtInt(a * b), why:'兩邊同乘 a × b = ' + (a * b) + '（去分母）'},
+            {eq:lineHtml(L), why:'移項整理成一般式'},
+            {eq:'面積 = ½ |' + a + ' × ' + b + '| = ' + ratHtml(area), why:'兩截距圍成的直角三角形，兩股長就是 |a|、|b|'}
+          ]
+        };
+      }
+    },
+    {
+      id:'altitude', section:'2-2 直線方程式', name:'三角形邊上的高',
+      concept:[
+        '「AB 邊上的高」＝ 過頂點 C 而且垂直 AB 的那條直線。',
+        '先求 AB 的斜率，再取負倒數就是高的斜率（m<sub>高</sub> × m<sub>AB</sub> = －1）。',
+        '最後用點斜式套在頂點 C 上，再化成一般式。'
+      ],
+      formula:'m<sub>高</sub> = －1 ÷ m<sub>AB</sub>　，　再代點斜式過 C',
+      example:function(){ return this.gen({ax:2, ay:3, bx:-3, by:-4, cx:5, cy:-2}); },
+      gen:function(fix){
+        var ax, ay, bx, by, cx, cy;
+        if (fix){ ax = fix.ax; ay = fix.ay; bx = fix.bx; by = fix.by; cx = fix.cx; cy = fix.cy; }
+        else {
+          do {
+            ax = rndInt(-5, 5); ay = rndInt(-5, 5);
+            bx = rndInt(-5, 5); by = rndInt(-5, 5);
+            cx = rndInt(-5, 5); cy = rndInt(-5, 5);
+          } while (ax === bx || ay === by ||
+                   (bx - ax) * (cy - ay) - (cx - ax) * (by - ay) === 0);
+        }
+        var mAB = ratMake(by - ay, bx - ax);
+        var mAlt = perpSlope(mAB);
+        var L = lineFromPointSlope(ratMake(cx), ratMake(cy), mAlt);
+        var wrongs = [lineHtml(lineFromPointSlope(ratMake(cx), ratMake(cy), mAB)),
+                      lineHtml(lineFromPointSlope(ratMake(ax), ratMake(ay), mAlt)),
+                      lineHtml(lineFromPointSlope(ratMake(cx), ratMake(cy), ratNeg(mAB)))];
+        return {
+          stem:'設 ' + ptLabel('A', ax, ay) + '、' + ptLabel('B', bx, by) + '、' + ptLabel('C', cx, cy) +
+               ' 為 △ABC 的三頂點，求 AB 邊上的高所在的直線方程式（一般式）。',
+          choices:shuffleChoices(lineHtml(L), wrongs),
+          answerHtml:lineHtml(L),
+          steps:[
+            {eq:'m<sub>AB</sub> = <span class="frac"><span class="num">' + by + ' － ' + (ay < 0 ? '(' + ay + ')' : ay) +
+                '</span><span class="den">' + bx + ' － ' + (ax < 0 ? '(' + ax + ')' : ax) + '</span></span> = ' + ratHtml(mAB), why:'先求對邊 AB 的斜率'},
+            {eq:'m<sub>L</sub> × m<sub>AB</sub> = －1　⇒　m<sub>L</sub> = ' + ratHtml(mAlt), why:'高垂直 AB，斜率取負倒數'},
+            {eq:'又高要過點 ' + ptLabel('C', cx, cy), why:'高是從頂點 C 畫出去的'},
+            {eq:'y － ' + (cy < 0 ? '(' + cy + ')' : cy) + ' = ' + ratHtmlParen(mAlt) + ' ( x － ' + (cx < 0 ? '(' + cx + ')' : cx) + ' )', why:'由點斜式代入'},
+            {eq:lineHtml(L), why:'去分母、移項，整理成一般式'}
+          ]
+        };
+      }
+    },
+    {
+      id:'median', section:'2-2 直線方程式', name:'三角形的中線',
+      concept:[
+        '過頂點 A 且平分 △ABC 面積的直線，就是 A 到對邊 BC 中點的「中線」。',
+        '先用中點公式求出 BC 的中點 M，再用 A、M 兩點求斜率。',
+        '最後套點斜式、化成一般式。'
+      ],
+      formula:'M = ( <span class="frac"><span class="num">x<sub>B</sub>＋x<sub>C</sub></span><span class="den">2</span></span> , <span class="frac"><span class="num">y<sub>B</sub>＋y<sub>C</sub></span><span class="den">2</span></span> )',
+      example:function(){ return this.gen({ax:1, ay:5, bx:-2, by:-3, cx:2, cy:1}); },
+      gen:function(fix){
+        var ax, ay, bx, by, cx, cy;
+        if (fix){ ax = fix.ax; ay = fix.ay; bx = fix.bx; by = fix.by; cx = fix.cx; cy = fix.cy; }
+        else {
+          do {
+            ax = rndInt(-5, 5); ay = rndInt(-5, 5);
+            bx = rndInt(-6, 6); by = rndInt(-6, 6);
+            cx = rndInt(-6, 6); cy = rndInt(-6, 6);
+          } while ((bx + cx) % 2 !== 0 || (by + cy) % 2 !== 0 ||
+                   (bx - ax) * (cy - ay) - (cx - ax) * (by - ay) === 0 ||
+                   ((bx + cx) / 2 === ax));
+        }
+        var M = { x: ratMake(bx + cx, 2), y: ratMake(by + cy, 2) };
+        var mAM = ratDiv(ratSub(M.y, ratMake(ay)), ratSub(M.x, ratMake(ax)));
+        var L = lineFromPointSlope(ratMake(ax), ratMake(ay), mAM);
+        var Mwrong = { x: ratMake(bx - cx, 2), y: ratMake(by - cy, 2) };
+        var wrongs = [lineHtml(lineThroughPoints({x:ratMake(ax), y:ratMake(ay)}, Mwrong)),
+                      lineHtml(lineFromPointSlope(ratMake(ax), ratMake(ay), ratNeg(mAM))),
+                      lineHtml(lineThroughPoints({x:ratMake(bx), y:ratMake(by)}, {x:ratMake(cx), y:ratMake(cy)}))];
+        return {
+          stem:'設 ' + ptLabel('A', ax, ay) + '、' + ptLabel('B', bx, by) + '、' + ptLabel('C', cx, cy) +
+               ' 為 △ABC 的三頂點，求過 A 點且平分 △ABC 面積的直線方程式（一般式）。',
+          choices:shuffleChoices(lineHtml(L), wrongs),
+          answerHtml:lineHtml(L),
+          steps:[
+            {eq:'過頂點且平分面積的直線 ＝ 中線', why:'先看懂題目在問什麼'},
+            {eq:'M ( <span class="frac"><span class="num">' + bx + ' ＋ ' + (cx < 0 ? '(' + cx + ')' : cx) + '</span><span class="den">2</span></span> , ' +
+                '<span class="frac"><span class="num">' + by + ' ＋ ' + (cy < 0 ? '(' + cy + ')' : cy) + '</span><span class="den">2</span></span> ) = ' + ptHtml(M), why:'用中點公式求 BC 的中點 M'},
+            {eq:'m<sub>AM</sub> = ' + ratHtml(mAM), why:'用 A、M 兩點求斜率'},
+            {eq:'y － ' + (ay < 0 ? '(' + ay + ')' : ay) + ' = ' + ratHtmlParen(mAM) + ' ( x － ' + (ax < 0 ? '(' + ax + ')' : ax) + ' )', why:'由點斜式代入 A 點'},
+            {eq:lineHtml(L), why:'去分母、移項，整理成一般式'}
+          ]
+        };
+      }
+    },
+    {
+      id:'perpbis', section:'2-2 直線方程式', name:'垂直平分線（中垂線）',
+      concept:[
+        'AB 的垂直平分線＝通過 AB 中點、而且垂直 AB 的直線。',
+        '線上每一點到 A、B 的距離都相等，所以也叫「中垂線」。',
+        '作法：先求中點 M → 求 AB 斜率 → 取負倒數 → 點斜式過 M。'
+      ],
+      formula:'過中點 M，且 m × m<sub>AB</sub> = －1',
+      example:function(){ return this.gen({ax:1, ay:3, bx:5, by:-1}); },
+      gen:function(fix){
+        var ax, ay, bx, by;
+        if (fix){ ax = fix.ax; ay = fix.ay; bx = fix.bx; by = fix.by; }
+        else {
+          do {
+            ax = rndInt(-6, 6); ay = rndInt(-6, 6);
+            bx = rndInt(-6, 6); by = rndInt(-6, 6);
+          } while (ax === bx || ay === by || (ax + bx) % 2 !== 0 || (ay + by) % 2 !== 0);
+        }
+        var M = { x: ratMake(ax + bx, 2), y: ratMake(ay + by, 2) };
+        var mAB = ratMake(by - ay, bx - ax);
+        var mPb = perpSlope(mAB);
+        var L = lineFromPointSlope(M.x, M.y, mPb);
+        // 注意：過中點 M、斜率 mAB 的直線就是 AB 本身，不能同時當兩個干擾選項
+        var wrongs = [lineHtml(lineFromPointSlope(M.x, M.y, ratMake(bx - ax, by - ay))),   // 只取倒數、忘了變號
+                      lineHtml(lineFromPointSlope(ratMake(ax), ratMake(ay), mPb)),         // 斜率對但過 A 點
+                      lineHtml(lineThroughPoints({x:ratMake(ax), y:ratMake(ay)}, {x:ratMake(bx), y:ratMake(by)})), // 直接寫 AB
+                      lineHtml(lineFromPointSlope(ratMake(bx), ratMake(by), mPb))];        // 斜率對但過 B 點
+        return {
+          stem:'設 ' + ptLabel('A', ax, ay) + '、' + ptLabel('B', bx, by) + '，求 AB 的垂直平分線方程式（一般式）。',
+          choices:shuffleChoices(lineHtml(L), wrongs),
+          answerHtml:lineHtml(L),
+          steps:[
+            {eq:'M = ( <span class="frac"><span class="num">' + ax + ' ＋ ' + (bx < 0 ? '(' + bx + ')' : bx) + '</span><span class="den">2</span></span> , ' +
+                '<span class="frac"><span class="num">' + ay + ' ＋ ' + (by < 0 ? '(' + by + ')' : by) + '</span><span class="den">2</span></span> ) = ' + ptHtml(M), why:'先求 AB 的中點（中垂線一定過中點）'},
+            {eq:'m<sub>AB</sub> = ' + ratHtml(mAB), why:'再求 AB 的斜率'},
+            {eq:'中垂線斜率 = －1 ÷ ' + ratHtmlParen(mAB) + ' = ' + ratHtml(mPb), why:'垂直 → 取負倒數'},
+            {eq:'y － ' + ratHtmlParen(M.y) + ' = ' + ratHtmlParen(mPb) + ' ( x － ' + ratHtmlParen(M.x) + ' )', why:'由點斜式，代入中點 M'},
+            {eq:lineHtml(L), why:'去分母、移項，整理成一般式'}
+          ]
+        };
+      }
+    }
+  ];
+
+
+  /* ============ 互動式練功坊：流程控制 ============ */
+  var PRAC_ROUND_SIZE = 5;
+  var PRAISE = ['答對了，很漂亮！', '完全正確，這個觀念你抓到了！', '正確！步驟很穩。',
+                '答對！這題的關鍵你掌握住了。', '太好了，全對的節奏！'];
+  var CHEERUP = ['沒關係，這題很多人也會卡住，我們一步一步看。',
+                 '差一點點而已，看完解析就會了。',
+                 '別緊張，這種題目多練兩次就抓得到訣竅。',
+                 '錯了才有收穫，跟著下面的步驟重新走一次。'];
+  var SELF_LABEL = { got:'我懂了', partial:'有些不懂', lost:'完全不懂' };
+
+  var pracState = {
+    typeId:null, question:null, index:0, correctCount:0,
+    answered:false, rows:[], selfPick:null
+  };
+  var pracExBoard = createStepBoard('pracExSteps',
+    {prev:'pracExPrev', next:'pracExNext', all:'pracExAll', reset:'pracExReset'});
+  var pracRvBoard = createStepBoard('pracRvSteps',
+    {prev:'pracRvPrev', next:'pracRvNext', all:'pracRvAll', reset:'pracRvReset'});
+
+  function pracType(){
+    for (var i = 0; i < PRACTICE_TYPES.length; i++){
+      if (PRACTICE_TYPES[i].id === pracState.typeId) return PRACTICE_TYPES[i];
+    }
+    return null;
+  }
+  function pracShowView(which){
+    ['pracPickerView','pracLearnView','pracQuizView','pracResultView'].forEach(function(id){
+      document.getElementById(id).hidden = (id !== which);
+    });
+  }
+
+  /* ---- 題型清單（依章節分組的收合清單）---- */
+  function renderPracticeTypes(){
+    var wrap = document.getElementById('pracTypeList');
+    if (!wrap) return;
+    wrap.innerHTML = '';
+    var groups = [], seen = {};
+    PRACTICE_TYPES.forEach(function(t){
+      if (!seen[t.section]){ seen[t.section] = []; groups.push(t.section); }
+      seen[t.section].push(t);
+    });
+    groups.forEach(function(sec, gi){
+      var det = document.createElement('details');
+      det.className = 'book';
+      det.setAttribute('open', '');   // 題型不多，預設全部展開，學生一進來就看得到
+      var sum = document.createElement('summary');
+      sum.innerHTML = '<span class="book-tag">' + sec + '</span><span>共 ' + seen[sec].length + ' 種題型</span>';
+      det.appendChild(sum);
+      var body = document.createElement('div');
+      body.className = 'book-body prac-type-grid';
+      seen[sec].forEach(function(t){
+        var card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'prac-type-card';
+        card.setAttribute('data-prac-type', t.id);
+        card.innerHTML = '<span class="prac-type-name">' + t.name + '</span>' +
+                         '<span class="prac-type-formula">' + t.formula + '</span>';
+        body.appendChild(card);
+      });
+      det.appendChild(body);
+      wrap.appendChild(det);
+    });
+  }
+
+  /* ---- 第二步：觀念 + 老師帶做一題 ---- */
+  function openPracticeType(id){
+    pracState.typeId = id;
+    var t = pracType();
+    if (!t) return;
+    document.getElementById('pracLearnTitle').textContent = t.section + '｜' + t.name;
+    var conceptEl = document.getElementById('pracConcept');
+    conceptEl.innerHTML = '';
+    t.concept.forEach(function(c){
+      var li = document.createElement('li');
+      li.innerHTML = c;
+      conceptEl.appendChild(li);
+    });
+    document.getElementById('pracFormula').innerHTML = '重點公式：' + t.formula;
+    var ex = t.example();
+    document.getElementById('pracExStem').innerHTML = '例題：' + ex.stem;
+    pracExBoard.setSteps(ex.steps);
+    pracShowView('pracLearnView');
+  }
+
+  /* ---- 第三步：出題 ---- */
+  // 干擾選項偶爾會跟正解（或彼此）算出同一個值，選項就不足 4 個；
+  // 這時換一組隨機數字重新出題，保證學生看到的永遠是 4 個不重複的選項。
+  function pracGenQuestion(t){
+    var q = null;
+    for (var i = 0; i < 80; i++){
+      q = t.gen();
+      if (q && q.choices && q.choices.length === 4) return q;
+    }
+    return q;
+  }
+  function pracNewQuestion(){
+    var t = pracType();
+    if (!t) return;
+    pracState.question = pracGenQuestion(t);
+    pracState.answered = false;
+    pracState.selfPick = null;
+    document.getElementById('pracQuizTitle').textContent = t.section + '｜' + t.name;
+    document.getElementById('pracProgress').textContent =
+      '第 ' + (pracState.index + 1) + ' / ' + PRAC_ROUND_SIZE + ' 題　已答對 ' + pracState.correctCount + ' 題';
+    document.getElementById('pracStem').innerHTML = pracState.question.stem;
+    var box = document.getElementById('pracChoices');
+    box.innerHTML = '';
+    pracState.question.choices.forEach(function(ch, i){
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'prac-choice';
+      btn.setAttribute('data-choice', i);
+      btn.innerHTML = '<span class="prac-choice-tag">' + 'ABCD'.charAt(i) + '</span><span class="prac-choice-body">' + ch.html + '</span>';
+      box.appendChild(btn);
+    });
+    document.getElementById('pracFeedback').hidden = true;
+    document.getElementById('pracReviewPanel').hidden = true;
+    document.getElementById('pracSelfCheck').hidden = true;
+    document.getElementById('pracNextBtn').hidden = true;
+    Array.prototype.forEach.call(document.querySelectorAll('#pracSelfCheck button'), function(b){
+      b.classList.remove('is-picked');
+    });
+    pracShowView('pracQuizView');
+  }
+
+  function pracAnswer(idx){
+    if (pracState.answered) return;
+    pracState.answered = true;
+    var q = pracState.question, t = pracType();
+    var correct = !!q.choices[idx].ok;
+    if (correct) pracState.correctCount++;
+    Array.prototype.forEach.call(document.querySelectorAll('#pracChoices .prac-choice'), function(b, i){
+      b.disabled = true;
+      if (q.choices[i].ok) b.classList.add('is-correct');
+      if (i === idx && !correct) b.classList.add('is-wrong');
+    });
+    var fb = document.getElementById('pracFeedback');
+    fb.hidden = false;
+    fb.className = 'prac-feedback ' + (correct ? 'is-correct' : 'is-wrong');
+    fb.innerHTML = correct
+      ? '✓ ' + rndPick(PRAISE) + '<br><span class="prac-feedback-sub">正確答案：' + q.answerHtml + '　可以看右邊的步驟再確認一次想法。</span>'
+      : '✗ ' + rndPick(CHEERUP) + '<br><span class="prac-feedback-sub">正確答案是 ' + q.answerHtml + '，右邊有一步一步的檢討。</span>';
+    document.getElementById('pracReviewPanel').hidden = false;
+    pracRvBoard.setSteps(q.steps);
+    document.getElementById('pracSelfCheck').hidden = false;
+    document.getElementById('pracNextBtn').hidden = false;
+    document.getElementById('pracNextBtn').textContent =
+      (pracState.index + 1 >= PRAC_ROUND_SIZE) ? '看這一輪結果 →' : '下一題 →';
+    // 先把這一題的紀錄存起來（自評之後會補上）
+    pracState.rows.push({
+      section: t.section, typeId: t.id, typeName: t.name,
+      stem: stripHtml(q.stem), answer: stripHtml(q.choices[idx].html),
+      correctAnswer: stripHtml(q.answerHtml), isCorrect: correct, self: ''
+    });
+  }
+  function stripHtml(html){
+    var d = document.createElement('div');
+    d.innerHTML = html;
+    return (d.textContent || '').replace(/\s+/g, ' ').trim();
+  }
+
+  function pracNext(){
+    pracState.index++;
+    if (pracState.index >= PRAC_ROUND_SIZE) pracShowResult();
+    else pracNewQuestion();
+  }
+
+  /* ---- 第四步：本輪結果 ＋ 上傳紀錄 ---- */
+  function pracShowResult(){
+    var t = pracType();
+    var n = PRAC_ROUND_SIZE, got = pracState.correctCount;
+    document.getElementById('pracScoreBadge').textContent = got + ' / ' + n + ' 題答對';
+    var msgEl = document.getElementById('pracResultMsg');
+    var pct = got / n;
+    msgEl.className = 'prac-result-msg ' + (pct >= 0.8 ? 'is-great' : (pct >= 0.5 ? 'is-ok' : 'is-work'));
+    msgEl.textContent = pct === 1 ? '全部答對，這個題型你已經很熟了！可以挑戰別的題型。'
+      : pct >= 0.8 ? '表現很好！只差一點點就全對了，再練一輪就更穩。'
+      : pct >= 0.5 ? '一半以上都對，觀念有了，再多練幾題把細節補起來。'
+      : '這個題型還不太熟沒關係，先回去看一次「老師帶你做一題」，再練一輪就會進步。';
+    var listEl = document.getElementById('pracResultList');
+    listEl.innerHTML = '';
+    var rows = pracState.rows.slice(-n);
+    rows.forEach(function(r, i){
+      var li = document.createElement('li');
+      li.innerHTML = '第 ' + (i + 1) + ' 題：' + (r.isCorrect ? '<span class="prac-ok">答對</span>' : '<span class="prac-no">答錯</span>') +
+        (r.self ? '　自評：' + SELF_LABEL[r.self] : '　（沒有勾自評）');
+      listEl.appendChild(li);
+    });
+    var lost = rows.filter(function(r){ return r.self === 'lost'; }).length;
+    var partial = rows.filter(function(r){ return r.self === 'partial'; }).length;
+    if (lost || partial){
+      var li2 = document.createElement('li');
+      li2.className = 'sys-note';
+      li2.textContent = '你有 ' + (lost + partial) + ' 題勾了不太懂，建議回去看「互動動畫」裡對應的主題，或下次上課找程老師問。';
+      listEl.appendChild(li2);
+    }
+    savePracticeRows(rows);
+    pracShowView('pracResultView');
+  }
+
+  function savePracticeRows(rows){
+    var statusEl = document.getElementById('pracSaveStatus');
+    if (!currentUser){
+      statusEl.textContent = '（沒有登入，這一輪不會記錄）';
+      return;
+    }
+    statusEl.textContent = '紀錄傳送中…';
+    callApi('savePractice', { actorAccount: currentUser.account, actorPassword: currentPassword, rows: rows }).then(function(res){
+      if (res && res.ok){
+        statusEl.textContent = '✓ 練習紀錄已送出（程老師看得到）。';
+      } else {
+        statusEl.textContent = '⚠ 紀錄沒有送出成功：' + ((res && res.error) || '後端還沒有加上練習紀錄功能') + '。練習本身不受影響。';
+      }
+    }).catch(function(){
+      statusEl.textContent = '⚠ 紀錄沒有送出成功（連線問題），練習本身不受影響。';
+    });
+  }
+
+  /* ---- 事件 ---- */
+  document.addEventListener('click', function(e){
+    var card = e.target.closest('[data-prac-type]');
+    if (card){ openPracticeType(card.getAttribute('data-prac-type')); return; }
+    var back = e.target.closest('[data-prac-back]');
+    if (back){
+      pracState.index = 0; pracState.correctCount = 0; pracState.rows = [];
+      pracShowView('pracPickerView');
+      return;
+    }
+    var choice = e.target.closest('#pracChoices .prac-choice');
+    if (choice){ pracAnswer(parseInt(choice.getAttribute('data-choice'), 10)); return; }
+    var self = e.target.closest('#pracSelfCheck button[data-self]');
+    if (self){
+      pracState.selfPick = self.getAttribute('data-self');
+      Array.prototype.forEach.call(document.querySelectorAll('#pracSelfCheck button'), function(b){
+        b.classList.toggle('is-picked', b === self);
+      });
+      if (pracState.rows.length) pracState.rows[pracState.rows.length - 1].self = pracState.selfPick;
+      return;
+    }
+  });
+  document.getElementById('pracStartBtn').addEventListener('click', function(){
+    pracState.index = 0; pracState.correctCount = 0; pracState.rows = [];
+    pracNewQuestion();
+  });
+  document.getElementById('pracNextBtn').addEventListener('click', pracNext);
+  document.getElementById('pracAgainBtn').addEventListener('click', function(){
+    pracState.index = 0; pracState.correctCount = 0; pracState.rows = [];
+    pracNewQuestion();
+  });
+  renderPracticeTypes();
+
+  /* ============ 老師端：練習紀錄統計 ============ */
+  var practiceLogCache = [];
+  function loadPracticeLogs(){
+    var statusEl = document.getElementById('pracLogStatus');
+    if (!currentUser || currentUser.role !== 'admin') return;
+    statusEl.textContent = '讀取中…';
+    callApi('getPracticeLogs', { actorAccount: currentUser.account, actorPassword: currentPassword }).then(function(res){
+      if (res && res.ok){
+        practiceLogCache = res.logs || [];
+        statusEl.textContent = '共 ' + practiceLogCache.length + ' 筆紀錄。';
+        populatePracticeClassOptions();
+        renderPracticeLogTables();
+      } else {
+        practiceLogCache = [];
+        statusEl.textContent = '⚠ ' + ((res && res.error) || '後端還沒有加上練習紀錄功能（Code.gs 需要更新並重新部署）');
+        renderPracticeLogTables();
+      }
+    }).catch(function(){
+      statusEl.textContent = '⚠ 讀取失敗，請確認 Apps Script 是否已重新部署。';
+    });
+  }
+  function populatePracticeClassOptions(){
+    var sel = document.getElementById('pracLogClass');
+    var current = sel.value;
+    var classes = [];
+    practiceLogCache.forEach(function(r){
+      if (r.className && classes.indexOf(r.className) === -1) classes.push(r.className);
+    });
+    classes.sort();
+    sel.innerHTML = '<option value="">全部班級</option>';
+    classes.forEach(function(c){
+      var o = document.createElement('option');
+      o.value = c; o.textContent = c;
+      sel.appendChild(o);
+    });
+    if (current) sel.value = current;
+  }
+  function practiceFilteredRows(){
+    var cls = document.getElementById('pracLogClass').value;
+    var range = document.getElementById('pracLogRange').value;
+    var cutoff = 0;
+    if (range !== 'all') cutoff = Date.now() - parseInt(range, 10) * 86400000;
+    return practiceLogCache.filter(function(r){
+      if (cls && r.className !== cls) return false;
+      if (cutoff){
+        var t = Date.parse(r.time);
+        if (!isNaN(t) && t < cutoff) return false;
+      }
+      return true;
+    });
+  }
+  function renderPracticeLogTables(){
+    var rows = practiceFilteredRows();
+    var byStudent = {}, byType = {};
+    rows.forEach(function(r){
+      var key = r.className + '|' + r.sid;
+      if (!byStudent[key]) byStudent[key] = { className:r.className, sid:r.sid, name:r.name, total:0, correct:0, got:0, partial:0, lost:0, last:'' };
+      var st = byStudent[key];
+      st.total++; if (r.isCorrect) st.correct++;
+      if (r.self === 'got') st.got++;
+      else if (r.self === 'partial') st.partial++;
+      else if (r.self === 'lost') st.lost++;
+      if (!st.last || String(r.time) > String(st.last)) st.last = r.time;
+
+      var tk = r.typeId || r.typeName;
+      if (!byType[tk]) byType[tk] = { section:r.section, name:r.typeName, total:0, correct:0, lost:0 };
+      byType[tk].total++;
+      if (r.isCorrect) byType[tk].correct++;
+      if (r.self === 'lost') byType[tk].lost++;
+    });
+    var sBody = document.getElementById('pracLogStudentBody');
+    sBody.innerHTML = '';
+    var list = Object.keys(byStudent).map(function(k){ return byStudent[k]; });
+    list.sort(function(a, b){ return (a.className + a.sid) < (b.className + b.sid) ? -1 : 1; });
+    if (!list.length){
+      sBody.innerHTML = '<tr class="empty-row"><td colspan="9">目前還沒有練習紀錄。</td></tr>';
+    } else {
+      list.forEach(function(st){
+        var tr = document.createElement('tr');
+        tr.innerHTML = '<td class="mono">' + st.sid + '</td><td>' + st.name + '</td>' +
+          '<td class="mono">' + st.total + '</td><td class="mono">' + st.correct + '</td>' +
+          '<td class="mono">' + Math.round(st.correct / st.total * 100) + '%</td>' +
+          '<td class="mono">' + st.got + '</td><td class="mono">' + st.partial + '</td><td class="mono">' + st.lost + '</td>' +
+          '<td class="mono">' + fmtPracTime(st.last) + '</td>';
+        sBody.appendChild(tr);
+      });
+    }
+    var tBody = document.getElementById('pracLogTypeBody');
+    tBody.innerHTML = '';
+    var tlist = Object.keys(byType).map(function(k){ return byType[k]; });
+    tlist.sort(function(a, b){ return (a.correct / a.total) - (b.correct / b.total); });   // 正確率低的排前面
+    if (!tlist.length){
+      tBody.innerHTML = '<tr class="empty-row"><td colspan="5">目前還沒有練習紀錄。</td></tr>';
+    } else {
+      tlist.forEach(function(t){
+        var rate = Math.round(t.correct / t.total * 100);
+        var tr = document.createElement('tr');
+        tr.innerHTML = '<td>' + (t.section || '') + '</td><td>' + t.name + '</td>' +
+          '<td class="mono">' + t.total + '</td>' +
+          '<td class="mono' + (rate < 60 ? ' prac-low' : '') + '">' + rate + '%</td>' +
+          '<td class="mono">' + t.lost + '</td>';
+        tBody.appendChild(tr);
+      });
+    }
+  }
+  function fmtPracTime(v){
+    if (!v) return '';
+    var d = new Date(v);
+    if (isNaN(d.getTime())) return String(v).slice(0, 16).replace('T', ' ');
+    return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2) +
+           ' ' + ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+  }
+  document.getElementById('pracLogRefresh').addEventListener('click', loadPracticeLogs);
+  document.getElementById('pracLogClass').addEventListener('change', renderPracticeLogTables);
+  document.getElementById('pracLogRange').addEventListener('change', renderPracticeLogTables);
+  document.getElementById('pracLogExport').addEventListener('click', function(){
+    var rows = practiceFilteredRows();
+    var statusEl = document.getElementById('pracLogStatus');
+    if (!rows.length){ statusEl.textContent = '⚠ 目前沒有可以匯出的紀錄。'; return; }
+    var head = ['時間','班級','學號','姓名','章節','題型','題目','學生作答','正確答案','是否答對','自評'];
+    var lines = [head.join(',')];
+    rows.forEach(function(r){
+      lines.push([fmtPracTime(r.time), r.className, r.sid, r.name, r.section, r.typeName,
+                  r.stem, r.answer, r.correctAnswer, r.isCorrect ? '對' : '錯',
+                  SELF_LABEL[r.self] || ''].map(csvCell).join(','));
+    });
+    var blob = new Blob(['﻿' + lines.join('\r\n')], {type:'text/csv;charset=utf-8;'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    var today = new Date();
+    a.href = url;
+    a.download = '練功坊紀錄_' + today.getFullYear() + '-' + ('0' + (today.getMonth() + 1)).slice(-2) + '-' + ('0' + today.getDate()).slice(-2) + '.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    statusEl.textContent = '✓ 已匯出 ' + rows.length + ' 筆紀錄。';
+  });
+  function csvCell(v){
+    var s = (v === null || v === undefined) ? '' : String(v);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+
   /* ---- 課堂筆記／習作解析：需登入才能查看 ---- */
   var GATED_SECTIONS = [
     { gateId: 'notesLoginGate', contentId: 'notesDirectory' },
@@ -3709,7 +4733,8 @@
     { gateId: 'examsLoginGate', contentId: 'examsContent' },
     { gateId: 'mocksLoginGate', contentId: 'mocksContent' },
     { gateId: 'pastexamsLoginGate', contentId: 'pastexamsContent' },
-    { gateId: 'videosLoginGate', contentId: 'videosContent' }
+    { gateId: 'videosLoginGate', contentId: 'videosContent' },
+    { gateId: 'practiceLoginGate', contentId: 'practiceContent' }
   ];
   function updateContentGates(){
     var loggedIn = !!currentUser;
@@ -4586,7 +5611,9 @@
     });
     document.getElementById('entryPanel').hidden = (tab !== 'entry');
     document.getElementById('accountsPanel').hidden = (tab !== 'accounts');
+    document.getElementById('practiceLogPanel').hidden = (tab !== 'practice');
     if (tab === 'accounts') renderAccountsTable();
+    if (tab === 'practice') loadPracticeLogs();
     if (tab === 'entry'){
       loadRosterForCurrentClass();
       refreshGrades().then(function(){
