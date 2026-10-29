@@ -506,6 +506,51 @@
   .plot-hint{font-size:.74rem;color:var(--ink-soft);}
   .sys-note{color:var(--ink-soft);}
   .sys-bound.is-strict{stroke-dasharray:7 5;}
+
+  /* ---------- 第1冊 2-2：直線方程式 / 三角形三線 ---------- */
+  .demo-hint{margin:0;font-size:.74rem;color:var(--ink-soft);line-height:1.6;}
+  .steps-panel{background:var(--surface-2);border:1px solid var(--border);border-radius:4px;padding:12px 14px;}
+  .steps-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:10px;}
+  .steps-title{font-size:.84rem;font-weight:600;color:var(--ink);}
+  .steps-btns{display:flex;flex-wrap:wrap;gap:6px;margin-left:auto;}
+  .steps-btns .btn{padding:4px 10px;font-size:.74rem;}
+  .steps-btns .btn:disabled{opacity:.4;cursor:default;}
+  .steps-list{list-style:decimal;margin:0;padding-left:22px;display:flex;flex-direction:column;gap:8px;}
+  .step-item{padding:4px 0;border-bottom:1px dashed var(--border);}
+  .step-item:last-child{border-bottom:none;}
+  .step-eq{display:block;font-family:"JetBrains Mono",monospace;font-size:.86rem;color:var(--indigo-strong);line-height:1.8;}
+  .step-why{display:block;font-size:.74rem;color:var(--ink-soft);margin-top:2px;}
+  .step-item.is-latest .step-eq{color:var(--teal);}
+  .lf-line{fill:none;stroke:var(--indigo);stroke-width:2.6;stroke-linecap:round;}
+  .lf-point{fill:var(--red);}
+  .lf-point-label{font-family:"JetBrains Mono",monospace;font-size:10px;fill:var(--ink);}
+  .lf-slope-tri{fill:none;stroke:var(--teal);stroke-width:1.4;stroke-dasharray:4 3;}
+  .lf-slope-label{font-family:"JetBrains Mono",monospace;font-size:10px;fill:var(--teal);}
+  .lf-area{fill:var(--red);fill-opacity:.2;stroke:var(--red);stroke-width:1.2;}
+  .tri-body{fill:var(--indigo);fill-opacity:.1;stroke:var(--indigo);stroke-width:2;stroke-linejoin:round;}
+  .tri-line{fill:none;stroke-width:1.6;opacity:.55;}
+  .tri-line.is-alt{stroke:var(--red);}
+  .tri-line.is-med{stroke:var(--teal);}
+  .tri-line.is-pb{stroke:var(--indigo-strong);}
+  .tri-line.is-selected{opacity:1;stroke-width:2.8;}
+  .tri-circum{fill:none;stroke:var(--indigo-strong);stroke-width:1.2;stroke-dasharray:5 4;opacity:.6;}
+  .tri-vertex{fill:var(--red);stroke:var(--surface);stroke-width:1.5;cursor:grab;}
+  .tri-mark{fill:var(--teal);}
+  .tri-label{font-family:"JetBrains Mono",monospace;font-size:10px;fill:var(--ink);}
+  .tri-g{fill:var(--teal);stroke:var(--surface);stroke-width:1.5;}
+  .tri-o{fill:var(--indigo-strong);stroke:var(--surface);stroke-width:1.5;}
+  .tri-h{fill:var(--red);stroke:var(--surface);stroke-width:1.5;}
+  .tri-sym-seg{stroke:var(--teal);stroke-width:1.4;stroke-dasharray:4 3;}
+  .tri-sym-dot{fill:var(--teal);stroke:var(--surface);stroke-width:1.5;}
+  .tri-dot{
+    display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;
+    font-family:"JetBrains Mono",monospace;font-size:.72rem;font-weight:700;color:var(--surface);background:var(--red);
+  }
+  .tri-select{
+    font-family:inherit;font-size:.82rem;padding:7px 9px;border:1px solid var(--border);
+    border-radius:3px;background:var(--surface);color:var(--ink);width:100%;
+  }
+  .tri-howto{font-size:.78rem;color:var(--ink-soft);line-height:1.7;}
   /* 聯立不等式：圖形接近正方形，寬螢幕時不要被拉成巨大的方塊，
      多出來的寬度拿去把兩個不等式面板並排，整體高度也比較短。 */
   .demo-body-sys{grid-template-columns:minmax(340px,560px) minmax(320px,700px);}
@@ -1075,6 +1120,198 @@
           </div>
         </details>
 
+
+        <!-- 直線方程式的四種寫法（第1冊 2-2，課本 P.66～P.70） -->
+        <details class="book demo-topic" id="topicLineForms">
+          <summary>
+            <span class="book-tag">第1冊 2-2</span>
+            <span class="demo-topic-title">求直線方程式：四種寫法與化成一般式</span>
+            <span class="subbook-tag">含移項化簡步驟</span>
+          </summary>
+          <div class="book-body demo-topic-body">
+            <div class="demo-head">
+              <h3>求直線方程式：四種寫法與化成一般式</h3>
+              <span class="badge">ax + by + c = 0</span>
+            </div>
+            <div class="demo-body">
+              <div>
+                <div class="graph-wrap">
+                  <svg id="lfSvg" class="graph" viewBox="0 0 519 438" role="img" aria-label="直線方程式圖形"></svg>
+                </div>
+                <div class="plot-tools">
+                  <button type="button" class="btn btn-ghost" id="lfZoomInBtn">＋ 放大</button>
+                  <button type="button" class="btn btn-ghost" id="lfZoomOutBtn">－ 縮小</button>
+                  <button type="button" class="btn btn-ghost" id="lfFitBtn">自動框住重點</button>
+                  <button type="button" class="btn btn-ghost" id="lfResetViewBtn">回到預設範圍</button>
+                  <span class="plot-hint">在圖上按住拖曳可以平移，滾輪可以縮放</span>
+                </div>
+              </div>
+              <div class="controls">
+                <div class="func-switch func-switch-4" id="lfModeSwitch">
+                  <button type="button" data-lfmode="point" aria-pressed="true">點斜式</button>
+                  <button type="button" data-lfmode="slope" aria-pressed="false">斜截式</button>
+                  <button type="button" data-lfmode="intercept" aria-pressed="false">截距式</button>
+                  <button type="button" data-lfmode="axis" aria-pressed="false">水平・鉛直</button>
+                </div>
+
+                <!-- 點斜式 -->
+                <div class="demo-subpanel" data-lfpanel="point">
+                  <div class="demo-subpanel-eq">y － y₁ = m ( x － x₁ )</div>
+                  <div class="mini-row">
+                    <div class="control-row"><label>點 A 的 x₁ <output id="outLfPx">1</output></label><input type="range" id="lfPx" min="-10" max="10" step="1" value="1"></div>
+                    <div class="control-row"><label>點 A 的 y₁ <output id="outLfPy">3</output></label><input type="range" id="lfPy" min="-10" max="10" step="1" value="3"></div>
+                  </div>
+                  <div class="mini-row">
+                    <div class="control-row"><label>斜率分子 Δy <output id="outLfMn">2</output></label><input type="range" id="lfMn" min="-10" max="10" step="1" value="2"></div>
+                    <div class="control-row"><label>斜率分母 Δx <output id="outLfMd">3</output></label><input type="range" id="lfMd" min="-10" max="10" step="1" value="3"></div>
+                  </div>
+                  <p class="demo-hint">斜率用「分子／分母」兩個滑桿組成分數，這樣 m 會是課本那種漂亮的分數（分母為 0 時改用「水平・鉛直」那一頁）。</p>
+                </div>
+
+                <!-- 斜截式 -->
+                <div class="demo-subpanel" data-lfpanel="slope" hidden>
+                  <div class="demo-subpanel-eq">y = m x + b</div>
+                  <div class="mini-row">
+                    <div class="control-row"><label>斜率分子 Δy <output id="outLfSn">2</output></label><input type="range" id="lfSn" min="-10" max="10" step="1" value="2"></div>
+                    <div class="control-row"><label>斜率分母 Δx <output id="outLfSd">3</output></label><input type="range" id="lfSd" min="-10" max="10" step="1" value="3"></div>
+                  </div>
+                  <div class="control-row"><label>y 截距 b <output id="outLfSb">-2</output></label><input type="range" id="lfSb" min="-12" max="12" step="1" value="-2"></div>
+                </div>
+
+                <!-- 截距式 -->
+                <div class="demo-subpanel" data-lfpanel="intercept" hidden>
+                  <div class="demo-subpanel-eq">x / a ＋ y / b = 1　（a、b 都不可以是 0）</div>
+                  <div class="mini-row">
+                    <div class="control-row"><label>x 截距 a <output id="outLfIa">5</output></label><input type="range" id="lfIa" min="-12" max="12" step="1" value="5"></div>
+                    <div class="control-row"><label>y 截距 b <output id="outLfIb">-4</output></label><input type="range" id="lfIb" min="-12" max="12" step="1" value="-4"></div>
+                  </div>
+                  <p class="demo-hint">截距不是距離，可正可負；但不能為 0（直線一旦通過原點或平行坐標軸就寫不成截距式）。</p>
+                </div>
+
+                <!-- 水平線與鉛直線 -->
+                <div class="demo-subpanel" data-lfpanel="axis" hidden>
+                  <div class="func-switch" id="lfAxisSwitch">
+                    <button type="button" data-lfaxis="h" aria-pressed="true">水平線 y = k</button>
+                    <button type="button" data-lfaxis="v" aria-pressed="false">鉛直線 x = h</button>
+                  </div>
+                  <div class="control-row"><label><span id="lfAxisLabel">k</span> <output id="outLfK">3</output></label><input type="range" id="lfK" min="-10" max="10" step="1" value="3"></div>
+                  <p class="demo-hint" id="lfAxisHint"></p>
+                </div>
+
+                <div class="formula" id="lfFormulaOut"></div>
+
+                <div class="steps-panel">
+                  <div class="steps-head">
+                    <span class="steps-title">化成一般式的過程</span>
+                    <div class="steps-btns">
+                      <button type="button" class="btn btn-ghost" id="lfStepPrev">上一步</button>
+                      <button type="button" class="btn btn-ghost" id="lfStepNext">下一步</button>
+                      <button type="button" class="btn btn-ghost" id="lfStepAll">全部展開</button>
+                      <button type="button" class="btn btn-ghost" id="lfStepReset">只看第一步</button>
+                    </div>
+                  </div>
+                  <ol class="steps-list" id="lfSteps"></ol>
+                </div>
+
+                <ul class="lp-vertex-list" id="lfFacts"></ul>
+              </div>
+            </div>
+          </div>
+        </details>
+
+
+        <!-- 三角形的高、中線、中垂線（第1冊 2-2・數學超連結） -->
+        <details class="book demo-topic" id="topicTri">
+          <summary>
+            <span class="book-tag">第1冊 2-2</span>
+            <span class="demo-topic-title">三角形的高、中線、中垂線（重心・外心・垂心）</span>
+            <span class="subbook-tag">頂點可拖曳</span>
+          </summary>
+          <div class="book-body demo-topic-body">
+            <div class="demo-head">
+              <h3>三角形的高、中線、中垂線（重心・外心・垂心）</h3>
+              <span class="badge">先求斜率 → 點斜式 → 一般式</span>
+            </div>
+            <div class="demo-body">
+              <div>
+                <div class="graph-wrap">
+                  <svg id="triSvg" class="graph" viewBox="0 0 519 438" role="img" aria-label="三角形的高、中線與中垂線"></svg>
+                </div>
+                <div class="plot-tools">
+                  <button type="button" class="btn btn-ghost" id="triZoomInBtn">＋ 放大</button>
+                  <button type="button" class="btn btn-ghost" id="triZoomOutBtn">－ 縮小</button>
+                  <button type="button" class="btn btn-ghost" id="triFitBtn">自動框住圖形</button>
+                  <button type="button" class="btn btn-ghost" id="triResetBtn">重設三角形</button>
+                  <span class="plot-hint">直接拖曳 A、B、C 三個點（會自動對齊格點），空白處拖曳是平移畫面</span>
+                </div>
+              </div>
+              <div class="controls">
+                <div class="demo-subpanel">
+                  <div class="demo-subpanel-title">三個頂點的座標</div>
+                  <div class="mini-row mini-row-3">
+                    <div class="control-row"><label>A 的 x <output id="outTriAx">1</output></label><input type="range" id="triAx" min="-12" max="12" step="1" value="1"></div>
+                    <div class="control-row"><label>A 的 y <output id="outTriAy">5</output></label><input type="range" id="triAy" min="-12" max="12" step="1" value="5"></div>
+                    <div class="control-row"><label>　</label><span class="tri-dot is-a">A</span></div>
+                  </div>
+                  <div class="mini-row mini-row-3">
+                    <div class="control-row"><label>B 的 x <output id="outTriBx">-2</output></label><input type="range" id="triBx" min="-12" max="12" step="1" value="-2"></div>
+                    <div class="control-row"><label>B 的 y <output id="outTriBy">-3</output></label><input type="range" id="triBy" min="-12" max="12" step="1" value="-3"></div>
+                    <div class="control-row"><label>　</label><span class="tri-dot is-b">B</span></div>
+                  </div>
+                  <div class="mini-row mini-row-3">
+                    <div class="control-row"><label>C 的 x <output id="outTriCx">6</output></label><input type="range" id="triCx" min="-12" max="12" step="1" value="6"></div>
+                    <div class="control-row"><label>C 的 y <output id="outTriCy">1</output></label><input type="range" id="triCy" min="-12" max="12" step="1" value="1"></div>
+                    <div class="control-row"><label>　</label><span class="tri-dot is-c">C</span></div>
+                  </div>
+                </div>
+
+                <div class="demo-subpanel">
+                  <div class="demo-subpanel-title">要畫出哪些線？</div>
+                  <label class="demo-check"><input type="checkbox" id="triShowAlt"> 三條高（交點＝垂心 H）</label>
+                  <label class="demo-check"><input type="checkbox" id="triShowMed" checked> 三條中線（交點＝重心 G，含 2：1 標示）</label>
+                  <label class="demo-check"><input type="checkbox" id="triShowPb"> 三條中垂線（交點＝外心 O，含外接圓）</label>
+                </div>
+
+                <div class="demo-subpanel">
+                  <div class="demo-subpanel-title">要看哪一條線怎麼求？</div>
+                  <label class="demo-check" style="gap:10px;">
+                    <select id="triLineSelect" class="tri-select"></select>
+                  </label>
+                  <div class="tri-howto" id="triHowTo"></div>
+                </div>
+
+                <div class="formula" id="triFormulaOut"></div>
+
+                <div class="steps-panel">
+                  <div class="steps-head">
+                    <span class="steps-title">求這條直線方程式的過程</span>
+                    <div class="steps-btns">
+                      <button type="button" class="btn btn-ghost" id="triStepPrev">上一步</button>
+                      <button type="button" class="btn btn-ghost" id="triStepNext">下一步</button>
+                      <button type="button" class="btn btn-ghost" id="triStepAll">全部展開</button>
+                      <button type="button" class="btn btn-ghost" id="triStepReset">只看第一步</button>
+                    </div>
+                  </div>
+                  <ol class="steps-list" id="triSteps"></ol>
+                </div>
+
+                <ul class="lp-vertex-list" id="triFacts"></ul>
+
+                <div class="demo-subpanel">
+                  <label class="demo-check"><input type="checkbox" id="triShowSym"> 對稱點工具：求 P 對上面那條直線的對稱點 P′</label>
+                  <div id="triSymBox" hidden>
+                    <div class="mini-row">
+                      <div class="control-row"><label>P 的 x <output id="outTriPx">-4</output></label><input type="range" id="triPx" min="-12" max="12" step="1" value="-4"></div>
+                      <div class="control-row"><label>P 的 y <output id="outTriPy">4</output></label><input type="range" id="triPy" min="-12" max="12" step="1" value="4"></div>
+                    </div>
+                    <ul class="lp-vertex-list" id="triSymFacts"></ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </details>
+
         <!-- 二元一次不等式（第3冊 3-2，課本 P.67～P.71） -->
         <details class="book demo-topic" id="topicIneq">
           <summary>
@@ -1441,6 +1678,8 @@
   function redrawAllDemos(){
     redrawQuad();
     redrawSlope();
+    redrawLineForms();
+    redrawTriangle();
     redrawIneq();
     redrawSystem();
   }
@@ -1563,13 +1802,26 @@
         return { kx: (W / (r.width || W)) * (xRange() / usableW),
                  ky: (H / (r.height || H)) * (yRange() / usableH), rect: r };
       }
+      var heldItem = null;
+      function clientToData(e){
+        var r = svgEl.getBoundingClientRect();
+        var vbX = (e.clientX - r.left) * (W / (r.width || W));
+        var vbY = (e.clientY - r.top) * (H / (r.height || H));
+        return { x: view.xMin + (vbX - M) / usableW * xRange(),
+                 y: view.yMin + ((H - M) - vbY) / usableH * yRange() };
+      }
       svgEl.addEventListener('pointerdown', function(e){
+        heldItem = cfg.onDragStart ? cfg.onDragStart(clientToData(e)) : null;
         dragging = true; lastX = e.clientX; lastY = e.clientY;
-        svgEl.style.cursor = 'grabbing';
+        svgEl.style.cursor = heldItem ? 'grabbing' : 'grabbing';
         if (svgEl.setPointerCapture) { try { svgEl.setPointerCapture(e.pointerId); } catch(err){} }
       });
       svgEl.addEventListener('pointermove', function(e){
         if (!dragging) return;
+        if (heldItem){                       // 抓到圖上的東西 → 拖它，不要平移畫面
+          if (cfg.onDrag) cfg.onDrag(clientToData(e), heldItem);
+          return;
+        }
         var s = clientScale();
         var dx = (e.clientX - lastX) * s.kx, dy = (e.clientY - lastY) * s.ky;
         lastX = e.clientX; lastY = e.clientY;
@@ -1578,7 +1830,12 @@
         drawStatic();
         if (cfg.onViewChange) cfg.onViewChange();
       });
-      function endDrag(){ dragging = false; svgEl.style.cursor = 'grab'; }
+      function endDrag(){
+        dragging = false;
+        if (heldItem && cfg.onDragEnd) cfg.onDragEnd(heldItem);
+        heldItem = null;
+        svgEl.style.cursor = 'grab';
+      }
       svgEl.addEventListener('pointerup', endDrag);
       svgEl.addEventListener('pointercancel', endDrag);
       svgEl.addEventListener('pointerleave', endDrag);
@@ -1666,6 +1923,146 @@
     s += termStr(b, 'y', s === '');
     s += termStr(c, '', s === '');
     return s === '' ? '0' : s;
+  }
+
+
+  /* ============ 直線方程式用的「分數（有理數）」運算 ============
+     中點、外心這些算出來常常是分數（例如 3/2、8/3），全部用分子/分母的整數去算，
+     才不會變成 1.6666667 這種醜數字，化成一般式時也一定湊得出整數係數。 */
+  function ratMake(n, d){
+    if (d === undefined) d = 1;
+    if (d === 0) return null;                 // 分母 0：代表不存在（例如鉛直線的斜率）
+    if (d < 0){ n = -n; d = -d; }
+    var g = gcdInt(n, d) || 1;
+    return { n: Math.round(n / g), d: Math.round(d / g) };
+  }
+  function ratAdd(p, q){ return ratMake(p.n * q.d + q.n * p.d, p.d * q.d); }
+  function ratSub(p, q){ return ratMake(p.n * q.d - q.n * p.d, p.d * q.d); }
+  function ratMul(p, q){ return ratMake(p.n * q.n, p.d * q.d); }
+  function ratDiv(p, q){ return q.n === 0 ? null : ratMake(p.n * q.d, p.d * q.n); }
+  function ratNeg(p){ return ratMake(-p.n, p.d); }
+  function ratVal(p){ return p.n / p.d; }
+  function ratIsZero(p){ return p && p.n === 0; }
+  function ratIsInt(p){ return p.d === 1; }
+  // 分數的 HTML（整數就直接寫整數，負號放在分數前面）
+  function ratHtml(p){
+    if (!p) return '不存在';
+    if (p.d === 1) return String(p.n);
+    return fracSpan(p.n < 0, Math.abs(p.n), p.d);
+  }
+  // 放進算式裡的分數：負數要加括號，例如 y －（-2）
+  function ratHtmlParen(p){
+    if (!p) return '不存在';
+    return (p.n < 0) ? '(' + ratHtml(p) + ')' : ratHtml(p);
+  }
+  function ratTextPlain(p){
+    if (!p) return '不存在';
+    return (p.d === 1) ? String(p.n) : (p.n + '/' + p.d);
+  }
+
+  /* ---- 直線：一律存成整數係數的一般式 a x + b y + c = 0 ---- */
+  function lineNormalize(a, b, c){
+    // a、b、c 都是有理數 → 先乘掉分母變整數，再除以最大公因數，最後讓 x 的係數為正
+    var dens = [a.d, b.d, c.d];
+    var lcm = dens.reduce(function(acc, d){ return acc * d / (gcdInt(acc, d) || 1); }, 1);
+    var ai = Math.round(a.n * lcm / a.d), bi = Math.round(b.n * lcm / b.d), ci = Math.round(c.n * lcm / c.d);
+    var g = gcdInt(gcdInt(ai, bi), ci) || 1;
+    ai /= g; bi /= g; ci /= g;
+    if (ai < 0 || (ai === 0 && bi < 0)){ ai = -ai; bi = -bi; ci = -ci; }
+    return { a: ai, b: bi, c: ci };
+  }
+  // 由「點 + 斜率」求直線：y － y₁ = m(x － x₁) → －m·x ＋ y ＋ (m·x₁ － y₁) = 0
+  function lineFromPointSlope(x1, y1, m){
+    if (!m) return lineNormalize(ratMake(1), ratMake(0), ratNeg(x1));   // 斜率不存在 → 鉛直線 x = x₁
+    return lineNormalize(ratNeg(m), ratMake(1), ratSub(ratMul(m, x1), y1));
+  }
+  function lineThroughPoints(p, q){
+    if (ratVal(p.x) === ratVal(q.x)) return lineNormalize(ratMake(1), ratMake(0), ratNeg(p.x));
+    var m = ratDiv(ratSub(q.y, p.y), ratSub(q.x, p.x));
+    return lineFromPointSlope(p.x, p.y, m);
+  }
+  function lineSlope(L){                                   // 回傳有理數斜率，鉛直線回傳 null
+    if (L.b === 0) return null;
+    return ratMake(-L.a, L.b);
+  }
+  function perpSlope(m){                                   // 負倒數；水平↔鉛直互換
+    if (!m) return ratMake(0);
+    if (m.n === 0) return null;
+    return ratMake(-m.d, m.n);
+  }
+  function lineIntersect(L1, L2){
+    var det = L1.a * L2.b - L2.a * L1.b;
+    if (det === 0) return null;
+    return {
+      x: ratMake(L1.b * L2.c - L2.b * L1.c, det),
+      y: ratMake(L2.a * L1.c - L1.a * L2.c, det)
+    };
+  }
+  function midPoint(p, q){
+    return { x: ratMake(p.x.n * q.x.d + q.x.n * p.x.d, 2 * p.x.d * q.x.d),
+             y: ratMake(p.y.n * q.y.d + q.y.n * p.y.d, 2 * p.y.d * q.y.d) };
+  }
+  function ptNum(p){ return { x: ratVal(p.x), y: ratVal(p.y) }; }
+  function ptHtml(p){ return '( ' + ratHtml(p.x) + ' , ' + ratHtml(p.y) + ' )'; }
+  // 一般式排版：2x － 3y ＋ 7 = 0
+  function lineHtml(L){
+    var s = '';
+    s += termStr(L.a, 'x', true);
+    s += termStr(L.b, 'y', s === '');
+    s += termStr(L.c, '', s === '');
+    return (s === '' ? '0' : s) + ' = 0';
+  }
+  // 斜率的文字描述（給說明用）
+  function slopeHtml(m){ return m ? ratHtml(m) : '不存在（鉛直線）'; }
+
+  /* ---- 逐步推導面板：steps = [{eq, why, focus}]，可以一步一步顯示 ---- */
+  function createStepBoard(listId, btnIds, onRender){
+    var state = { steps: [], shown: 1, started: false };
+    var listEl = document.getElementById(listId);
+    function render(){
+      listEl.innerHTML = '';
+      state.steps.slice(0, state.shown).forEach(function(st, i){
+        var li = document.createElement('li');
+        li.className = 'step-item' + (i === state.shown - 1 ? ' is-latest' : '');
+        li.innerHTML = '<span class="step-eq">' + st.eq + '</span>' +
+                       (st.why ? '<span class="step-why">' + st.why + '</span>' : '');
+        listEl.appendChild(li);
+      });
+      var total = state.steps.length;
+      document.getElementById(btnIds.prev).disabled = state.shown <= 1;
+      document.getElementById(btnIds.next).disabled = state.shown >= total;
+      document.getElementById(btnIds.all).disabled = state.shown >= total;
+      if (onRender) onRender(state);
+    }
+    function setSteps(steps, keepShown){
+      state.steps = steps;
+      // 預設是「全部展開」；使用者自己收合過之後，拖滑桿重算時才保留他停在的步數
+      if (!keepShown || !state.started) state.shown = steps.length;
+      else state.shown = Math.min(Math.max(state.shown, 1), steps.length);
+      if (!steps.length) state.shown = 0;
+      if (steps.length) state.started = true;
+      render();
+    }
+    document.getElementById(btnIds.prev).addEventListener('click', function(){
+      state.shown = Math.max(1, state.shown - 1); render();
+    });
+    document.getElementById(btnIds.next).addEventListener('click', function(){
+      state.shown = Math.min(state.steps.length, state.shown + 1); render();
+    });
+    document.getElementById(btnIds.all).addEventListener('click', function(){
+      state.shown = state.steps.length; render();
+    });
+    document.getElementById(btnIds.reset).addEventListener('click', function(){
+      state.shown = Math.min(1, state.steps.length); render();
+    });
+    return {
+      setSteps: setSteps,
+      focus: function(){
+        var st = state.steps[state.shown - 1];
+        return st ? st.focus : null;
+      },
+      shown: function(){ return state.shown; }
+    };
   }
 
   /* ============ 動畫 1：二次函數（頂點式 y = a(x-h)² + k，含頂點平移軌跡）============ */
@@ -1875,6 +2272,630 @@
   }
   ['slopeAx','slopeAy','slopeBx','slopeBy'].forEach(function(id){
     document.getElementById(id).addEventListener('input', redrawSlope);
+  });
+
+
+  /* ============ 動畫 5：求直線方程式的四種寫法 → 一般式（第1冊 2-2）============
+     點斜式／斜截式／截距式／水平線・鉛直線，右側逐步顯示移項、去分母、化簡的過程。 */
+  var lfPlot = createPlot(document.getElementById('lfSvg'), {
+    w:519, h:438, margin:30, xMin:-9, xMax:9, yMin:-8, yMax:8, step:1, labelStep:3,
+    interactive:true,
+    onViewChange:function(){ drawLineForms(); }
+  });
+  var lfMode = 'point';
+  var lfAxisKind = 'h';
+  var lfBoard = createStepBoard('lfSteps',
+    {prev:'lfStepPrev', next:'lfStepNext', all:'lfStepAll', reset:'lfStepReset'},
+    function(){ drawLineForms(); });
+  var lfData = null;   // 目前這條直線的資料（給畫圖用）
+
+  function lfRead(id){ return parseFloat(document.getElementById(id).value); }
+  function lfOut(id, v){ document.getElementById(id).textContent = v; }
+
+  /* ---- 依照目前模式算出：直線、重點標示、推導步驟 ---- */
+  function buildLineForms(){
+    var steps = [], marks = {}, L = null, note = '';
+
+    if (lfMode === 'point' || lfMode === 'slope'){
+      var mn, md, x1, y1;
+      if (lfMode === 'point'){
+        x1 = lfRead('lfPx'); y1 = lfRead('lfPy'); mn = lfRead('lfMn'); md = lfRead('lfMd');
+        lfOut('outLfPx', x1); lfOut('outLfPy', y1);
+      } else {
+        mn = lfRead('lfSn'); md = lfRead('lfSd');
+        y1 = lfRead('lfSb'); x1 = 0;                       // 斜截式：直線過 (0, b)
+        lfOut('outLfSb', y1);
+      }
+      lfOut(lfMode === 'point' ? 'outLfMn' : 'outLfSn', mn);
+      lfOut(lfMode === 'point' ? 'outLfMd' : 'outLfSd', md);
+
+      if (md === 0){
+        return { error: '斜率的分母不可以是 0。分母為 0 代表 Δx = 0，那是一條鉛直線，斜率不存在，請改用「水平・鉛直」那一頁。' };
+      }
+      var m = ratMake(mn, md);
+      var xr = ratMake(x1), yr = ratMake(y1);
+      L = lineFromPointSlope(xr, yr, m);
+      marks = { point:{x:xr, y:yr}, slope:m, mode:lfMode };
+
+      if (lfMode === 'point'){
+        steps.push({ eq:'A ( ' + x1 + ' , ' + y1 + ' )　，　m = ' + ratHtml(m),
+                     why:'題目給的點與斜率', focus:'point' });
+        steps.push({ eq:'y － y₁ = m ( x － x₁ )', why:'點斜式的公式', focus:'point' });
+        steps.push({ eq:'y － ' + ratHtmlParen(yr) + ' = ' + ratHtmlParen(m) + ' ( x － ' + ratHtmlParen(xr) + ' )',
+                     why:'把 A 點與 m 代進去（負數要加括號）', focus:'slope' });
+        if (m.d !== 1){
+          steps.push({ eq:ratNum(m.d) + ' ( y － ' + ratHtmlParen(yr) + ' ) = ' + m.n + ' ( x － ' + ratHtmlParen(xr) + ' )',
+                       why:'兩邊同乘 ' + m.d + '（去分母）', focus:'slope' });
+        }
+        var lhs = expandSide(m.d, ratVal(yr), 'y');
+        var rhs = expandSide(m.n, ratVal(xr), 'x');
+        steps.push({ eq:lhs + ' = ' + rhs, why:'左右兩邊分別展開', focus:'slope' });
+      } else {
+        steps.push({ eq:'m = ' + ratHtml(m) + '　，　y 截距 b = ' + y1,
+                     why:'題目給的斜率與 y 截距', focus:'point' });
+        steps.push({ eq:'y = m x ＋ b', why:'斜截式的公式', focus:'point' });
+        steps.push({ eq:'y = ' + ratHtmlParen(m) + ' x ' + signedConst(y1),
+                     why:'把 m 與 b 代進去', focus:'slope' });
+        if (m.d !== 1){
+          steps.push({ eq:m.d + ' y = ' + m.n + ' x ' + signedConst(y1 * m.d),
+                       why:'兩邊同乘 ' + m.d + '（去分母）', focus:'slope' });
+        }
+      }
+      steps.push({ eq:lineHtml(L), why:'把所有項移到等號左邊，再整理（約分，並讓 x 的係數為正）', focus:'line' });
+
+    } else if (lfMode === 'intercept'){
+      var a = lfRead('lfIa'), b = lfRead('lfIb');
+      lfOut('outLfIa', a); lfOut('outLfIb', b);
+      if (a === 0 || b === 0){
+        return { error: '截距式要求 a、b 都不是 0（ab ≠ 0）。a 或 b 等於 0 代表直線通過原點或平行坐標軸，這時候要改用點斜式或水平／鉛直線的寫法。' };
+      }
+      L = lineNormalize(ratMake(b), ratMake(a), ratMake(-a * b));
+      marks = { intercepts:{a:a, b:b}, mode:'intercept' };
+      steps.push({ eq:'x 截距 a = ' + a + '　，　y 截距 b = ' + b,
+                   why:'直線交 x 軸於 ( ' + a + ' , 0 )、交 y 軸於 ( 0 , ' + b + ' )', focus:'intercepts' });
+      steps.push({ eq:'x / a ＋ y / b = 1', why:'截距式的公式', focus:'intercepts' });
+      steps.push({ eq:'<span class="frac"><span class="num">x</span><span class="den">' + a + '</span></span> ＋ ' +
+                      '<span class="frac"><span class="num">y</span><span class="den">' + b + '</span></span> = 1',
+                   why:'把 a、b 代進去', focus:'intercepts' });
+      steps.push({ eq:fmtInt(b) + ' x ' + signedTermInt(a, 'y') + ' = ' + fmtInt(a * b),
+                   why:'兩邊同乘 a × b = ' + (a * b) + '（去分母）', focus:'area' });
+      steps.push({ eq:lineHtml(L), why:'移項並整理成一般式', focus:'line' });
+      note = '這條直線與兩坐標軸圍成的三角形面積 = ½ |a × b| = ½ |' + a + ' × ' + b + '| = ' +
+             ratHtml(ratMake(Math.abs(a * b), 2));
+
+    } else {
+      var k = lfRead('lfK');
+      lfOut('outLfK', k);
+      if (lfAxisKind === 'h'){
+        L = lineNormalize(ratMake(0), ratMake(1), ratMake(-k));
+        marks = { axis:{kind:'h', k:k} };
+        steps.push({ eq:'兩點的 y 相同（y₁ = y₂ = ' + k + '）', why:'這是一條水平線', focus:'axis' });
+        steps.push({ eq:'y = ' + k, why:'水平線的方程式', focus:'axis' });
+        steps.push({ eq:lineHtml(L), why:'移項寫成一般式（此時 a = 0、b = 1）', focus:'line' });
+        note = '水平線的斜率 m = 0。';
+      } else {
+        L = lineNormalize(ratMake(1), ratMake(0), ratMake(-k));
+        marks = { axis:{kind:'v', k:k} };
+        steps.push({ eq:'兩點的 x 相同（x₁ = x₂ = ' + k + '）', why:'這是一條鉛直線', focus:'axis' });
+        steps.push({ eq:'x = ' + k, why:'鉛直線的方程式', focus:'axis' });
+        steps.push({ eq:lineHtml(L), why:'移項寫成一般式（此時 a = 1、b = 0）', focus:'line' });
+        note = '鉛直線的斜率不存在，不能用點斜式或斜截式，但仍然寫得出一般式。';
+      }
+    }
+    return { line:L, steps:steps, marks:marks, note:note };
+  }
+
+  /* 小工具：展開 k(y － t) 這種式子 */
+  function ratNum(n){ return String(n); }
+  function fmtInt(n){ return String(n); }
+  function signedConst(v){ return (v < 0 ? '－ ' + Math.abs(v) : '＋ ' + v); }
+  function signedTermInt(coef, symbol){
+    var sign = coef < 0 ? '－ ' : '＋ ';
+    var mag = Math.abs(coef);
+    return sign + (mag === 1 && symbol ? '' : mag) + symbol;
+  }
+  function expandSide(k, t, symbol){
+    // k(符號 － t) 展開成 k·符號 － k·t
+    var first = (k === 1 ? '' : (k === -1 ? '－' : k)) + symbol;
+    var konst = k * t;
+    if (konst === 0) return first;
+    return first + ' ' + (konst > 0 ? '－ ' + konst : '＋ ' + Math.abs(konst));
+  }
+
+  function drawLineForms(){
+    if (!lfData || lfData.error) return;
+    var L = lfData.line, marks = lfData.marks, focus = lfBoard.focus();
+    lfPlot.clear();
+    // 截距式：把與兩軸圍成的三角形上色
+    if (marks.intercepts && (focus === 'area' || focus === 'line' || focus === 'intercepts')){
+      var tri = [{x:0,y:0}, {x:marks.intercepts.a, y:0}, {x:0, y:marks.intercepts.b}];
+      lfPlot.add(el('polygon', {class:'lf-area', points:lfPlot.poly(tri)}));
+    }
+    var seg = lineInView(L.a, L.b, L.c, lfPlot);
+    if (seg.length === 2){
+      lfPlot.add(el('line', {
+        x1:lfPlot.sx(seg[0].x), y1:lfPlot.sy(seg[0].y),
+        x2:lfPlot.sx(seg[1].x), y2:lfPlot.sy(seg[1].y), class:'lf-line'
+      }));
+    }
+    function dot(x, y, label, cls){
+      lfPlot.add(el('circle', {cx:lfPlot.sx(x), cy:lfPlot.sy(y), r:5, class:cls || 'lf-point'}));
+      if (label){
+        var t = el('text', {x:lfPlot.sx(x) + 8, y:lfPlot.sy(y) - 8, class:'lf-point-label'});
+        t.textContent = label; lfPlot.add(t);
+      }
+    }
+    if (marks.point){
+      var px = ratVal(marks.point.x), py = ratVal(marks.point.y);
+      dot(px, py, (marks.mode === 'slope' ? 'b( 0 , ' + py + ' )' : 'A( ' + px + ' , ' + py + ' )'));
+      // 斜率三角形：從該點往右走 Δx、往上走 Δy
+      if (marks.slope && (focus === 'slope' || focus === 'line')){
+        var m = marks.slope, dx = m.d, dy = m.n;
+        lfPlot.add(el('path', {
+          class:'lf-slope-tri',
+          d:'M' + lfPlot.sx(px) + ',' + lfPlot.sy(py) +
+            ' L' + lfPlot.sx(px + dx) + ',' + lfPlot.sy(py) +
+            ' L' + lfPlot.sx(px + dx) + ',' + lfPlot.sy(py + dy)
+        }));
+        var tx = el('text', {x:lfPlot.sx(px + dx / 2) - 12, y:lfPlot.sy(py) + (dy > 0 ? 15 : -7), class:'lf-slope-label'});
+        tx.textContent = 'Δx = ' + dx; lfPlot.add(tx);
+        var ty = el('text', {x:lfPlot.sx(px + dx) + 6, y:lfPlot.sy(py + dy / 2), class:'lf-slope-label'});
+        ty.textContent = 'Δy = ' + dy; lfPlot.add(ty);
+      }
+    }
+    if (marks.intercepts){
+      dot(marks.intercepts.a, 0, 'a( ' + marks.intercepts.a + ' , 0 )');
+      dot(0, marks.intercepts.b, 'b( 0 , ' + marks.intercepts.b + ' )');
+    }
+    if (marks.axis){
+      if (marks.axis.kind === 'h') dot(0, marks.axis.k, 'y = ' + marks.axis.k);
+      else dot(marks.axis.k, 0, 'x = ' + marks.axis.k);
+    }
+  }
+
+  function redrawLineForms(){
+    var res = buildLineForms();
+    var formulaEl = document.getElementById('lfFormulaOut');
+    var factsEl = document.getElementById('lfFacts');
+    factsEl.innerHTML = '';
+    if (res.error){
+      lfData = res;
+      formulaEl.textContent = '⚠ ' + res.error;
+      lfBoard.setSteps([]);
+      lfPlot.clear();
+      return;
+    }
+    lfData = res;
+    formulaEl.innerHTML = '一般式：' + lineHtml(res.line);
+    lfBoard.setSteps(res.steps, true);
+    var L = res.line;
+    function fact(t){ var li = document.createElement('li'); li.innerHTML = t; factsEl.appendChild(li); }
+    fact('a = ' + L.a + '　，　b = ' + L.b + '　，　c = ' + L.c + '（a、b 不同時為 0 ✓）');
+    var m = lineSlope(L);
+    fact('斜率 m = ' + slopeHtml(m));
+    if (L.b !== 0) fact('y 截距 = ' + ratHtml(ratMake(-L.c, L.b)));
+    if (L.a !== 0) fact('x 截距 = ' + ratHtml(ratMake(-L.c, L.a)));
+    if (res.note) fact(res.note);
+    drawLineForms();
+  }
+
+  ['lfPx','lfPy','lfMn','lfMd','lfSn','lfSd','lfSb','lfIa','lfIb','lfK'].forEach(function(id){
+    document.getElementById(id).addEventListener('input', redrawLineForms);
+  });
+  document.getElementById('lfModeSwitch').addEventListener('click', function(e){
+    var btn = e.target.closest('button[data-lfmode]');
+    if (!btn) return;
+    lfMode = btn.getAttribute('data-lfmode');
+    Array.prototype.forEach.call(this.querySelectorAll('button'), function(b){
+      b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-lfpanel]'), function(panel){
+      panel.hidden = (panel.getAttribute('data-lfpanel') !== lfMode);
+    });
+    redrawLineForms();
+  });
+  document.getElementById('lfAxisSwitch').addEventListener('click', function(e){
+    var btn = e.target.closest('button[data-lfaxis]');
+    if (!btn) return;
+    lfAxisKind = btn.getAttribute('data-lfaxis');
+    Array.prototype.forEach.call(this.querySelectorAll('button'), function(b){
+      b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+    });
+    document.getElementById('lfAxisLabel').textContent = (lfAxisKind === 'h') ? 'k' : 'h';
+    document.getElementById('lfAxisHint').textContent = (lfAxisKind === 'h')
+      ? '過兩點時如果 y₁ = y₂，直線就是水平線 y = y₁。'
+      : '過兩點時如果 x₁ = x₂，直線就是鉛直線 x = x₁。';
+    redrawLineForms();
+  });
+  document.getElementById('lfZoomInBtn').addEventListener('click', function(){ lfPlot.zoomBy(1 / 1.3); });
+  document.getElementById('lfZoomOutBtn').addEventListener('click', function(){ lfPlot.zoomBy(1.3); });
+  document.getElementById('lfResetViewBtn').addEventListener('click', function(){ lfPlot.resetView(); });
+  document.getElementById('lfFitBtn').addEventListener('click', function(){
+    if (!lfData || lfData.error) return;
+    var pts = [{x:0, y:0}];
+    var mk = lfData.marks;
+    if (mk.point) pts.push({x:ratVal(mk.point.x), y:ratVal(mk.point.y)});
+    if (mk.intercepts){ pts.push({x:mk.intercepts.a, y:0}); pts.push({x:0, y:mk.intercepts.b}); }
+    if (mk.axis) pts.push(mk.axis.kind === 'h' ? {x:0, y:mk.axis.k} : {x:mk.axis.k, y:0});
+    lfPlot.fitTo(pts);
+  });
+  document.getElementById('lfAxisHint').textContent = '過兩點時如果 y₁ = y₂，直線就是水平線 y = y₁。';
+
+
+  /* ============ 動畫 6：三角形的高、中線、中垂線（第1冊 2-2・數學超連結）============
+     頂點可以直接拖曳（吸附整數格點），也可以用滑桿微調；
+     選一條線就顯示「怎麼畫 ＋ 怎麼求」的完整推導，過程跟課本的寫法一致。 */
+  var TRI_DEFAULT = { Ax:1, Ay:5, Bx:-2, By:-3, Cx:6, Cy:1 };
+  var triDragItem = null;
+  var triPlot = createPlot(document.getElementById('triSvg'), {
+    w:519, h:438, margin:30, xMin:-9, xMax:9, yMin:-8, yMax:8, step:1, labelStep:3,
+    interactive:true,
+    onViewChange:function(){ drawTriangle(); },
+    // 按在頂點附近就拖頂點，按在空白處才是平移畫面
+    onDragStart:function(pt){
+      var best = null, bestDist = 1e9;
+      ['A','B','C'].forEach(function(k){
+        var v = triVertexNum(k);
+        var d = Math.abs(v.x - pt.x) + Math.abs(v.y - pt.y);
+        if (d < bestDist){ bestDist = d; best = k; }
+      });
+      var tol = (triPlot.xMax - triPlot.xMin) / 14;   // 畫面上大約 35px 內都算抓到
+      if (best && bestDist <= tol){ triDragItem = best; return best; }
+      return null;
+    },
+    onDrag:function(pt, item){
+      var x = Math.max(-12, Math.min(12, Math.round(pt.x)));
+      var y = Math.max(-12, Math.min(12, Math.round(pt.y)));
+      document.getElementById('tri' + item + 'x').value = x;
+      document.getElementById('tri' + item + 'y').value = y;
+      redrawTriangle();
+    },
+    onDragEnd:function(){ triDragItem = null; }
+  });
+  var triBoard = createStepBoard('triSteps',
+    {prev:'triStepPrev', next:'triStepNext', all:'triStepAll', reset:'triStepReset'},
+    function(){ drawTriangle(); });
+  var triData = null;
+
+  function triVertexNum(k){
+    return { x: parseFloat(document.getElementById('tri' + k + 'x').value),
+             y: parseFloat(document.getElementById('tri' + k + 'y').value) };
+  }
+  function triVertex(k){
+    var v = triVertexNum(k);
+    return { x: ratMake(v.x), y: ratMake(v.y) };
+  }
+
+  /* ---- 把目前三角形的所有線、特殊點都算出來 ---- */
+  function buildTriangle(){
+    var V = { A: triVertex('A'), B: triVertex('B'), C: triVertex('C') };
+    ['A','B','C'].forEach(function(k){
+      document.getElementById('outTri' + k + 'x').textContent = ratVal(V[k].x);
+      document.getElementById('outTri' + k + 'y').textContent = ratVal(V[k].y);
+    });
+    var area2 = (ratVal(V.B.x) - ratVal(V.A.x)) * (ratVal(V.C.y) - ratVal(V.A.y)) -
+                (ratVal(V.C.x) - ratVal(V.A.x)) * (ratVal(V.B.y) - ratVal(V.A.y));
+    if (Math.abs(area2) < 1e-9) return { V:V, degenerate:true };
+
+    var opposite = { A:['B','C'], B:['C','A'], C:['A','B'] };   // 每個頂點的對邊
+    var items = {};
+    ['A','B','C'].forEach(function(k){
+      var p = opposite[k][0], q = opposite[k][1];
+      var side = lineThroughPoints(V[p], V[q]);
+      var mSide = lineSlope(side);
+      var M = midPoint(V[p], V[q]);
+      // 高：過該頂點且垂直對邊
+      items['alt' + k] = {
+        kind:'alt', vertex:k, p:p, q:q, side:side, mSide:mSide, foot:null,
+        line: lineFromPointSlope(V[k].x, V[k].y, perpSlope(mSide))
+      };
+      items['alt' + k].foot = lineIntersect(items['alt' + k].line, side);
+      // 中線：頂點到對邊中點
+      items['med' + k] = {
+        kind:'med', vertex:k, p:p, q:q, mid:M,
+        line: lineThroughPoints(V[k], M), mAM: (ratVal(M.x) === ratVal(V[k].x) ? null : ratDiv(ratSub(M.y, V[k].y), ratSub(M.x, V[k].x)))
+      };
+      // 中垂線：對邊的垂直平分線
+      items['pb' + k] = {
+        kind:'pb', vertex:k, p:p, q:q, side:side, mSide:mSide, mid:M,
+        line: lineFromPointSlope(M.x, M.y, perpSlope(mSide))
+      };
+    });
+    var G = { x: ratMake(ratVal(V.A.x) + ratVal(V.B.x) + ratVal(V.C.x), 3),
+              y: ratMake(ratVal(V.A.y) + ratVal(V.B.y) + ratVal(V.C.y), 3) };
+    var O = lineIntersect(items.pbA.line, items.pbB.line);
+    var H = lineIntersect(items.altA.line, items.altB.line);
+    return { V:V, items:items, G:G, O:O, H:H, area:Math.abs(area2) / 2 };
+  }
+
+  /* ---- 選到的那條線：怎麼畫、怎麼求（步驟跟課本一樣）---- */
+  function triBuildSteps(data, key){
+    var it = data.items[key], V = data.V;
+    var k = it.vertex, p = it.p, q = it.q;
+    var steps = [], howto = '';
+    function pt(name){ return name + ptHtml(V[name]); }
+
+    if (it.kind === 'alt'){
+      howto = '過頂點 ' + k + ' 作對邊 ' + p + q + ' 的垂線，垂足落在 ' + p + q + ' 上；這條線就是 ' + p + q + ' 邊上的高。';
+      if (!it.mSide){
+        steps.push({ eq:'邊 ' + p + q + ' 是鉛直線（' + p + '、' + q + ' 的 x 相同）', why:'先看對邊的斜率', focus:'side' });
+        steps.push({ eq:'所以高是水平線，過 ' + pt(k), why:'垂直鉛直線的直線是水平線', focus:'line' });
+      } else if (ratIsZero(it.mSide)){
+        steps.push({ eq:'m' + p + q + ' = 0（邊 ' + p + q + ' 是水平線）', why:'先求對邊的斜率', focus:'side' });
+        steps.push({ eq:'所以高是鉛直線，過 ' + pt(k), why:'垂直水平線的直線是鉛直線', focus:'line' });
+      } else {
+        var mPerp = perpSlope(it.mSide);
+        steps.push({ eq:'m<sub>' + p + q + '</sub> = <span class="frac"><span class="num">' +
+                        ratHtml(V[q].y) + ' － ' + ratHtmlParen(V[p].y) + '</span><span class="den">' +
+                        ratHtml(V[q].x) + ' － ' + ratHtmlParen(V[p].x) + '</span></span> = ' + ratHtml(it.mSide),
+                     why:'先求對邊 ' + p + q + ' 的斜率', focus:'side' });
+        steps.push({ eq:'m<sub>L</sub> × m<sub>' + p + q + '</sub> = －1　⇒　m<sub>L</sub> = ' + ratHtml(mPerp),
+                     why:'兩直線垂直，斜率相乘等於 －1（取負倒數）', focus:'side' });
+        steps.push({ eq:'又過點 ' + pt(k), why:'高要通過頂點 ' + k, focus:'vertex' });
+        steps.push({ eq:'y － ' + ratHtmlParen(V[k].y) + ' = ' + ratHtmlParen(mPerp) + ' ( x － ' + ratHtmlParen(V[k].x) + ' )',
+                     why:'由點斜式代入', focus:'line' });
+      }
+      steps.push({ eq:lineHtml(it.line), why:'去分母、移項、整理成一般式', focus:'line' });
+
+    } else if (it.kind === 'med'){
+      howto = '先找出對邊 ' + p + q + ' 的中點 M，再把頂點 ' + k + ' 和 M 連起來；這條線就是中線，也是「過 ' + k + ' 且平分三角形面積」的直線。';
+      steps.push({ eq:'設 M 為 ' + p + q + ' 的中點', why:'中線要先找中點', focus:'mid' });
+      steps.push({ eq:'M ( <span class="frac"><span class="num">' + ratHtml(V[p].x) + ' ＋ ' + ratHtmlParen(V[q].x) +
+                      '</span><span class="den">2</span></span> , <span class="frac"><span class="num">' +
+                      ratHtml(V[p].y) + ' ＋ ' + ratHtmlParen(V[q].y) + '</span><span class="den">2</span></span> ) = ' + ptHtml(it.mid),
+                   why:'中點公式：兩端點座標各自相加除以 2', focus:'mid' });
+      if (!it.mAM){
+        steps.push({ eq:k + ' 與 M 的 x 相同 → 中線是鉛直線', why:'兩點 x 相同時沒有斜率', focus:'line' });
+      } else {
+        steps.push({ eq:'m<sub>' + k + 'M</sub> = <span class="frac"><span class="num">' +
+                        ratHtml(it.mid.y) + ' － ' + ratHtmlParen(V[k].y) + '</span><span class="den">' +
+                        ratHtml(it.mid.x) + ' － ' + ratHtmlParen(V[k].x) + '</span></span> = ' + ratHtml(it.mAM),
+                     why:'用 ' + k + '、M 兩點求斜率', focus:'line' });
+        steps.push({ eq:'又所求直線過點 ' + pt(k), why:'中線通過頂點 ' + k, focus:'vertex' });
+        steps.push({ eq:'y － ' + ratHtmlParen(V[k].y) + ' = ' + ratHtmlParen(it.mAM) + ' ( x － ' + ratHtmlParen(V[k].x) + ' )',
+                     why:'由點斜式代入', focus:'line' });
+      }
+      steps.push({ eq:lineHtml(it.line), why:'去分母、移項、整理成一般式', focus:'line' });
+
+    } else {
+      howto = '先找出 ' + p + q + ' 的中點 M，再過 M 作 ' + p + q + ' 的垂線；這條線就是 ' + p + q + ' 的中垂線，線上每一點到 ' + p + '、' + q + ' 的距離都相等。';
+      steps.push({ eq:'M 為 ' + p + q + ' 的中點 = ' + ptHtml(it.mid), why:'中垂線要通過中點', focus:'mid' });
+      if (!it.mSide){
+        steps.push({ eq:'邊 ' + p + q + ' 是鉛直線 → 中垂線是水平線', why:'垂直鉛直線的是水平線', focus:'line' });
+      } else if (ratIsZero(it.mSide)){
+        steps.push({ eq:'邊 ' + p + q + ' 是水平線 → 中垂線是鉛直線', why:'垂直水平線的是鉛直線', focus:'line' });
+      } else {
+        var mP = perpSlope(it.mSide);
+        steps.push({ eq:'m<sub>' + p + q + '</sub> = ' + ratHtml(it.mSide), why:'先求 ' + p + q + ' 的斜率', focus:'side' });
+        steps.push({ eq:'中垂線斜率 = －1 ÷ m<sub>' + p + q + '</sub> = ' + ratHtml(mP), why:'垂直 → 取負倒數', focus:'side' });
+        steps.push({ eq:'y － ' + ratHtmlParen(it.mid.y) + ' = ' + ratHtmlParen(mP) + ' ( x － ' + ratHtmlParen(it.mid.x) + ' )',
+                     why:'由點斜式，代入中點 M', focus:'line' });
+      }
+      steps.push({ eq:lineHtml(it.line), why:'去分母、移項、整理成一般式', focus:'line' });
+    }
+    return { steps:steps, howto:howto };
+  }
+
+  function triSelectedKey(){ return document.getElementById('triLineSelect').value; }
+
+  function drawTriangle(){
+    if (!triData) return;
+    var V = triData.V;
+    triPlot.clear();
+    if (triData.degenerate){
+      var warn = el('text', {x:triPlot.sx((triPlot.xMin + triPlot.xMax) / 2) - 90, y:triPlot.sy((triPlot.yMin + triPlot.yMax) / 2), class:'lf-point-label'});
+      warn.textContent = 'A、B、C 三點共線，圍不出三角形';
+      triPlot.add(warn);
+    }
+    var num = { A:ptNum(V.A), B:ptNum(V.B), C:ptNum(V.C) };
+    // 外接圓
+    if (document.getElementById('triShowPb').checked && triData.O && !triData.degenerate){
+      var o = ptNum(triData.O);
+      var r = Math.sqrt(Math.pow(o.x - num.A.x, 2) + Math.pow(o.y - num.A.y, 2));
+      var rpx = Math.abs(triPlot.sx(o.x + r) - triPlot.sx(o.x));
+      triPlot.add(el('circle', {cx:triPlot.sx(o.x), cy:triPlot.sy(o.y), r:rpx, class:'tri-circum'}));
+    }
+    // 三角形本體
+    if (!triData.degenerate){
+      triPlot.add(el('polygon', {class:'tri-body', points:triPlot.poly([num.A, num.B, num.C])}));
+    }
+    var selected = triSelectedKey();
+    function drawLine(L, cls, extra){
+      var seg = lineInView(L.a, L.b, L.c, triPlot);
+      if (seg.length !== 2) return;
+      triPlot.add(el('line', {
+        x1:triPlot.sx(seg[0].x), y1:triPlot.sy(seg[0].y),
+        x2:triPlot.sx(seg[1].x), y2:triPlot.sy(seg[1].y),
+        class:'tri-line ' + cls + (extra || '')
+      }));
+    }
+    if (!triData.degenerate){
+      var groups = [
+        {on:document.getElementById('triShowAlt').checked, prefix:'alt', cls:'is-alt'},
+        {on:document.getElementById('triShowMed').checked, prefix:'med', cls:'is-med'},
+        {on:document.getElementById('triShowPb').checked, prefix:'pb', cls:'is-pb'}
+      ];
+      groups.forEach(function(g){
+        if (!g.on) return;
+        ['A','B','C'].forEach(function(k){
+          var key = g.prefix + k;
+          drawLine(triData.items[key].line, g.cls, key === selected ? ' is-selected' : '');
+        });
+      });
+      // 被選到的線一定要畫出來（即使它那一組沒勾）
+      if (triData.items[selected]){
+        var g2 = selected.indexOf('alt') === 0 ? 'is-alt' : (selected.indexOf('med') === 0 ? 'is-med' : 'is-pb');
+        drawLine(triData.items[selected].line, g2, ' is-selected');
+        var it = triData.items[selected];
+        if (it.kind === 'alt' && it.foot){
+          var f = ptNum(it.foot);
+          triPlot.add(el('circle', {cx:triPlot.sx(f.x), cy:triPlot.sy(f.y), r:4, class:'tri-mark'}));
+        }
+        if (it.mid){
+          var md = ptNum(it.mid);
+          triPlot.add(el('circle', {cx:triPlot.sx(md.x), cy:triPlot.sy(md.y), r:4, class:'tri-mark'}));
+          var mt = el('text', {x:triPlot.sx(md.x) + 7, y:triPlot.sy(md.y) - 7, class:'tri-label'});
+          mt.textContent = 'M'; triPlot.add(mt);
+        }
+      }
+      // 特殊點
+      function special(p, label, cls){
+        if (!p) return;
+        var n = ptNum(p);
+        triPlot.add(el('circle', {cx:triPlot.sx(n.x), cy:triPlot.sy(n.y), r:5.5, class:cls}));
+        var t = el('text', {x:triPlot.sx(n.x) + 8, y:triPlot.sy(n.y) - 8, class:'tri-label'});
+        t.textContent = label; triPlot.add(t);
+      }
+      if (document.getElementById('triShowMed').checked) special(triData.G, '重心 G', 'tri-g');
+      if (document.getElementById('triShowPb').checked) special(triData.O, '外心 O', 'tri-o');
+      if (document.getElementById('triShowAlt').checked) special(triData.H, '垂心 H', 'tri-h');
+      // 對稱點
+      if (document.getElementById('triShowSym').checked && triData.sym){
+        var P = ptNum(triData.sym.P), Pp = ptNum(triData.sym.Pprime), Mf = ptNum(triData.sym.M);
+        triPlot.add(el('line', {x1:triPlot.sx(P.x), y1:triPlot.sy(P.y), x2:triPlot.sx(Pp.x), y2:triPlot.sy(Pp.y), class:'tri-sym-seg'}));
+        [[P,'P'],[Pp,'P′'],[Mf,'M']].forEach(function(pair){
+          triPlot.add(el('circle', {cx:triPlot.sx(pair[0].x), cy:triPlot.sy(pair[0].y), r:5, class:'tri-sym-dot'}));
+          var t = el('text', {x:triPlot.sx(pair[0].x) + 8, y:triPlot.sy(pair[0].y) - 8, class:'tri-label'});
+          t.textContent = pair[1]; triPlot.add(t);
+        });
+      }
+    }
+    // 三個頂點（最後畫，疊在最上面）
+    ['A','B','C'].forEach(function(k){
+      var n = num[k];
+      triPlot.add(el('circle', {cx:triPlot.sx(n.x), cy:triPlot.sy(n.y), r:6, class:'tri-vertex is-' + k.toLowerCase()}));
+      var t = el('text', {x:triPlot.sx(n.x) + 9, y:triPlot.sy(n.y) - 9, class:'tri-label'});
+      t.textContent = k + '( ' + n.x + ' , ' + n.y + ' )'; triPlot.add(t);
+    });
+  }
+
+  function redrawTriangle(){
+    var data = buildTriangle();
+    var factsEl = document.getElementById('triFacts');
+    var formulaEl = document.getElementById('triFormulaOut');
+    var howToEl = document.getElementById('triHowTo');
+    factsEl.innerHTML = '';
+    function fact(t, cls){
+      var li = document.createElement('li');
+      if (cls) li.className = cls;
+      li.innerHTML = t; factsEl.appendChild(li);
+    }
+    if (data.degenerate){
+      triData = data;
+      formulaEl.textContent = '⚠ A、B、C 三點共線，圍不出三角形，請把其中一點拖開。';
+      howToEl.textContent = '';
+      triBoard.setSteps([]);
+      drawTriangle();
+      return;
+    }
+    // 對稱點
+    var selected = triSelectedKey();
+    var selItem = data.items[selected];
+    if (document.getElementById('triShowSym').checked && selItem){
+      var P = { x: ratMake(parseFloat(document.getElementById('triPx').value)),
+                y: ratMake(parseFloat(document.getElementById('triPy').value)) };
+      document.getElementById('outTriPx').textContent = ratVal(P.x);
+      document.getElementById('outTriPy').textContent = ratVal(P.y);
+      var L = selItem.line;
+      var perp = lineFromPointSlope(P.x, P.y, perpSlope(lineSlope(L)));
+      var M = lineIntersect(perp, L);
+      if (M){
+        var Pp = { x: ratSub(ratMul(ratMake(2), M.x), P.x), y: ratSub(ratMul(ratMake(2), M.y), P.y) };
+        data.sym = { P:P, M:M, Pprime:Pp, perp:perp };
+      }
+    }
+    triData = data;
+
+    if (selItem){
+      var built = triBuildSteps(data, selected);
+      howToEl.textContent = '怎麼畫：' + built.howto;
+      formulaEl.innerHTML = '這條線的一般式：' + lineHtml(selItem.line);
+      triBoard.setSteps(built.steps, true);
+    }
+
+    fact('三角形面積 = ' + (Math.round(data.area * 1000) / 1000));
+    if (document.getElementById('triShowMed').checked){
+      fact('重心 G = ( <span class="frac"><span class="num">x<sub>A</sub>＋x<sub>B</sub>＋x<sub>C</sub></span><span class="den">3</span></span> , ' +
+           '<span class="frac"><span class="num">y<sub>A</sub>＋y<sub>B</sub>＋y<sub>C</sub></span><span class="den">3</span></span> ) = ' + ptHtml(data.G) +
+           '　（三條中線交於一點）');
+      fact('重心把每條中線分成 2：1（頂點到重心 ： 重心到中點 = 2 ： 1）', 'sys-note');
+    }
+    if (document.getElementById('triShowPb').checked && data.O){
+      var o = ptNum(data.O), A = ptNum(data.V.A), B = ptNum(data.V.B), C = ptNum(data.V.C);
+      var dist = function(p){ return Math.round(Math.sqrt(Math.pow(o.x - p.x, 2) + Math.pow(o.y - p.y, 2)) * 1000) / 1000; };
+      fact('外心 O = ' + ptHtml(data.O) + '　（三條中垂線交於一點）');
+      fact('OA = ' + dist(A) + '　，　OB = ' + dist(B) + '　，　OC = ' + dist(C) + '　→ 到三頂點等距，可以畫外接圓', 'sys-note');
+    }
+    if (document.getElementById('triShowAlt').checked && data.H){
+      fact('垂心 H = ' + ptHtml(data.H) + '　（三條高交於一點）');
+    }
+    var symFacts = document.getElementById('triSymFacts');
+    symFacts.innerHTML = '';
+    document.getElementById('triSymBox').hidden = !document.getElementById('triShowSym').checked;
+    if (document.getElementById('triShowSym').checked && data.sym){
+      function sf(t){ var li = document.createElement('li'); li.innerHTML = t; symFacts.appendChild(li); }
+      sf('① 過 P' + ptHtml(data.sym.P) + ' 作 L 的垂線：' + lineHtml(data.sym.perp));
+      sf('② 垂線與 L 的交點（垂足）M = ' + ptHtml(data.sym.M));
+      sf('③ M 是 P、P′ 的中點 → P′ = 2M － P = ' + ptHtml(data.sym.Pprime));
+      sf('所以 L 就是 PP′ 的垂直平分線。', 'sys-note');
+    }
+    drawTriangle();
+  }
+
+  // 下拉選單：9 條線
+  (function initTriSelect(){
+    var sel = document.getElementById('triLineSelect');
+    var groups = [
+      {prefix:'alt', label:'高'},
+      {prefix:'med', label:'中線'},
+      {prefix:'pb', label:'中垂線'}
+    ];
+    var opposite = { A:'BC', B:'CA', C:'AB' };
+    groups.forEach(function(g){
+      var og = document.createElement('optgroup');
+      og.label = g.label;
+      ['A','B','C'].forEach(function(k){
+        var o = document.createElement('option');
+        o.value = g.prefix + k;
+        o.textContent = (g.prefix === 'alt') ? (opposite[k] + ' 邊上的高（過 ' + k + '）')
+          : (g.prefix === 'med') ? ('過 ' + k + ' 的中線（到 ' + opposite[k] + ' 的中點）')
+          : (opposite[k] + ' 的中垂線');
+        og.appendChild(o);
+      });
+      sel.appendChild(og);
+    });
+    sel.value = 'medA';
+  })();
+
+  ['triAx','triAy','triBx','triBy','triCx','triCy','triPx','triPy'].forEach(function(id){
+    document.getElementById(id).addEventListener('input', redrawTriangle);
+  });
+  ['triShowAlt','triShowMed','triShowPb','triShowSym'].forEach(function(id){
+    document.getElementById(id).addEventListener('change', redrawTriangle);
+  });
+  document.getElementById('triLineSelect').addEventListener('change', redrawTriangle);
+  document.getElementById('triZoomInBtn').addEventListener('click', function(){ triPlot.zoomBy(1 / 1.3); });
+  document.getElementById('triZoomOutBtn').addEventListener('click', function(){ triPlot.zoomBy(1.3); });
+  document.getElementById('triFitBtn').addEventListener('click', function(){
+    if (!triData) return;
+    var pts = ['A','B','C'].map(function(k){ return ptNum(triData.V[k]); });
+    if (triData.O && document.getElementById('triShowPb').checked){
+      var o = ptNum(triData.O), a = pts[0];
+      var r = Math.sqrt(Math.pow(o.x - a.x, 2) + Math.pow(o.y - a.y, 2));
+      pts.push({x:o.x - r, y:o.y - r}); pts.push({x:o.x + r, y:o.y + r});
+    }
+    if (triData.H && document.getElementById('triShowAlt').checked) pts.push(ptNum(triData.H));
+    triPlot.fitTo(pts);
+  });
+  document.getElementById('triResetBtn').addEventListener('click', function(){
+    document.getElementById('triAx').value = TRI_DEFAULT.Ax;
+    document.getElementById('triAy').value = TRI_DEFAULT.Ay;
+    document.getElementById('triBx').value = TRI_DEFAULT.Bx;
+    document.getElementById('triBy').value = TRI_DEFAULT.By;
+    document.getElementById('triCx').value = TRI_DEFAULT.Cx;
+    document.getElementById('triCy').value = TRI_DEFAULT.Cy;
+    triPlot.resetView();
+    redrawTriangle();
   });
 
   /* ============ 動畫 3：二元一次不等式（第3冊 3-2，課本 P.67～P.71）============
