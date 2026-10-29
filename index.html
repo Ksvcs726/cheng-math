@@ -170,6 +170,20 @@
   .hamburger-btn span{width:16px;height:2px;background:var(--ink);display:block;}
   .sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(10,14,20,.4);z-index:30;}
 
+  /* 電腦版：左側選單可以收起來，讓內容區用滿整個畫面寬度 */
+  .shell.is-collapsed .sidebar{display:none;}
+  .topbar-collapse{
+    display:flex;align-items:center;gap:7px;margin-right:14px;
+    border:1px solid var(--border);border-radius:4px;background:var(--surface);
+    color:var(--ink-soft);font-size:.78rem;font-weight:600;padding:5px 10px;cursor:pointer;
+  }
+  .topbar-collapse:hover{color:var(--ink);border-color:var(--ink-soft);}
+  .topbar-collapse svg{width:14px;height:14px;flex-shrink:0;}
+  .topbar-collapse .tc-text-hide{display:inline;}
+  .topbar-collapse .tc-text-show{display:none;}
+  .shell-collapsed .topbar-collapse .tc-text-hide{display:none;}
+  .shell-collapsed .topbar-collapse .tc-text-show{display:inline;}
+
   @media (max-width: 900px){
     .mobile-bar{display:flex;}
     .sidebar{
@@ -178,6 +192,9 @@
     }
     .sidebar.is-open{transform:translateX(0);}
     .sidebar-backdrop.is-open{display:block;}
+    /* 手機版本來就有漢堡選單，收合鈕就不用了 */
+    .topbar-collapse{display:none;}
+    .shell.is-collapsed .sidebar{display:flex;}
   }
 
   /* ---------- 全站頂部列：首頁／登入（取代原本的「網站建置中」提示橫幅）---------- */
@@ -434,6 +451,9 @@
     font-family:"JetBrains Mono",monospace;font-size:.86rem;background:var(--indigo-tint);
     color:var(--indigo-strong);padding:10px 12px;border-radius:4px;overflow-x:auto;white-space:nowrap;
   }
+  /* 練功坊的「重點公式」常常很長，手機上拖橫向卷軸很難用 —— 這裡只針對它改成自動換行。
+     互動動畫那邊的 .formula 仍然維持不換行＋橫向捲動（那邊是窄欄位，換行反而難讀）。 */
+  #pracFormula{white-space:normal;overflow-x:visible;line-height:2;word-break:break-word;}
   .frac{
     display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;
     margin:0 2px;font-size:.82em;line-height:1.15;position:relative;top:.05em;
@@ -593,6 +613,8 @@
   svg.prac-fig .pf-axis-label{fill:var(--ink-soft);font-size:11px;font-style:italic;}
   svg.prac-fig .pf-line{stroke:var(--red);stroke-width:2;}
   svg.prac-fig .pf-line.is-dash{stroke-dasharray:5 4;}
+  svg.prac-fig .pf-seg{stroke:var(--indigo);stroke-width:1.8;}
+  svg.prac-fig .pf-seg.is-dash{stroke-dasharray:4 3;}
   svg.prac-fig .pf-shade{fill:var(--teal);opacity:.28;}
   svg.prac-fig .pf-dot{fill:var(--red);}
   svg.prac-fig .pf-label{fill:var(--ink-soft);font-size:10px;}
@@ -732,6 +754,12 @@
 
 <header class="topbar" id="topbar">
   <div class="topbar-inner">
+    <button type="button" class="topbar-collapse" id="sidebarCollapseBtn" aria-expanded="true" title="收合／展開左側選單">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+        <path d="M2 3h12M2 8h12M2 13h12"/>
+      </svg>
+      <span class="tc-text-hide">收合選單</span><span class="tc-text-show">展開選單</span>
+    </button>
     <a class="topbar-home" href="#home">首頁</a>
     <div class="topbar-auth">
       <button type="button" class="btn btn-ghost btn-sm" id="topbarLoginBtn" data-open-login>登入</button>
@@ -1785,6 +1813,26 @@
     });
   }
   if (backdropEl) backdropEl.addEventListener('click', closeSidebar);
+  /* ---- 電腦版：左側選單收合（狀態記在 localStorage，下次進來維持一樣）---- */
+  var SIDEBAR_KEY = 'mathsiteSidebar_v1';
+  var shellEl = document.querySelector('.shell');
+  var collapseBtn = document.getElementById('sidebarCollapseBtn');
+  function applySidebarCollapsed(collapsed){
+    if (shellEl) shellEl.classList.toggle('is-collapsed', collapsed);
+    document.body.classList.toggle('shell-collapsed', collapsed);
+    if (collapseBtn) collapseBtn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+  }
+  if (collapseBtn){
+    var startCollapsed = false;
+    try { startCollapsed = localStorage.getItem(SIDEBAR_KEY) === '1'; } catch (e) { startCollapsed = false; }
+    applySidebarCollapsed(startCollapsed);
+    collapseBtn.addEventListener('click', function(){
+      var next = !(shellEl && shellEl.classList.contains('is-collapsed'));
+      applySidebarCollapsed(next);
+      try { localStorage.setItem(SIDEBAR_KEY, next ? '1' : '0'); } catch (e) {}
+    });
+  }
+
   var sidebarNavEl = document.getElementById('sidebarNav');
   if (sidebarNavEl){
     sidebarNavEl.addEventListener('click', function(e){
@@ -4039,6 +4087,17 @@
     out.push('<text class="pf-axis-label" x="' + (X(xMax) - 2) + '" y="' + (Y(0) - 6) + '">x</text>');
     out.push('<text class="pf-axis-label" x="' + (X(0) + 6) + '" y="' + (Y(yMax) + 10) + '">y</text>');
     out.push('<text class="pf-axis-label" x="' + (X(0) - 10) + '" y="' + (Y(0) + 13) + '">O</text>');
+    // 填色多邊形（例如截距圍成的三角形）
+    (cfg.fills || []).forEach(function(f){
+      out.push('<polygon class="pf-shade" points="' + f.map(function(pt){
+        return X(pt.x).toFixed(1) + ',' + Y(pt.y).toFixed(1);
+      }).join(' ') + '"/>');
+    });
+    // 線段（三角形的三個邊之類）
+    (cfg.segs || []).forEach(function(g){
+      out.push('<line class="pf-seg' + (g.dash ? ' is-dash' : '') + '" x1="' + X(g.x1).toFixed(1) +
+        '" y1="' + Y(g.y1).toFixed(1) + '" x2="' + X(g.x2).toFixed(1) + '" y2="' + Y(g.y2).toFixed(1) + '"/>');
+    });
     // 直線
     (cfg.lines || []).forEach(function(L){
       var pts = lineInView(L.a, L.b, L.c, {xMin:xMin, xMax:xMax, yMin:yMin, yMax:yMax});
@@ -4050,11 +4109,37 @@
     (cfg.marks || []).forEach(function(m){
       out.push('<circle class="pf-dot" cx="' + X(m.x).toFixed(1) + '" cy="' + Y(m.y).toFixed(1) + '" r="3"/>');
       if (m.label){
-        out.push('<text class="pf-label" x="' + (X(m.x) + (m.dx || 5)) + '" y="' + (Y(m.y) + (m.dy || -6)) + '">' + m.label + '</text>');
+        // 標籤靠近右邊界時改成靠右對齊往左寫，不然座標文字會被切掉
+        var tx = X(m.x) + (m.dx || 5), ty = Y(m.y) + (m.dy || -6), anchor = '';
+        if (tx > W - 46){ tx = X(m.x) - 5; anchor = ' text-anchor="end"'; }
+        if (tx < 4) tx = 4;
+        if (ty < 10) ty = 10;
+        if (ty > H - 4) ty = H - 4;
+        out.push('<text class="pf-label" x="' + tx.toFixed(1) + '" y="' + ty.toFixed(1) + '"' + anchor + '>' + m.label + '</text>');
       }
     });
     out.push('</svg>');
     return '<span class="prac-fig-wrap">' + out.join('') + '</span>';
+  }
+
+  /* ---- 三角形題共用：畫出 △ABC（可以再加一條直線，例如高、中線、中垂線）----
+     extra = { line:{a,b,c}, segs:[...], marks:[...] } */
+  function triFig(A, B, C, extra){
+    extra = extra || {};
+    var xs = [A.x, B.x, C.x], ys = [A.y, B.y, C.y];
+    (extra.marks || []).forEach(function(m){ xs.push(m.x); ys.push(m.y); });
+    var pad = 2;
+    var lo = Math.min(Math.min.apply(null, xs), Math.min.apply(null, ys)) - pad;
+    var hi = Math.max(Math.max.apply(null, xs), Math.max.apply(null, ys)) + pad;
+    var segs = [{x1:A.x, y1:A.y, x2:B.x, y2:B.y}, {x1:B.x, y1:B.y, x2:C.x, y2:C.y},
+                {x1:C.x, y1:C.y, x2:A.x, y2:A.y}];
+    (extra.segs || []).forEach(function(g){ segs.push(g); });
+    var marks = [{x:A.x, y:A.y, label:'A'}, {x:B.x, y:B.y, label:'B'}, {x:C.x, y:C.y, label:'C'}];
+    (extra.marks || []).forEach(function(m){ marks.push(m); });
+    return pracFig({
+      xMin:lo, xMax:hi, yMin:lo, yMax:hi,
+      segs:segs, lines:extra.line ? [extra.line] : [], marks:marks
+    });
   }
 
   /* ---- 線性規劃：產生一個「頂點都是整數」的有界可行解區域 ----
@@ -4375,7 +4460,14 @@
             {eq:'<span class="frac"><span class="num">x</span><span class="den">' + a + '</span></span> ＋ <span class="frac"><span class="num">y</span><span class="den">' + b + '</span></span> = 1', why:'把兩個截距代進截距式'},
             {eq:fmtInt(b) + ' x ' + signedTermInt(a, 'y') + ' = ' + fmtInt(a * b), why:'兩邊同乘 a × b = ' + (a * b) + '（去分母）'},
             {eq:lineHtml(L), why:'移項整理成一般式'},
-            {eq:'面積 = ½ |' + a + ' × ' + b + '| = ' + ratHtml(area), why:'兩截距圍成的直角三角形，兩股長就是 |a|、|b|'}
+            {eq:'面積 = ½ |' + a + ' × ' + b + '| = ' + ratHtml(area) + (function(){
+                 var lim = Math.max(Math.abs(a), Math.abs(b)) + 2;
+                 return pracFig({ xMin:-lim, xMax:lim, yMin:-lim, yMax:lim,
+                   fills:[[{x:0, y:0}, {x:a, y:0}, {x:0, y:b}]],
+                   lines:[{a:L.a, b:L.b, c:L.c}],
+                   marks:[{x:a, y:0, label:'(' + a + ',0)', dy:14}, {x:0, y:b, label:'(0,' + b + ')', dx:6}] });
+               })(),
+             why:'兩截距圍成的直角三角形（圖中塗色的部分），兩股長就是 |a|、|b|'}
           ]
         };
       }
@@ -4393,12 +4485,18 @@
         var ax, ay, bx, by, cx, cy;
         if (fix){ ax = fix.ax; ay = fix.ay; bx = fix.bx; by = fix.by; cx = fix.cx; cy = fix.cy; }
         else {
+          var tFoot;
           do {
             ax = rndInt(-5, 5); ay = rndInt(-5, 5);
             bx = rndInt(-5, 5); by = rndInt(-5, 5);
             cx = rndInt(-5, 5); cy = rndInt(-5, 5);
+            // 垂足要落在 AB 線段「裡面」，圖畫出來才像課本上的高（不然會垂到 AB 的延長線上）
+            var dxab = bx - ax, dyab = by - ay;
+            var d2 = dxab * dxab + dyab * dyab;
+            tFoot = d2 ? ((cx - ax) * dxab + (cy - ay) * dyab) / d2 : -1;
           } while (ax === bx || ay === by ||
-                   (bx - ax) * (cy - ay) - (cx - ax) * (by - ay) === 0);
+                   (bx - ax) * (cy - ay) - (cx - ax) * (by - ay) === 0 ||
+                   tFoot < 0.15 || tFoot > 0.85);
         }
         var mAB = ratMake(by - ay, bx - ax);
         var mAlt = perpSlope(mAB);
@@ -4406,9 +4504,14 @@
         var wrongs = [lineHtml(lineFromPointSlope(ratMake(cx), ratMake(cy), mAB)),
                       lineHtml(lineFromPointSlope(ratMake(ax), ratMake(ay), mAlt)),
                       lineHtml(lineFromPointSlope(ratMake(cx), ratMake(cy), ratNeg(mAB)))];
+        var P = { A:{x:ax, y:ay}, B:{x:bx, y:by}, C:{x:cx, y:cy} };
+        // 垂足：高與 AB 的交點，檢討圖上標出來比較看得懂
+        var AB = lineThroughPoints({x:ratMake(ax), y:ratMake(ay)}, {x:ratMake(bx), y:ratMake(by)});
+        var foot = lineIntersect(AB, L);
         return {
           stem:'設 ' + ptLabel('A', ax, ay) + '、' + ptLabel('B', bx, by) + '、' + ptLabel('C', cx, cy) +
-               ' 為 △ABC 的三頂點，求 AB 邊上的高所在的直線方程式（一般式）。',
+               ' 為 △ABC 的三頂點，求 AB 邊上的高所在的直線方程式（一般式）。' +
+               triFig(P.A, P.B, P.C),
           choices:shuffleChoices(lineHtml(L), wrongs),
           answerHtml:lineHtml(L),
           steps:[
@@ -4417,7 +4520,10 @@
             {eq:'m<sub>L</sub> × m<sub>AB</sub> = －1　⇒　m<sub>L</sub> = ' + ratHtml(mAlt), why:'高垂直 AB，斜率取負倒數'},
             {eq:'又高要過點 ' + ptLabel('C', cx, cy), why:'高是從頂點 C 畫出去的'},
             {eq:'y － ' + (cy < 0 ? '(' + cy + ')' : cy) + ' = ' + ratHtmlParen(mAlt) + ' ( x － ' + (cx < 0 ? '(' + cx + ')' : cx) + ' )', why:'由點斜式代入'},
-            {eq:lineHtml(L), why:'去分母、移項，整理成一般式'}
+            {eq:lineHtml(L), why:'去分母、移項，整理成一般式'},
+            {eq:triFig(P.A, P.B, P.C, { line:{a:L.a, b:L.b, c:L.c},
+                 marks:foot ? [{x:ratVal(foot.x), y:ratVal(foot.y), label:'垂足'}] : [] }),
+             why:'紅色那條就是 AB 邊上的高：它垂直 AB，而且通過頂點 C'}
           ]
         };
       }
@@ -4452,7 +4558,8 @@
                       lineHtml(lineThroughPoints({x:ratMake(bx), y:ratMake(by)}, {x:ratMake(cx), y:ratMake(cy)}))];
         return {
           stem:'設 ' + ptLabel('A', ax, ay) + '、' + ptLabel('B', bx, by) + '、' + ptLabel('C', cx, cy) +
-               ' 為 △ABC 的三頂點，求過 A 點且平分 △ABC 面積的直線方程式（一般式）。',
+               ' 為 △ABC 的三頂點，求過 A 點且平分 △ABC 面積的直線方程式（一般式）。' +
+               triFig({x:ax, y:ay}, {x:bx, y:by}, {x:cx, y:cy}),
           choices:shuffleChoices(lineHtml(L), wrongs),
           answerHtml:lineHtml(L),
           steps:[
@@ -4461,7 +4568,10 @@
                 '<span class="frac"><span class="num">' + by + ' ＋ ' + (cy < 0 ? '(' + cy + ')' : cy) + '</span><span class="den">2</span></span> ) = ' + ptHtml(M), why:'用中點公式求 BC 的中點 M'},
             {eq:'m<sub>AM</sub> = ' + ratHtml(mAM), why:'用 A、M 兩點求斜率'},
             {eq:'y － ' + (ay < 0 ? '(' + ay + ')' : ay) + ' = ' + ratHtmlParen(mAM) + ' ( x － ' + (ax < 0 ? '(' + ax + ')' : ax) + ' )', why:'由點斜式代入 A 點'},
-            {eq:lineHtml(L), why:'去分母、移項，整理成一般式'}
+            {eq:lineHtml(L), why:'去分母、移項，整理成一般式'},
+            {eq:triFig({x:ax, y:ay}, {x:bx, y:by}, {x:cx, y:cy},
+                 { line:{a:L.a, b:L.b, c:L.c}, marks:[{x:ratVal(M.x), y:ratVal(M.y), label:'M'}] }),
+             why:'紅色那條就是中線 AM：它從頂點 A 連到對邊 BC 的中點 M'}
           ]
         };
       }
@@ -4494,7 +4604,13 @@
                       lineHtml(lineThroughPoints({x:ratMake(ax), y:ratMake(ay)}, {x:ratMake(bx), y:ratMake(by)})), // 直接寫 AB
                       lineHtml(lineFromPointSlope(ratMake(bx), ratMake(by), mPb))];        // 斜率對但過 B 點
         return {
-          stem:'設 ' + ptLabel('A', ax, ay) + '、' + ptLabel('B', bx, by) + '，求 AB 的垂直平分線方程式（一般式）。',
+          stem:'設 ' + ptLabel('A', ax, ay) + '、' + ptLabel('B', bx, by) + '，求 AB 的垂直平分線方程式（一般式）。' +
+               (function(){
+                 var lo = Math.min(ax, bx, ay, by) - 3, hi = Math.max(ax, bx, ay, by) + 3;
+                 return pracFig({ xMin:lo, xMax:hi, yMin:lo, yMax:hi,
+                   segs:[{x1:ax, y1:ay, x2:bx, y2:by}],
+                   marks:[{x:ax, y:ay, label:'A'}, {x:bx, y:by, label:'B'}] });
+               })(),
           choices:shuffleChoices(lineHtml(L), wrongs),
           answerHtml:lineHtml(L),
           steps:[
@@ -4503,11 +4619,21 @@
             {eq:'m<sub>AB</sub> = ' + ratHtml(mAB), why:'再求 AB 的斜率'},
             {eq:'中垂線斜率 = －1 ÷ ' + ratHtmlParen(mAB) + ' = ' + ratHtml(mPb), why:'垂直 → 取負倒數'},
             {eq:'y － ' + ratHtmlParen(M.y) + ' = ' + ratHtmlParen(mPb) + ' ( x － ' + ratHtmlParen(M.x) + ' )', why:'由點斜式，代入中點 M'},
-            {eq:lineHtml(L), why:'去分母、移項，整理成一般式'}
+            {eq:lineHtml(L), why:'去分母、移項，整理成一般式'},
+            {eq:(function(){
+                 var lo = Math.min(ax, bx, ay, by) - 3, hi = Math.max(ax, bx, ay, by) + 3;
+                 return pracFig({ xMin:lo, xMax:hi, yMin:lo, yMax:hi,
+                   segs:[{x1:ax, y1:ay, x2:bx, y2:by}],
+                   lines:[{a:L.a, b:L.b, c:L.c}],
+                   marks:[{x:ax, y:ay, label:'A'}, {x:bx, y:by, label:'B'},
+                          {x:ratVal(M.x), y:ratVal(M.y), label:'M'}] });
+               })(),
+             why:'紅色那條就是中垂線：通過中點 M，而且垂直 AB'}
           ]
         };
       }
     },
+
     /* ---------------- 第3冊 3-1 二元一次聯立方程組 ---------------- */
     {
       id:'sub2', book:'第3冊', section:'3-1 二元一次聯立方程組', name:'利用代入消去法',
@@ -4812,7 +4938,12 @@
           steps:[
             {eq:'先把兩式都寫成 ax ＋ by ＋ c = 0 的形式', why:'比較係數前要先統一格式'},
             {eq:'比較係數：' + cmp, why:'依序比 x 的係數、y 的係數、常數項'},
-            {eq:ans, why:(kind === 'cross' ? '前兩個比值就不相等 → 兩線一定交於一點'
+            {eq:ans + (function(){
+                 var lim = 8;
+                 return pracFig({ xMin:-lim, xMax:lim, yMin:-lim, yMax:lim,
+                   lines:[{a:a1, b:b1, c:c1}, {a:a2, b:b2, c:c2, dash:true}] });
+               })(),
+             why:(kind === 'cross' ? '前兩個比值就不相等 → 兩線一定交於一點'
                  : (kind === 'para' ? '前兩個相等、常數項不等 → 平行，永遠沒有交點'
                                      : '三個比值都相等 → 其實是同一條線'))}
           ]
@@ -4898,9 +5029,21 @@
           return '在 L 的' + (r ? '右' : '左') + '側半平面，' + (s ? '且包含直線 L（L 畫實線）' : '但不含直線 L（L 畫虛線）');
         };
         var ans = mk(right, solid);
+        // 圖的範圍：讓兩個截距都看得到
+        var xi = -c / a, yi = (b === 0) ? 0 : -c / b;
+        var lim = Math.max(4, Math.ceil(Math.max(Math.abs(xi), Math.abs(yi))) + 2);
+        var figLine = pracFig({ xMin:-lim, xMax:lim, yMin:-lim, yMax:lim,
+          lines:[{a:a, b:b, c:c}],
+          marks:[{x:xi, y:0, label:'(' + (Math.round(xi * 100) / 100) + ',0)', dy:14},
+                 (b === 0 ? null : {x:0, y:yi, label:'(0,' + (Math.round(yi * 100) / 100) + ')', dx:6})].filter(Boolean) });
+        var figShade = pracFig({ xMin:-lim, xMax:lim, yMin:-lim, yMax:lim,
+          shade:[right ? {a:a, b:b, c:c} : {a:-a, b:-b, c:-c}],
+          lines:[{a:a, b:b, c:c, dash:!solid}],
+          marks:[{x:xi, y:0, label:'(' + (Math.round(xi * 100) / 100) + ',0)', dy:14},
+                 (b === 0 ? null : {x:0, y:yi, label:'(0,' + (Math.round(yi * 100) / 100) + ')', dx:6})].filter(Boolean) });
         return {
-          stem:'設直線 L：' + linearExpr(a, b, c) + ' = 0。二元一次不等式 ' + ineqHtml(a, b, c, rel) +
-               ' 的圖形，是下列哪一個部分？',
+          stem:'設直線 L：' + linearExpr(a, b, c) + ' = 0（如下圖）。二元一次不等式 ' + ineqHtml(a, b, c, rel) +
+               ' 的圖形，是下列哪一個部分？' + figLine,
           choices:shuffleChoices(ans, [mk(!right, solid), mk(right, !solid), mk(!right, !solid)]),
           answerHtml:ans,
           steps:[
@@ -4909,7 +5052,7 @@
             {eq:(right ? '不等式是「' + rel + ' 0」⇒ 取 L 的右側半平面' : '不等式是「' + rel + ' 0」⇒ 取 L 的左側半平面'),
              why:'也可以直接代一個點（例如原點）進去檢驗比較快'},
             {eq:(solid ? '有「＝」號 ⇒ 包含直線 L，L 畫實線' : '沒有「＝」號 ⇒ 不含直線 L，L 畫虛線'), why:'這是最常被扣分的地方'},
-            {eq:'故答案為「' + ans + '」', why:'兩個重點：哪一側、含不含邊界'}
+            {eq:'故答案為「' + ans + '」' + figShade, why:'圖上塗色的就是解；邊界' + (solid ? '是實線（含在解裡面）' : '是虛線（不含）')}
           ]
         };
       }
