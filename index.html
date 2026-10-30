@@ -1794,6 +1794,9 @@
               <ul class="lp-vertex-list" id="pracWrongList"></ul>
             </div>
             <div id="pracProfBoard" hidden>
+              <div class="exam-meta" id="pracBoardClassWrap" hidden style="margin-bottom:12px;">
+                <label>看哪一個班的排行榜<select id="pracBoardClass"></select></label>
+              </div>
               <div class="prac-tabs prac-tabs-sub" id="pracBoardTabs">
                 <button type="button" class="btn btn-ghost btn-sm is-on" data-board-tab="correct">累積答對</button>
                 <button type="button" class="btn btn-ghost btn-sm" data-board-tab="week">本週答對</button>
@@ -9029,6 +9032,7 @@
     };
   }
 
+  var pracBoardClass = '';            // 老師選的班級（學生用不到，後端會用自己的班）
   function loadPracticeProfile(){
     var panel = document.getElementById('pracProfile');
     var statusEl = document.getElementById('pracProfileStatus');
@@ -9036,7 +9040,8 @@
     if (!currentUser){ panel.hidden = true; return; }
     panel.hidden = false;
     statusEl.textContent = '讀取中…';
-    callApi('getPracticeProfile', { actorAccount: currentUser.account, actorPassword: currentPassword })
+    callApi('getPracticeProfile', { actorAccount: currentUser.account, actorPassword: currentPassword,
+                                    className: pracBoardClass })
       .then(function(res){
         if (res && res.ok){
           pracProfile = res;
@@ -9131,6 +9136,20 @@
   function renderLeaderboard(){
     var body = document.getElementById('pracBoardBody');
     var note = document.getElementById('pracBoardNote');
+    // 老師（管理者）不屬於任何班級，所以自己的練習不會進排行榜；這裡讓老師選要看哪一班
+    var isAdmin = !!(pracProfile && pracProfile.isAdmin);
+    var wrap = document.getElementById('pracBoardClassWrap');
+    var sel = document.getElementById('pracBoardClass');
+    wrap.hidden = !isAdmin;
+    if (isAdmin && sel.options.length !== ((pracProfile.classes || []).length + 1)){
+      sel.innerHTML = '<option value="">請選一個班級</option>';
+      (pracProfile.classes || []).forEach(function(c){
+        var o = document.createElement('option');
+        o.value = c; o.textContent = c;
+        sel.appendChild(o);
+      });
+      sel.value = pracBoardClass || '';
+    }
     var col = PRAC_BOARD_COLS[pracBoardTab];
     document.getElementById('pracBoardColHead').textContent = col.head;
     var rows = ((pracProfile && pracProfile.leaderboard) || []).slice();
@@ -9141,7 +9160,9 @@
     rows.forEach(function(r, i){ if (String(r.sid) === mySid) myRank = i + 1; });
     body.innerHTML = '';
     if (!rows.length){
-      body.innerHTML = '<tr class="empty-row"><td colspan="5">還沒有人上榜，你可以當第一個。</td></tr>';
+      body.innerHTML = '<tr class="empty-row"><td colspan="5">' +
+        (isAdmin ? (pracBoardClass ? ('這個班還沒有人練習過。') : '請先在上面選一個班級。')
+                 : '還沒有人上榜，你可以當第一個。') + '</td></tr>';
     } else {
       rows.slice(0, 10).forEach(function(r, i){
         var tr = document.createElement('tr');
@@ -9161,10 +9182,16 @@
         body.appendChild(tr2);
       }
     }
-    note.textContent = (pracBoardTab === 'accuracy')
-      ? '正確率榜只列練滿 50 題的人（避免只做兩題全對就第一名）。只比同班同學。'
-      : '只比同班同學，前 10 名；你自己那一列會標起來。';
-    if (myRank === -1 && rows.length) note.textContent += '　你還沒有上榜。';
+    if (isAdmin){
+      note.textContent = pracBoardClass
+        ? ('目前看的是 ' + pracBoardClass + ' 班的排行榜。老師不屬於任何班級，您自己的練習不會列入學生的排行榜。')
+        : '老師不屬於任何班級，所以自己的練習不會進排行榜。請先在上面選一個班級，就能看那一班的排名。';
+    } else {
+      note.textContent = (pracBoardTab === 'accuracy')
+        ? '正確率榜只列練滿 50 題的人（避免只做兩題全對就第一名）。只比同班同學。'
+        : '只比同班同學，前 10 名；你自己那一列會標起來。';
+      if (myRank === -1 && rows.length) note.textContent += '　你還沒有上榜。';
+    }
   }
 
   /* ---- 事件：分頁切換、錯題本操作 ---- */
@@ -9201,6 +9228,11 @@
       removeWrongItem(q[0], q[1]);
       return;
     }
+  });
+  var boardClassSel = document.getElementById('pracBoardClass');
+  if (boardClassSel) boardClassSel.addEventListener('change', function(){
+    pracBoardClass = boardClassSel.value;
+    loadPracticeProfile();
   });
   var reviewBtnEl = document.getElementById('pracReviewBtn');
   if (reviewBtnEl) reviewBtnEl.addEventListener('click', function(){
