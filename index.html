@@ -792,6 +792,13 @@
   }
   .duel-alert span{font-size:.82rem;color:var(--ink-soft);}
   .duel-alert-btns{display:flex;gap:8px;flex-wrap:wrap;}
+  .duel-error{
+    display:flex;flex-direction:column;gap:7px;margin:0 0 14px;padding:13px 16px;
+    border:1px solid var(--red);border-radius:6px;background:var(--red-tint);color:var(--ink);
+  }
+  .duel-error[hidden]{display:none;}
+  .duel-error b{color:var(--red);font-size:.95rem;}
+  .duel-error span{font-size:.84rem;line-height:1.7;color:var(--ink-soft);}
   .duel-list{list-style:none;padding:0;margin:0 0 10px;display:flex;flex-direction:column;gap:8px;}
   .duel-list li{
     display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 12px;
@@ -2079,6 +2086,7 @@
             </div>
             <div id="pracProfDuel" hidden>
               <p class="roster-status" id="duelStatus"></p>
+              <div class="duel-error" id="duelAlert" hidden></div>
               <div id="duelPanel"></div>
             </div>
             <div id="pracProfBoard" hidden>
@@ -10214,6 +10222,28 @@
     return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2);
   }
 
+  /* 把錯誤顯示成一個明顯的框（而不是一行會被捲掉的小字），
+     而且認得出「後端還沒重新部署」這種最常見的狀況。 */
+  function duelShowError(msg, where){
+    var box = document.getElementById('duelAlert');
+    if (!box) return;
+    var text = String(msg || '發生未知的錯誤');
+    var hint = '';
+    // Apps Script 還沒重新部署時，doPost 的 default 會回「不支援 / unknown action」之類的訊息
+    if (/不支援|不認得|unknown|未知的 ?action|action/i.test(text) || /尚未|還沒/.test(text)){
+      hint = '<span>這通常是 <b>Apps Script 還沒重新部署</b>：請到 Apps Script → 右上角「部署」→' +
+             '「管理部署作業」→ 編輯現有部署 → 版本選「<b>新版本</b>」→ 部署，然後重新整理這一頁。</span>';
+    }
+    box.hidden = false;
+    box.innerHTML = '<b>⚠ ' + (where || '操作') + '沒有成功</b><span>' + text + '</span>' + hint +
+      '<span class="duel-alert-btns"><button type="button" class="btn btn-ghost btn-sm" id="duelAlertClose">知道了</button></span>';
+    try { box.scrollIntoView({ behavior:'smooth', block:'center' }); } catch (e) { box.scrollIntoView(); }
+  }
+  function duelClearError(){
+    var box = document.getElementById('duelAlert');
+    if (box){ box.hidden = true; box.innerHTML = ''; }
+  }
+
   /* ---------- 資料讀取 ---------- */
   function loadDuel(){
     if (!currentUser) return;
@@ -10224,11 +10254,15 @@
         if (res && res.ok){ duelData = res; if (statusEl) statusEl.textContent = ''; renderDuelPanel(); }
         else {
           duelData = null;
-          if (statusEl) statusEl.textContent = '⚠ ' + ((res && res.error) || '後端還沒有更新（需要重新部署 Apps Script）');
+          if (statusEl) statusEl.textContent = '';
           renderDuelPanel();
+          duelShowError((res && res.error) || '後端還沒有更新（需要重新部署 Apps Script）', '讀取對戰資料');
         }
       })
-      .catch(function(){ if (statusEl) statusEl.textContent = '⚠ 讀取失敗。'; });
+      .catch(function(){
+        if (statusEl) statusEl.textContent = '';
+        duelShowError('連不到後端（網路或 Apps Script 的問題）。', '讀取對戰資料');
+      });
   }
 
   /* ---------- 畫面 ---------- */
@@ -10592,6 +10626,7 @@
 
   /* ---------- 事件 ---------- */
   document.addEventListener('click', function(e){
+    if (e.target.closest('#duelAlertClose')){ duelClearError(); return; }
     var ch = e.target.closest('#duelChoices [data-duel-choice]');
     if (ch){ duelAnswer(Number(ch.getAttribute('data-duel-choice'))); return; }
     if (e.target.closest('#duelDoneBtn') || e.target.closest('#duelQuit')){
@@ -10605,6 +10640,7 @@
       var parts = oppRaw ? oppRaw.split('|') : ['', ''];
       var qs = duelMakeQuestions(scope);
       var btn = document.getElementById('duelStartBtn');
+      duelClearError();
       btn.disabled = true; btn.textContent = '建立戰帖中…';
       callApi('duel', { actorAccount: currentUser.account, actorPassword: currentPassword,
                         op: 'create', opponentSid: parts[0], opponentName: parts[1],
@@ -10612,26 +10648,30 @@
         .then(function(r){
           btn.disabled = false; btn.textContent = '發起挑戰（全螢幕 ' + DUEL_N + ' 題）';
           if (!r || !r.ok){
-            document.getElementById('duelStatus').textContent = '⚠ ' + ((r && r.error) || '建立失敗');
+            duelShowError((r && r.error) || '建立失敗', '發起挑戰');
             loadDuel();
             return;
           }
           duelBegin(r.duelId, qs, parts[1] || '（等人來接）', null);
         })
-        .catch(function(){ btn.disabled = false; btn.textContent = '發起挑戰'; });
+        .catch(function(){
+          btn.disabled = false; btn.textContent = '發起挑戰（全螢幕 ' + DUEL_N + ' 題）';
+          duelShowError('連不到後端（網路或 Apps Script 的問題）。', '發起挑戰');
+        });
       return;
     }
     var acc = e.target.closest('[data-duel-accept]');
     if (acc){
       var id = acc.getAttribute('data-duel-accept');
-      acc.disabled = true;
+      duelClearError();
+      acc.disabled = true; acc.textContent = '準備中…';
       callApi('duel', { actorAccount: currentUser.account, actorPassword: currentPassword,
                         op: 'accept', duelId: id })
         .then(function(r){
-          if (!r || !r.ok){ document.getElementById('duelStatus').textContent = '⚠ ' + ((r && r.error) || '接受失敗'); loadDuel(); return; }
+          if (!r || !r.ok){ duelShowError((r && r.error) || '接受失敗', '接受挑戰'); loadDuel(); return; }
           duelBegin(id, r.questions, r.aName, null);
         })
-        .catch(function(){ acc.disabled = false; });
+        .catch(function(){ acc.disabled = false; duelShowError('連不到後端（網路或 Apps Script 的問題）。', '接受挑戰'); });
       return;
     }
     var rs = e.target.closest('[data-duel-resume]');
