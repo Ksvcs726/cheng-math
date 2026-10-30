@@ -716,6 +716,13 @@
   .prac-wrong-item .btn{padding:5px 10px;font-size:.74rem;min-height:0;}
   .prac-board-me{background:var(--indigo-tint);}
   .prac-board-me td{color:var(--indigo-strong);font-weight:700;}
+  .prac-myrank{
+    display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+    background:var(--indigo-tint);border:1px solid var(--border);border-radius:5px;
+    padding:11px 15px;margin-bottom:12px;color:var(--indigo-strong);font-size:.88rem;
+  }
+  .prac-myrank b{font-family:"JetBrains Mono",monospace;font-size:1.45rem;line-height:1;}
+  .prac-myrank .prac-myrank-sub{color:var(--ink-soft);font-size:.78rem;}
   @media (max-width:560px){
     .prac-profile-top{gap:14px;}
     .prac-level-medal{width:52px;height:52px;}
@@ -1803,6 +1810,7 @@
                 <button type="button" class="btn btn-ghost btn-sm" data-board-tab="streak">連續天數</button>
                 <button type="button" class="btn btn-ghost btn-sm" data-board-tab="accuracy">正確率</button>
               </div>
+              <div class="prac-myrank" id="pracMyRank" hidden></div>
               <div class="ledger-wrap">
                 <table class="ledger">
                   <thead><tr><th>名次</th><th>姓名</th><th id="pracBoardColHead">累積答對</th><th>練習題數</th><th>正確率</th></tr></thead>
@@ -9158,6 +9166,27 @@
     var mySid = pracProfile ? String(pracProfile.sid) : '';
     var myRank = -1;
     rows.forEach(function(r, i){ if (String(r.sid) === mySid) myRank = i + 1; });
+
+    // 「我目前第幾名」單獨拉出來寫一行，不用在表格裡找
+    var rankEl = document.getElementById('pracMyRank');
+    var colName = col.head;
+    if (isAdmin){
+      rankEl.hidden = true;
+    } else if (myRank > 0){
+      var meRow = rows[myRank - 1];
+      var ahead = (myRank > 1) ? rows[myRank - 2] : null;
+      var gap = ahead ? (ahead[col.key] - meRow[col.key]) : 0;
+      rankEl.hidden = false;
+      rankEl.innerHTML = '你目前第 <b>' + myRank + '</b> 名　（' + pracProfile.className + ' 班共 ' + rows.length + ' 人上榜）' +
+        '<span class="prac-myrank-sub">' + colName + '：' + meRow[col.key] + (pracBoardTab === 'accuracy' ? '%' : '') +
+        (ahead ? ('　距離第 ' + (myRank - 1) + ' 名還差 ' + (Math.round(gap * 10) / 10) + (pracBoardTab === 'accuracy' ? '%' : ''))
+               : '　目前是第一名，繼續保持！') + '</span>';
+    } else {
+      rankEl.hidden = false;
+      rankEl.innerHTML = (pracBoardTab === 'accuracy')
+        ? '你還沒有上這個榜　<span class="prac-myrank-sub">正確率榜要練滿 50 題才列入</span>'
+        : '你還沒有上這個榜　<span class="prac-myrank-sub">先去練幾題，馬上就會出現在這裡</span>';
+    }
     body.innerHTML = '';
     if (!rows.length){
       body.innerHTML = '<tr class="empty-row"><td colspan="5">' +
