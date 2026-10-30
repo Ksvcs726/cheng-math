@@ -9268,11 +9268,13 @@
     }
   }
 
+  var PRAC_ACC_PRIOR_N = 15;      // 加權正確率的「先驗」：相當於一開始就有 15 題
+  var PRAC_ACC_PRIOR_HIT = 12;    // 其中答對 12 題（80%）
   var PRAC_BOARD_COLS = {
     correct:{ head:'累積答對', key:'correct' },
     week:{ head:'本週答對', key:'weekCorrect' },
     streak:{ head:'連續天數', key:'streakDays' },
-    accuracy:{ head:'正確率', key:'accuracy' }
+    accuracy:{ head:'加權正確率', key:'adjAccuracy' }
   };
   function renderLeaderboard(){
     var body = document.getElementById('pracBoardBody');
@@ -9294,7 +9296,15 @@
     var col = PRAC_BOARD_COLS[pracBoardTab];
     document.getElementById('pracBoardColHead').textContent = col.head;
     var rows = ((pracProfile && pracProfile.leaderboard) || []).slice();
-    if (pracBoardTab === 'accuracy') rows = rows.filter(function(r){ return r.total >= 50; });
+    // 加權正確率：先給每個人「15 題答對 12 題（80%）」的底，再把實際成績加進去。
+    // 只練 10 題全對的人會停在 88% 左右（不會壓過練 100 題 97% 的人），
+    // 練越多就越接近真實正確率，所以不用再拿題數門檻把人擋在榜外，全班都排得進來。
+    rows.forEach(function(r){
+      if (r.adjAccuracy == null){
+        var rc = (r.rawCorrect != null) ? r.rawCorrect : r.correct;
+        r.adjAccuracy = Math.round((rc + PRAC_ACC_PRIOR_HIT) / ((r.total || 0) + PRAC_ACC_PRIOR_N) * 1000) / 10;
+      }
+    });
     rows.sort(function(a, b){ return (b[col.key] - a[col.key]) || (b.correct - a.correct); });
     var mySid = pracProfile ? String(pracProfile.viewerSid || pracProfile.sid) : '';
     var myRank = -1;
@@ -9329,7 +9339,7 @@
     } else {
       rankEl.hidden = false;
       rankEl.innerHTML = (pracBoardTab === 'accuracy')
-        ? '你還沒有上這個榜　<span class="prac-myrank-sub">正確率榜要練滿 50 題才列入</span>'
+        ? '你還沒有上這個榜　<span class="prac-myrank-sub">先去練幾題，馬上就會出現在這裡</span>'
         : '你還沒有上這個榜　<span class="prac-myrank-sub">先去練幾題，馬上就會出現在這裡</span>';
     }
     body.innerHTML = '';
@@ -9349,7 +9359,8 @@
                        '<span class="prac-lv-name">' + lv.cur.name + '</span></td>' +
                      '<td class="mono prac-col-badge">' + badges + ' / ' + PRAC_BADGES.length + '</td>' +
                      '<td class="mono">' + r[col.key] + (pracBoardTab === 'accuracy' ? '%' : '') + '</td>' +
-                     '<td class="mono prac-col-total">' + r.total + '</td><td class="mono">' + r.accuracy + '%</td>';
+                     '<td class="mono prac-col-total">' + r.total + '</td>' +
+                     '<td class="mono' + (r.accuracy < 60 ? ' prac-low' : '') + '">' + r.accuracy + '%</td>';
       return tr;
     }
     if (!rows.length){
@@ -9369,11 +9380,14 @@
     }
     if (isAdmin){
       note.textContent = pracBoardClass
-        ? ('目前看的是 ' + pracBoardClass + ' 班的完整排行榜（共 ' + rows.length + ' 人）。點學生姓名可以看他的等級與成就。老師不屬於任何班級，您自己的練習不會列入學生的排行榜。')
+        ? ('目前看的是 ' + pracBoardClass + ' 班的完整排行榜（共 ' + rows.length + ' 人）。點學生姓名可以看他的等級與成就。' +
+           (pracBoardTab === 'accuracy'
+             ? '「加權正確率」＝（答對 ＋ 12）÷（作答 ＋ 15），等於先墊 15 題 80% 的底再加上實際成績：只練幾題全對的人會停在 88% 上下，練得越多就越接近右邊那一欄的真實正確率。' : '') +
+           '老師不屬於任何班級，您自己的練習不會列入學生的排行榜。')
         : '老師不屬於任何班級，所以自己的練習不會進排行榜。請先在上面選一個班級，就能看那一班的完整排名。';
     } else {
       note.textContent = (pracBoardTab === 'accuracy')
-        ? '正確率榜只列練滿 50 題的人（避免只做兩題全對就第一名），只比同班同學，看得到前 10 名與自己。'
+        ? '正確率榜比的是「加權正確率」：每個人先墊 15 題、答對 12 題（80%）再加上自己的成績，練得越多越接近真實正確率，所以只練幾題全對不會直接第一名。只比同班同學，看得到前 10 名與自己。'
         : '只比同班同學，看得到前 10 名與自己那一列（會標起來）。';
       note.textContent += '　「累積答對」只算不重複的題目，同一題再練不會重複累積。';
       if (myRank <= 0 && rows.length) note.textContent += '　你還沒有上榜。';
