@@ -808,7 +808,23 @@
   .duel-chip{display:inline-flex;align-items:center;gap:6px;font-weight:600;}
   .duel-chip svg{border-radius:50%;background:var(--surface);}
   .duel-scope{font-size:.75rem;color:var(--ink-soft);}
-  .duel-wait{font-size:.78rem;color:var(--ink-soft);}
+  .duel-wait{font-size:.78rem;color:var(--ink-soft);white-space:normal;}
+  .duel-mystate{
+    display:flex;flex-direction:column;gap:2px;font-size:.8rem;color:var(--ink);
+    text-align:right;margin-left:auto;
+  }
+  .duel-mystate b{color:var(--teal);font-weight:700;}
+  .duel-mystate b.duel-taken{color:var(--indigo-strong);}
+  .duel-note{font-size:.8rem;line-height:1.7;color:var(--ink-soft);margin:-4px 0 10px;}
+  .duel-note b{color:var(--ink);}
+  .duel-note-empty{
+    padding:14px 16px;border:1px dashed var(--border);border-radius:6px;margin-top:4px;
+  }
+  .duel-count{
+    display:inline-block;min-width:20px;padding:0 6px;border-radius:10px;
+    background:var(--indigo-tint);color:var(--indigo-strong);
+    font-family:"JetBrains Mono",monospace;font-size:.8rem;font-weight:700;vertical-align:1px;
+  }
   .duel-res-win{color:var(--teal);font-weight:700;}
   .duel-res-lose{color:var(--red);font-weight:700;}
   .duel-res-draw{color:var(--ink-soft);font-weight:700;}
@@ -887,6 +903,10 @@
     .duel-new select{min-width:0;width:100%;}
     .duel-new label{width:100%;}
     .duel-new .btn{width:100%;}
+    /* 手機：戰帖卡片改成上下排，狀態文字不要被截斷 */
+    .duel-list li{align-items:flex-start;}
+    .duel-mystate{text-align:left;margin-left:0;width:100%;}
+    .duel-list li .btn{width:100%;}
   }
   .ledger .prac-ava-head{vertical-align:middle;margin-right:6px;border-radius:50%;background:var(--surface-2);}
   .prac-wrong-item{display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;}
@@ -10314,26 +10334,60 @@
         '。對戰的題目一樣會算進練習紀錄與累積答對。</p>';
     }
 
-    function listBlock(title, arr, kind){
+    function listBlock(title, note, arr, kind){
       if (!arr || !arr.length) return '';
-      var h = '<h3 class="ledger-subhead">' + title + '</h3><ul class="duel-list">';
+      var h = '<h3 class="ledger-subhead">' + title + '　<span class="duel-count">' + arr.length + '</span></h3>' +
+              '<p class="duel-note">' + note + '</p><ul class="duel-list">';
       arr.forEach(function(d){
+        var oppLabel = d.bName || '（公開擂台，等人來接）';
+        if (kind === 'outbox' && d.status === '對手作答中' && d.bName) oppLabel = d.bName + '（接下你的擂台）';
         var opp = (d.mine === 'a')
-          ? duelPlayerChip(d.bSid, d.bName || '（公開擂台，等人來接）', null, '')
+          ? duelPlayerChip(d.bSid, oppLabel, null, '')
           : duelPlayerChip(d.aSid, d.aName, null, d.className);
         h += '<li><span class="duel-list-main">' + opp +
              '<span class="duel-scope">' + d.scope + '　' + d.qCount + ' 題</span></span>';
         if (kind === 'inbox') h += '<button type="button" class="btn btn-primary" data-duel-accept="' + d.id + '">接受挑戰</button>';
         else if (kind === 'open') h += '<button type="button" class="btn btn-primary" data-duel-accept="' + d.id + '">我來接</button>';
-        else if (kind === 'outbox') h += '<span class="duel-wait">等待對手…</span>' +
-             '<button type="button" class="btn btn-ghost" data-duel-cancel="' + d.id + '">取消</button>';
+        else if (kind === 'outbox'){
+          // 自己那一半早就答完了，這裡把成績寫出來，才不會以為「還有東西可以點」
+          var mineDone = (d.aScore != null)
+            ? ('<b>你已經答完了</b>　得分 ' + d.aScore + ' 分' +
+               (d.aCorrect != null ? ('（答對 ' + d.aCorrect + ' / ' + d.qCount + ' 題）') : ''))
+            : '<b>你還沒答完</b>';
+          // 三種狀態要分清楚，尤其「公開擂台被接走」看起來很像「我向他發戰帖」
+          var waitTxt, canCancel = true;
+          if (d.status === '對手作答中'){
+            waitTxt = '<b class="duel-taken">' + (d.bName || '對方') + ' 已經接下這場，正在作答</b>';
+            canCancel = false;                      // 對方已經開始了，後端也不讓取消
+          } else if (d.bSid){
+            waitTxt = '等 ' + (d.bName || '對方') + ' 接受並作答';
+          } else {
+            waitTxt = '等人來接這張擂台';
+          }
+          h += '<span class="duel-mystate">' + mineDone +
+               '<span class="duel-wait">' + waitTxt + '</span></span>' +
+               (canCancel ? '<button type="button" class="btn btn-ghost" data-duel-cancel="' + d.id + '">取消</button>' : '');
+        }
         h += '</li>';
       });
       return h + '</ul>';
     }
-    html += listBlock('有人挑戰你', duelData.inbox, 'inbox');
-    html += listBlock('公開擂台（全校都看得到，誰都可以接）', duelData.open, 'open');
-    html += listBlock('你發出去的戰帖', duelData.outbox, 'outbox');
+    html += listBlock('有人挑戰你',
+      '別人指名跟你比。按「接受挑戰」會<b>立刻進入全螢幕開始作答</b>，所以準備好再按。',
+      duelData.inbox, 'inbox');
+    html += listBlock('公開擂台（全校都看得到，誰都可以接）',
+      '同學開的擂台，誰接誰就是對手。按「我來接」一樣會立刻開始作答。',
+      duelData.open, 'open');
+    html += listBlock('你發出去的戰帖',
+      '這些是<b>你自己發起</b>、而且已經答完的場次，現在在等對方。' +
+      '這一區沒有東西可以點進去，要等對方答完才會自動結算（結果會出現在下面的「最近的戰績」）。' +
+      '<br>如果這裡出現某位同學的名字，可能是<b>你開的公開擂台被他接走了</b>，不是你去挑戰他。',
+      duelData.outbox, 'outbox');
+    if (!(duelData.inbox || []).length && !(duelData.open || []).length && !(duelData.outbox || []).length
+        && !duelData.draft){
+      html += '<p class="duel-note duel-note-empty">目前沒有任何進行中的戰帖。' +
+              '用上面的「發起挑戰」指名同學、挑戰老師，或開一張公開擂台等人來接。</p>';
+    }
 
     if (duelData.history && duelData.history.length){
       html += '<h3 class="ledger-subhead">最近的戰績</h3><div class="ledger-wrap"><table class="ledger">' +
