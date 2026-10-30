@@ -10435,7 +10435,7 @@
         var v = r[col.key] + (duelBoardTab === 'winRate' ? '%' : '');
         html += '<tr' + (r.sid === mySid ? ' class="prac-board-me"' : '') + '>' +
           '<td class="mono">' + (i + 1) + '</td><td>' + nameCell + '</td>' +
-          '<td class="prac-col-lv">' + (r.className || '老師') + '</td>' +
+          '<td class="prac-col-lv">' + (r.className || '—') + '</td>' +
           '<td class="mono"><b>' + v + '</b></td><td class="mono">' + r.games + '</td>' +
           '<td class="mono prac-col-badge">' + r.win + '－' + r.lose + '－' + r.draw + '</td>' +
           '<td class="mono prac-col-total">' + r.best + '</td></tr>';
