@@ -733,6 +733,55 @@
     text-underline-offset:3px;text-decoration-style:dotted;
   }
   .prac-name-btn:hover{color:var(--teal);}
+  /* ---------- 我的角色／商店街 ---------- */
+  .prac-ava-mini{
+    flex:0 0 auto;width:56px;height:56px;border-radius:50%;overflow:hidden;
+    border:2px solid var(--border);background:var(--surface-2);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .prac-ava-mini svg{width:100%;height:100%;}
+  .prac-gem-ico{width:1em;height:1em;flex:0 0 auto;vertical-align:-0.13em;margin-right:3px;}
+  .prac-gem-big{font-size:1.1rem;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:4px;}
+  .prac-gem-big b{font-family:"JetBrains Mono",monospace;color:var(--teal);}
+  #pracGemStat{color:var(--teal);display:inline-flex;align-items:center;}
+  .prac-gem-pop{
+    display:inline-block;padding:2px 8px;border-radius:4px;
+    background:var(--teal-tint);color:var(--teal);font-weight:700;font-size:.8rem;
+  }
+  .prac-ava-editor{display:grid;grid-template-columns:minmax(200px,230px) 1fr;gap:18px;align-items:start;}
+  .prac-ava-stage{
+    position:sticky;top:12px;text-align:center;padding:12px;
+    border:1px solid var(--border);border-radius:8px;background:var(--surface-2);
+  }
+  .prac-ava-stage svg{border-radius:8px;max-width:100%;height:auto;}
+  .prac-ava-picker{display:flex;flex-direction:column;gap:12px;min-width:0;}
+  .prac-ava-row{display:flex;flex-direction:column;gap:6px;}
+  .prac-ava-row-name{font-size:.78rem;font-weight:700;color:var(--ink-soft);}
+  .prac-ava-opts{display:flex;flex-wrap:wrap;gap:7px;}
+  .prac-ava-opt{
+    position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;
+    width:64px;padding:5px 3px;border-radius:6px;cursor:pointer;
+    border:1px solid var(--border);background:var(--surface);color:var(--ink);
+  }
+  .prac-ava-opt > svg{width:40px;height:56px;}
+  .prac-ava-opt.is-on{border-color:var(--teal);background:var(--teal-tint);}
+  .prac-ava-opt.is-locked{opacity:.55;}
+  .prac-ava-opt-name{font-size:.65rem;line-height:1.2;text-align:center;}
+  .prac-ava-swatch{width:30px;height:30px;border-radius:50%;border:1px solid var(--border);}
+  .prac-ava-lock{font-size:.6rem;color:var(--ink-soft);display:inline-flex;align-items:center;}
+  .prac-shop-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:12px;}
+  .prac-shop-group{margin-bottom:8px;}
+  .prac-shop-wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:10px;}
+  .prac-shop-item{
+    display:flex;flex-direction:column;align-items:center;gap:5px;padding:9px 6px;
+    border:1px solid var(--border);border-radius:6px;background:var(--surface-2);
+  }
+  .prac-shop-item.is-owned{border-color:var(--teal);background:var(--teal-tint);}
+  .prac-shop-item > svg{width:60px;height:84px;}
+  .prac-shop-name{font-size:.74rem;font-weight:600;text-align:center;line-height:1.3;}
+  .prac-shop-item .btn{padding:4px 9px;font-size:.72rem;min-height:0;display:inline-flex;align-items:center;}
+  .prac-board-name{vertical-align:middle;}
+  .ledger .prac-ava-head{vertical-align:middle;margin-right:6px;border-radius:50%;background:var(--surface-2);}
   .prac-wrong-item{display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;}
   .prac-wrong-main{flex:1;min-width:200px;}
   .prac-wrong-type{font-size:.78rem;color:var(--teal);font-weight:600;}
@@ -762,6 +811,19 @@
     .ledger .prac-col-badge,
     .ledger .prac-col-total{display:none;}
     .prac-lv-chip{margin-right:0;}
+    /* 角色編輯：手機上改成上下排，預覽縮小 */
+    .prac-ava-editor{grid-template-columns:1fr;}
+    .prac-ava-stage{position:static;}
+    .prac-ava-stage svg{width:140px;height:196px;}
+    /* 零件很多，手機上改成一列往右滑，整頁不會被拉得又長又難找 */
+    .prac-ava-opts{
+      flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;
+      scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;
+    }
+    .prac-ava-opt{width:58px;flex:0 0 auto;scroll-snap-align:start;}
+    .prac-ava-opt > svg{width:34px;height:48px;}
+    .prac-shop-wall{grid-template-columns:1fr 1fr;}
+    .prac-ava-mini{width:46px;height:46px;}
   }
   /* 聯立不等式：圖形接近正方形，寬螢幕時不要被拉成巨大的方塊，
      多出來的寬度拿去把兩個不等式面板並排，整體高度也比較短。 */
@@ -1015,6 +1077,8 @@
     </div>
     <div class="prac-profile-top">
       <div class="prac-level">
+        <span class="prac-ava-mini" id="pracScAvaMini"></span>
+        <span class="prac-ava-mini" id="pracScAvaMini"></span>
         <span class="prac-level-medal" id="pracScLevelMedal"></span>
         <div class="prac-level-info">
           <div class="prac-level-name" id="pracScLevelName">—</div>
@@ -1838,6 +1902,7 @@
           <div class="demo-shell prac-profile" id="pracProfile" hidden>
             <div class="prac-profile-top">
               <div class="prac-level">
+                <span class="prac-ava-mini" id="pracAvaMini"></span>
                 <span class="prac-level-medal" id="pracLevelMedal"></span>
                 <div class="prac-level-info">
                   <div class="prac-level-name" id="pracLevelName">—</div>
@@ -1851,6 +1916,8 @@
               <button type="button" class="btn btn-ghost btn-sm is-on" data-prof-tab="badges">成就標章</button>
               <button type="button" class="btn btn-ghost btn-sm" data-prof-tab="wrong">錯題本</button>
               <button type="button" class="btn btn-ghost btn-sm" data-prof-tab="board">班級排行榜</button>
+              <button type="button" class="btn btn-ghost btn-sm" data-prof-tab="avatar">我的角色</button>
+              <button type="button" class="btn btn-ghost btn-sm" data-prof-tab="shop">商店街</button>
               <button type="button" class="btn btn-ghost btn-sm" id="pracProfileRefresh" title="重新讀取最新的等級、成就與排行榜">↻ 重新整理</button>
               <span class="roster-status" id="pracProfileStatus"></span>
             </div>
@@ -1864,6 +1931,22 @@
                 <span class="roster-status" id="pracWrongCount"></span>
               </div>
               <ul class="lp-vertex-list" id="pracWrongList"></ul>
+            </div>
+            <div id="pracProfAvatar" hidden>
+              <div class="prac-ava-editor">
+                <div class="prac-ava-stage">
+                  <div id="pracAvaPreview"></div>
+                  <p class="prac-save-status" id="pracAvaStatus"></p>
+                </div>
+                <div class="prac-ava-picker" id="pracAvaParts"></div>
+              </div>
+            </div>
+            <div id="pracProfShop" hidden>
+              <div class="prac-shop-head">
+                <span class="prac-gem-big" id="pracShopGems"></span>
+                <span class="roster-status" id="pracShopStatus"></span>
+              </div>
+              <div id="pracShopGrid"></div>
             </div>
             <div id="pracProfBoard" hidden>
               <div class="exam-meta" id="pracBoardClassWrap" hidden style="margin-bottom:12px;">
@@ -8951,7 +9034,17 @@
     statusEl.textContent = '紀錄傳送中…';
     callApi('savePractice', { actorAccount: currentUser.account, actorPassword: currentPassword, rows: rows }).then(function(res){
       if (res && res.ok){
-        statusEl.textContent = '✓ 練習紀錄已送出（程老師看得到）。';
+        var g = res.gems;
+        if (g && g.total > 0){
+          var bits = [];
+          if (g.detail.correct) bits.push('答對 ' + g.detail.correct);
+          if (g.detail.perfect) bits.push('全對獎勵 ' + g.detail.perfect);
+          if (g.detail.daily) bits.push('每日首練 ' + g.detail.daily);
+          statusEl.innerHTML = '✓ 練習紀錄已送出。　<span class="prac-gem-pop">' +
+            gemIcon() + ' ＋' + g.total + ' 顆寶石（' + bits.join('、') + '）</span>';
+        } else {
+          statusEl.textContent = '✓ 練習紀錄已送出（程老師看得到）。';
+        }
         loadPracticeProfile();                     // 等級、標章、錯題本、排行榜一起更新
       } else {
         statusEl.textContent = '⚠ 紀錄沒有送出成功：' + ((res && res.error) || '後端還沒有加上練習紀錄功能') + '。練習本身不受影響。';
@@ -9055,6 +9148,386 @@
            (shapes[kind] || shapes.star) + '</svg>';
   }
 
+  /* ============ 個人角色：頭像零件、商店商品、SVG 繪製 ============
+     全部用程式畫的 SVG，不依賴任何外部圖檔，離線也看得到。
+     每一個零件都有 id／名稱／價格；價格 0 的是一開始就有的免費款。
+     畫布是 100×140 的半身＋全身 Q 版小人。 */
+
+  var AVA_SKINS = [
+    { id:'s1', name:'膚色一', c:'#f6d9c2' }, { id:'s2', name:'膚色二', c:'#ecc0a0' },
+    { id:'s3', name:'膚色三', c:'#dca97e', }, { id:'s4', name:'膚色四', c:'#bd8355' },
+    { id:'s5', name:'膚色五', c:'#95603a' }, { id:'s6', name:'膚色六', c:'#64402a' }
+  ];
+  var AVA_HAIR_COLORS = [
+    { id:'h1', name:'黑', c:'#2b2320' }, { id:'h2', name:'深褐', c:'#4a3728' },
+    { id:'h3', name:'褐', c:'#71502f' }, { id:'h4', name:'淺褐', c:'#a9712f' },
+    { id:'h5', name:'金', c:'#d9a441' }, { id:'h6', name:'銀灰', c:'#9aa0a6' },
+    { id:'h7', name:'紅棕', c:'#b4503a' }, { id:'h8', name:'紫', c:'#7b4397' }
+  ];
+  var AVA_CLOTH_COLORS = [
+    { id:'c1', name:'靛藍', c:'#3f6fd8' }, { id:'c2', name:'湖綠', c:'#2f9e8f' },
+    { id:'c3', name:'磚紅', c:'#d4553f' }, { id:'c4', name:'琥珀', c:'#e0a32e' },
+    { id:'c5', name:'紫', c:'#7a52c7' }, { id:'c6', name:'深藍', c:'#39465c' },
+    { id:'c7', name:'粉', c:'#d4718f' }, { id:'c8', name:'草綠', c:'#54953f' },
+    { id:'c9', name:'米白', c:'#e6e8ec' }, { id:'c10', name:'卡其', c:'#9c7c58' }
+  ];
+  // 臉型與膚色屬於「自己本來的樣子」，一律免費
+  var AVA_FACES = [
+    { id:'round',  name:'圓臉',  price:0 },
+    { id:'oval',   name:'鵝蛋臉', price:0 },
+    { id:'square', name:'方臉',  price:0 },
+    { id:'heart',  name:'尖下巴', price:0 }
+  ];
+  var AVA_HAIRS = [
+    { id:'short',  name:'短髮',   price:0 },
+    { id:'bob',    name:'妹妹頭', price:0 },
+    { id:'buzz',   name:'平頭',   price:0 },
+    { id:'long',   name:'長直髮', price:0 },
+    { id:'ponytail', name:'馬尾', price:150 },
+    { id:'twin',   name:'雙馬尾', price:180 },
+    { id:'bun',    name:'丸子頭', price:180 },
+    { id:'wavy',   name:'波浪捲', price:220 },
+    { id:'spiky',  name:'刺蝟頭', price:220 },
+    { id:'curly',  name:'小捲毛', price:260 },
+    { id:'afro',   name:'爆炸頭', price:320 },
+    { id:'undercut', name:'飛機頭', price:380 }
+  ];
+  var AVA_TOPS = [
+    { id:'tee',     name:'T 恤',   price:0 },
+    { id:'polo',    name:'Polo 衫', price:0 },
+    { id:'uniform', name:'制服',   price:0 },
+    { id:'hoodie',  name:'連帽外套', price:200 },
+    { id:'sweater', name:'毛衣',   price:200 },
+    { id:'jacket',  name:'夾克',   price:260 },
+    { id:'vest',    name:'背心',   price:260 },
+    { id:'jersey',  name:'球衣',   price:320 },
+    { id:'labcoat', name:'實驗衣', price:420 },
+    { id:'cape',    name:'披風',   price:600 }
+  ];
+  var AVA_BOTTOMS = [
+    { id:'jeans',   name:'牛仔褲', price:0 },
+    { id:'shorts',  name:'短褲',   price:0 },
+    { id:'skirt',   name:'裙子',   price:0 },
+    { id:'pleat',   name:'百褶裙', price:160 },
+    { id:'slacks',  name:'西裝褲', price:180 },
+    { id:'sweatpants', name:'運動褲', price:200 },
+    { id:'cargo',   name:'工作褲', price:260 },
+    { id:'legging', name:'內搭褲', price:260 }
+  ];
+  var AVA_ACCS = [
+    { id:'none',    name:'不戴',   price:0 },
+    { id:'glasses', name:'方框眼鏡', price:0 },
+    { id:'round',   name:'圓框眼鏡', price:120 },
+    { id:'sun',     name:'墨鏡',   price:200 },
+    { id:'cap',     name:'棒球帽', price:220 },
+    { id:'beanie',  name:'毛帽',   price:220 },
+    { id:'headset', name:'耳機',   price:300 },
+    { id:'scarf',   name:'圍巾',   price:300 },
+    { id:'clip',    name:'髮夾',   price:160 },
+    { id:'bowtie',  name:'領結',   price:260 },
+    { id:'crown',   name:'皇冠',   price:800 },
+    { id:'halo',    name:'光環',   price:800 }
+  ];
+  var AVA_BGS = [
+    { id:'plain',  name:'素色',   price:0,   c:'#e8edf6' },
+    { id:'grid',   name:'方格紙', price:0,   c:'#eaf2ec' },
+    { id:'sky',    name:'晴空',   price:180, c:'#cfe6fb' },
+    { id:'sunset', name:'黃昏',   price:220, c:'#fbe0cc' },
+    { id:'mint',   name:'薄荷',   price:220, c:'#d3f0e6' },
+    { id:'night',  name:'星空',   price:320, c:'#2a3550' },
+    { id:'graph',  name:'坐標平面', price:360, c:'#e6ecf7' },
+    { id:'gold',   name:'金榜',   price:700, c:'#f6e6bd' }
+  ];
+
+  // 分組表：編輯頁與商店都用這一份
+  var AVA_GROUPS = [
+    { key:'face',   name:'臉型',     list:AVA_FACES,        shop:false },
+    { key:'skin',   name:'膚色',     list:AVA_SKINS,        shop:false, color:true },
+    { key:'hair',   name:'髮型',     list:AVA_HAIRS,        shop:true  },
+    { key:'hairC',  name:'髮色',     list:AVA_HAIR_COLORS,  shop:false, color:true },
+    { key:'top',    name:'上衣',     list:AVA_TOPS,         shop:true  },
+    { key:'topC',   name:'上衣顏色', list:AVA_CLOTH_COLORS, shop:false, color:true },
+    { key:'bottom', name:'褲子／裙子', list:AVA_BOTTOMS,    shop:true  },
+    { key:'bottomC',name:'下身顏色', list:AVA_CLOTH_COLORS, shop:false, color:true },
+    { key:'acc',    name:'裝飾',     list:AVA_ACCS,         shop:true  },
+    { key:'bg',     name:'背景',     list:AVA_BGS,          shop:true  }
+  ];
+  var AVA_DEFAULT = { face:'round', skin:'s1', hair:'short', hairC:'h1',
+                      top:'tee', topC:'c1', bottom:'jeans', bottomC:'c6',
+                      acc:'none', bg:'plain' };
+
+  /* 商品代號：群組_零件，例如 hair_ponytail。價格 0 的一開始就有。 */
+  function avaItemId(group, id){ return group + '_' + id; }
+  function avaFind(list, id){
+    for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i];
+    return list[0];
+  }
+  function avaColorOf(list, id){ return avaFind(list, id).c; }
+  /* 這個零件現在能不能用（免費或已經買了） */
+  function avaOwned(group, id, owned){
+    var g = null;
+    for (var i = 0; i < AVA_GROUPS.length; i++) if (AVA_GROUPS[i].key === group) g = AVA_GROUPS[i];
+    if (!g) return true;
+    var it = avaFind(g.list, id);
+    if (!it.price) return true;
+    return !!(owned && owned[avaItemId(group, id)]);
+  }
+  /* 把設定檔補齊成合法值（沒有的零件、沒買的零件都退回預設） */
+  function avaNormalize(cfg, owned){
+    var out = {};
+    AVA_GROUPS.forEach(function(g){
+      var want = (cfg && cfg[g.key]) ? String(cfg[g.key]) : AVA_DEFAULT[g.key];
+      var found = null;
+      g.list.forEach(function(it){ if (it.id === want) found = it; });
+      if (!found || (found.price && owned && !owned[avaItemId(g.key, want)] )) want = AVA_DEFAULT[g.key];
+      out[g.key] = want;
+    });
+    return out;
+  }
+
+  /* ---------- SVG 繪製 ---------- */
+  function avaShade(hex, amt){
+    var n = parseInt(String(hex).slice(1), 16);
+    var r = Math.max(0, Math.min(255, (n >> 16) + amt));
+    var g = Math.max(0, Math.min(255, ((n >> 8) & 255) + amt));
+    var b = Math.max(0, Math.min(255, (n & 255) + amt));
+    return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+  }
+
+  function avaBg(id){
+    var bg = avaFind(AVA_BGS, id);
+    var base = '<rect x="0" y="0" width="100" height="140" rx="10" fill="' + bg.c + '"/>';
+    if (id === 'grid'){
+      var g = '';
+      for (var i = 10; i < 100; i += 12) g += '<line x1="' + i + '" y1="0" x2="' + i + '" y2="140" stroke="#cfe0d4" stroke-width="1"/>';
+      for (var j = 10; j < 140; j += 12) g += '<line x1="0" y1="' + j + '" x2="100" y2="' + j + '" stroke="#cfe0d4" stroke-width="1"/>';
+      return base + g;
+    }
+    if (id === 'sky') return base + '<circle cx="78" cy="24" r="11" fill="#fff3c4"/>' +
+      '<ellipse cx="26" cy="34" rx="16" ry="7" fill="#ffffff" opacity=".85"/>' +
+      '<ellipse cx="40" cy="30" rx="10" ry="5" fill="#ffffff" opacity=".85"/>';
+    if (id === 'sunset') return base + '<circle cx="50" cy="70" r="30" fill="#f6b57a" opacity=".55"/>' +
+      '<rect x="0" y="96" width="100" height="44" rx="10" fill="#e08d5d" opacity=".5"/>';
+    if (id === 'mint') return base + '<circle cx="20" cy="110" r="22" fill="#b7e5d4" opacity=".7"/>' +
+      '<circle cx="84" cy="30" r="18" fill="#b7e5d4" opacity=".7"/>';
+    if (id === 'night'){
+      var st = '';
+      var pts = [[14,18],[30,40],[72,16],[86,46],[22,96],[88,104],[56,22],[44,64],[78,76]];
+      pts.forEach(function(p, k){ st += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="' + (k % 3 === 0 ? 1.8 : 1.1) + '" fill="#fff8d6"/>'; });
+      return base + st + '<circle cx="76" cy="26" r="9" fill="#f3efd0"/><circle cx="72" cy="23" r="9" fill="#2a3550"/>';
+    }
+    if (id === 'graph'){
+      var ax = '';
+      for (var k = 10; k < 100; k += 15) ax += '<line x1="' + k + '" y1="0" x2="' + k + '" y2="140" stroke="#c8d4e8" stroke-width="1"/>';
+      for (var m = 10; m < 140; m += 15) ax += '<line x1="0" y1="' + m + '" x2="100" y2="' + m + '" stroke="#c8d4e8" stroke-width="1"/>';
+      return base + ax + '<line x1="0" y1="70" x2="100" y2="70" stroke="#7d93b8" stroke-width="2"/>' +
+        '<line x1="50" y1="0" x2="50" y2="140" stroke="#7d93b8" stroke-width="2"/>' +
+        '<path d="M8 128 Q50 2 92 128" fill="none" stroke="#5b7bb5" stroke-width="2" opacity=".65"/>';
+    }
+    if (id === 'gold') return base +
+      '<path d="M50 10 L57 26 L74 28 L61 40 L65 57 L50 48 L35 57 L39 40 L26 28 L43 26 Z" fill="#e9c767" opacity=".55"/>' +
+      '<rect x="0" y="112" width="100" height="28" rx="10" fill="#e0b84f" opacity=".45"/>';
+    return base;
+  }
+
+  function avaHeadPath(face, skin){
+    if (face === 'oval')   return '<ellipse cx="50" cy="42" rx="22" ry="27" fill="' + skin + '"/>';
+    if (face === 'square') return '<rect x="27" y="17" width="46" height="50" rx="13" fill="' + skin + '"/>';
+    if (face === 'heart')  return '<path d="M26 36 a24 24 0 0 1 48 0 c0 16 -11 26 -24 33 C37 62 26 52 26 36 Z" fill="' + skin + '"/>';
+    return '<circle cx="50" cy="42" r="25" fill="' + skin + '"/>';
+  }
+
+  function avaHairBack(hair, c){
+    // 畫在頭後面的部分（長髮、爆炸頭的外圈）
+    if (hair === 'long')  return '<path d="M22 38 h56 v52 q-8 6 -14 2 V46 H36 v46 q-6 4 -14 -2 Z" fill="' + c + '"/>';
+    if (hair === 'wavy')  return '<path d="M22 38 h56 v44 q-5 8 -10 2 q-5 -8 -4 -14 V46 H36 v26 q1 6 -4 14 q-5 6 -10 -2 Z" fill="' + c + '"/>';
+    if (hair === 'afro')  return '<circle cx="50" cy="32" r="31" fill="' + c + '"/>';
+    if (hair === 'twin')  return '<g fill="' + c + '"><ellipse cx="18" cy="56" rx="8" ry="15"/><ellipse cx="82" cy="56" rx="8" ry="15"/></g>';
+    if (hair === 'ponytail') return '<path d="M74 34 q16 6 14 26 q-2 18 -12 22 q8 -18 2 -30 q-4 -10 -4 -18 Z" fill="' + c + '"/>';
+    return '';
+  }
+
+  function avaHairFront(hair, c){
+    var hi = avaShade(c, 26);
+    if (hair === 'buzz')  return '<path d="M26 40 a24 24 0 0 1 48 0 q-24 -9 -48 0 Z" fill="' + c + '"/>';
+    if (hair === 'short') return '<path d="M25 42 a25 25 0 0 1 50 0 q-6 -12 -22 -9 q-12 2 -16 11 q-6 -2 -12 -2 Z" fill="' + c + '"/>' +
+      '<path d="M40 24 q10 -5 20 1 q-10 2 -20 -1 Z" fill="' + hi + '"/>';
+    if (hair === 'bob')   return '<path d="M24 44 a26 26 0 0 1 52 0 v16 q-7 4 -8 -4 V36 H32 v20 q-1 8 -8 4 Z" fill="' + c + '"/>';
+    if (hair === 'long')  return '<path d="M24 44 a26 26 0 0 1 52 0 q-8 -14 -26 -11 q-18 3 -20 15 Z" fill="' + c + '"/>';
+    if (hair === 'wavy')  return '<path d="M24 44 a26 26 0 0 1 52 0 q-9 -13 -26 -11 q-17 2 -20 15 Z" fill="' + c + '"/>';
+    if (hair === 'ponytail') return '<path d="M25 42 a25 25 0 0 1 50 0 q-10 -13 -28 -10 q-15 3 -18 13 Z" fill="' + c + '"/>';
+    if (hair === 'twin')  return '<path d="M25 42 a25 25 0 0 1 50 0 q-11 -12 -25 -10 q-14 2 -21 12 Z" fill="' + c + '"/>';
+    if (hair === 'bun')   return '<circle cx="50" cy="14" r="9" fill="' + c + '"/>' +
+      '<path d="M26 42 a24 24 0 0 1 48 0 q-10 -12 -24 -10 q-14 2 -20 12 Z" fill="' + c + '"/>';
+    if (hair === 'spiky') return '<path d="M25 42 L30 22 L36 34 L42 16 L50 32 L58 16 L64 34 L70 22 L75 42 q-12 -10 -25 -10 q-13 0 -25 10 Z" fill="' + c + '"/>';
+    if (hair === 'curly'){
+      var g = '';
+      [[32,28],[42,20],[52,18],[63,22],[71,30],[27,38],[75,38]].forEach(function(p){
+        g += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="9" fill="' + c + '"/>';
+      });
+      return g;
+    }
+    if (hair === 'afro')  return '<path d="M28 33 a22 22 0 0 1 44 0 q-22 -11 -44 0 Z" fill="' + avaShade(c, -16) + '"/>';
+    if (hair === 'undercut') return '<path d="M27 40 q-2 -26 23 -26 q23 0 24 20 q-8 -10 -20 -9 q8 8 1 15 q-9 -14 -28 0 Z" fill="' + c + '"/>' +
+      '<path d="M40 18 q12 -5 22 4 q-12 -3 -22 -4 Z" fill="' + avaShade(c, 30) + '"/>';
+    return '';
+  }
+
+  function avaTop(top, c, skin){
+    var d = avaShade(c, -22), l = avaShade(c, 24);
+    var sleeves = '<rect x="18" y="74" width="12" height="26" rx="6" fill="' + c + '"/>' +
+                  '<rect x="70" y="74" width="12" height="26" rx="6" fill="' + c + '"/>' +
+                  '<circle cx="24" cy="104" r="5" fill="' + skin + '"/><circle cx="76" cy="104" r="5" fill="' + skin + '"/>';
+    var body = '<path d="M30 74 q20 -8 40 0 v36 H30 Z" fill="' + c + '"/>';
+    if (top === 'polo')    return sleeves + body + '<path d="M44 72 l6 9 l6 -9 z" fill="' + l + '"/>' +
+      '<circle cx="50" cy="86" r="1.6" fill="' + d + '"/><circle cx="50" cy="92" r="1.6" fill="' + d + '"/>';
+    if (top === 'uniform') return sleeves + body +
+      '<path d="M40 72 l10 11 l10 -11 l5 3 l-15 15 l-15 -15 z" fill="#f2f4f8"/>' +
+      '<path d="M50 83 l5 4 l-3 18 l-4 0 l-3 -18 z" fill="#c23b3b"/>';
+    if (top === 'hoodie')  return sleeves + body +
+      '<path d="M36 70 q14 12 28 0 q-2 14 -14 14 q-12 0 -14 -14 Z" fill="' + d + '"/>' +
+      '<rect x="40" y="95" width="20" height="11" rx="4" fill="' + d + '"/>' +
+      '<line x1="46" y1="80" x2="46" y2="92" stroke="' + l + '" stroke-width="2"/>' +
+      '<line x1="54" y1="80" x2="54" y2="92" stroke="' + l + '" stroke-width="2"/>';
+    if (top === 'sweater') return sleeves + body +
+      '<rect x="30" y="104" width="40" height="6" fill="' + d + '"/>' +
+      '<path d="M34 80 l32 0 M34 88 l32 0" stroke="' + l + '" stroke-width="1.6" opacity=".7"/>';
+    if (top === 'jacket')  return sleeves + body +
+      '<path d="M50 74 v36" stroke="' + d + '" stroke-width="2"/>' +
+      '<path d="M42 72 l8 10 l8 -10 l4 3 l-12 13 l-12 -13 z" fill="' + d + '"/>';
+    if (top === 'vest')    return '<circle cx="24" cy="92" r="6" fill="' + skin + '"/><circle cx="76" cy="92" r="6" fill="' + skin + '"/>' +
+      '<rect x="22" y="76" width="8" height="20" rx="4" fill="' + skin + '"/>' +
+      '<rect x="70" y="76" width="8" height="20" rx="4" fill="' + skin + '"/>' + body +
+      '<path d="M44 72 l6 10 l6 -10" fill="none" stroke="' + d + '" stroke-width="2"/>';
+    if (top === 'jersey')  return sleeves + body +
+      '<text x="50" y="99" text-anchor="middle" font-size="20" font-weight="700" fill="#ffffff" opacity=".9" font-family="JetBrains Mono,monospace">7</text>' +
+      '<path d="M34 76 q16 8 32 0" fill="none" stroke="#ffffff" stroke-width="2" opacity=".55"/>';
+    if (top === 'labcoat') return sleeves.replace(/fill="[^"]+"/g, 'fill="#f3f5f8"') + body.replace(c, '#f3f5f8') +
+      '<path d="M50 74 v36" stroke="#d3d8e0" stroke-width="2"/>' +
+      '<path d="M41 72 l9 11 l9 -11 l4 3 l-13 14 l-13 -14 z" fill="#e4e8ee"/>' +
+      '<rect x="56" y="92" width="10" height="9" rx="2" fill="#e4e8ee"/>' +
+      '<rect x="59" y="90" width="2" height="7" rx="1" fill="' + c + '"/>';
+    if (top === 'cape')    return '<path d="M26 74 q24 -10 48 0 l8 42 H18 Z" fill="' + d + '"/>' + sleeves + body +
+      '<circle cx="42" cy="75" r="2.5" fill="' + l + '"/><circle cx="58" cy="75" r="2.5" fill="' + l + '"/>';
+    return sleeves + body;   // tee
+  }
+
+  function avaBottom(bottom, c, skin){
+    var d = avaShade(c, -20), l = avaShade(c, 22);
+    var legs = '<rect x="32" y="108" width="14" height="24" rx="4" fill="' + c + '"/>' +
+               '<rect x="54" y="108" width="14" height="24" rx="4" fill="' + c + '"/>';
+    var shoes = '<rect x="30" y="128" width="17" height="8" rx="4" fill="#3a4250"/>' +
+                '<rect x="53" y="128" width="17" height="8" rx="4" fill="#3a4250"/>';
+    if (bottom === 'shorts') return '<rect x="32" y="108" width="14" height="13" rx="4" fill="' + c + '"/>' +
+      '<rect x="54" y="108" width="14" height="13" rx="4" fill="' + c + '"/>' +
+      '<rect x="34" y="120" width="10" height="10" fill="' + skin + '"/>' +
+      '<rect x="56" y="120" width="10" height="10" fill="' + skin + '"/>' + shoes;
+    if (bottom === 'skirt') return '<path d="M34 108 h32 l8 18 H26 Z" fill="' + c + '"/>' +
+      '<rect x="36" y="124" width="9" height="8" fill="' + skin + '"/>' +
+      '<rect x="55" y="124" width="9" height="8" fill="' + skin + '"/>' + shoes;
+    if (bottom === 'pleat') return '<path d="M34 108 h32 l8 18 H26 Z" fill="' + c + '"/>' +
+      '<path d="M38 108 l-3 18 M46 108 l-1 18 M54 108 l1 18 M62 108 l3 18" stroke="' + d + '" stroke-width="1.4"/>' +
+      '<rect x="36" y="124" width="9" height="8" fill="' + skin + '"/>' +
+      '<rect x="55" y="124" width="9" height="8" fill="' + skin + '"/>' + shoes;
+    if (bottom === 'slacks') return '<rect x="31" y="108" width="16" height="25" rx="3" fill="' + c + '"/>' +
+      '<rect x="53" y="108" width="16" height="25" rx="3" fill="' + c + '"/>' +
+      '<rect x="30" y="106" width="40" height="4" fill="' + d + '"/>' + shoes;
+    if (bottom === 'sweatpants') return legs +
+      '<rect x="33" y="108" width="2.5" height="24" fill="' + l + '"/>' +
+      '<rect x="64.5" y="108" width="2.5" height="24" fill="' + l + '"/>' +
+      '<rect x="32" y="128" width="14" height="4" rx="2" fill="' + d + '"/>' +
+      '<rect x="54" y="128" width="14" height="4" rx="2" fill="' + d + '"/>' + shoes;
+    if (bottom === 'cargo') return legs +
+      '<rect x="33" y="116" width="8" height="8" rx="2" fill="' + d + '"/>' +
+      '<rect x="59" y="116" width="8" height="8" rx="2" fill="' + d + '"/>' + shoes;
+    if (bottom === 'legging') return '<rect x="34" y="108" width="11" height="25" rx="5" fill="' + c + '"/>' +
+      '<rect x="55" y="108" width="11" height="25" rx="5" fill="' + c + '"/>' + shoes;
+    return legs + '<rect x="30" y="106" width="40" height="5" rx="2" fill="' + d + '"/>' +
+      '<circle cx="50" cy="109" r="1.6" fill="' + l + '"/>' + shoes;      // jeans
+  }
+
+  function avaFaceParts(){
+    return '<g><ellipse cx="41" cy="43" rx="3.2" ry="4" fill="#2c3340"/>' +
+           '<ellipse cx="59" cy="43" rx="3.2" ry="4" fill="#2c3340"/>' +
+           '<circle cx="42.2" cy="41.6" r="1.1" fill="#ffffff"/>' +
+           '<circle cx="60.2" cy="41.6" r="1.1" fill="#ffffff"/>' +
+           '<path d="M44 54 q6 5 12 0" fill="none" stroke="#9c5f4e" stroke-width="2" stroke-linecap="round"/>' +
+           '<ellipse cx="33" cy="50" rx="4" ry="2.6" fill="#f0a39a" opacity=".55"/>' +
+           '<ellipse cx="67" cy="50" rx="4" ry="2.6" fill="#f0a39a" opacity=".55"/></g>';
+  }
+
+  function avaAcc(acc, hairC){
+    if (acc === 'glasses') return '<g fill="none" stroke="#39404d" stroke-width="2">' +
+      '<rect x="33" y="38" width="15" height="11" rx="3"/><rect x="52" y="38" width="15" height="11" rx="3"/>' +
+      '<line x1="48" y1="43" x2="52" y2="43"/></g>';
+    if (acc === 'round') return '<g fill="none" stroke="#5a4632" stroke-width="2">' +
+      '<circle cx="41" cy="43" r="7"/><circle cx="59" cy="43" r="7"/><line x1="48" y1="43" x2="52" y2="43"/></g>';
+    if (acc === 'sun') return '<g><rect x="32" y="37" width="16" height="11" rx="3" fill="#2c3340"/>' +
+      '<rect x="52" y="37" width="16" height="11" rx="3" fill="#2c3340"/>' +
+      '<line x1="48" y1="42" x2="52" y2="42" stroke="#2c3340" stroke-width="2"/></g>';
+    if (acc === 'cap') return '<g><path d="M26 26 a24 20 0 0 1 48 0 v3 H26 Z" fill="#c23b3b"/>' +
+      '<path d="M70 26 q14 1 14 7 H68 Z" fill="#a22f2f"/><circle cx="50" cy="8" r="3" fill="#a22f2f"/></g>';
+    if (acc === 'beanie') return '<g><path d="M26 30 a24 22 0 0 1 48 0 Z" fill="#3f6fd8"/>' +
+      '<rect x="24" y="28" width="52" height="7" rx="3" fill="#2f55a8"/>' +
+      '<circle cx="50" cy="8" r="4.5" fill="#e6e8ec"/></g>';
+    if (acc === 'headset') return '<g><path d="M24 42 a26 26 0 0 1 52 0" fill="none" stroke="#39404d" stroke-width="4"/>' +
+      '<rect x="18" y="38" width="11" height="16" rx="5" fill="#39404d"/>' +
+      '<rect x="71" y="38" width="11" height="16" rx="5" fill="#39404d"/>' +
+      '<rect x="21" y="42" width="5" height="8" rx="2.5" fill="#6fb3d6"/></g>';
+    if (acc === 'scarf') return '<g><rect x="33" y="64" width="34" height="9" rx="4" fill="#d4553f"/>' +
+      '<path d="M60 72 l7 16 l-8 2 l-4 -16 Z" fill="#c04a37"/></g>';
+    if (acc === 'clip') return '<g><rect x="63" y="26" width="12" height="4" rx="2" fill="#e0a32e" transform="rotate(-18 69 28)"/>' +
+      '<circle cx="76" cy="27" r="2.6" fill="#f0c460"/></g>';
+    if (acc === 'bowtie') return '<g fill="#c23b3b"><path d="M50 72 l-10 -5 v10 Z"/><path d="M50 72 l10 -5 v10 Z"/>' +
+      '<circle cx="50" cy="72" r="2.6" fill="#8e2a2a"/></g>';
+    if (acc === 'crown') return '<g><path d="M32 20 L36 8 L43 16 L50 4 L57 16 L64 8 L68 20 Z" fill="#e3b53f"/>' +
+      '<rect x="32" y="19" width="36" height="5" rx="2" fill="#caa033"/>' +
+      '<circle cx="50" cy="13" r="2.2" fill="#d8544f"/></g>';
+    if (acc === 'halo') return '<ellipse cx="50" cy="9" rx="15" ry="4.5" fill="none" stroke="#f0d368" stroke-width="3.5"/>';
+    return '';
+  }
+
+  /* 把設定畫成一個完整的 SVG 字串。size 是輸出的像素寬度。 */
+  function avatarSvg(cfg, opts){
+    opts = opts || {};
+    var c = avaNormalize(cfg, opts.owned);
+    var skin = avaColorOf(AVA_SKINS, c.skin);
+    var hairC = avaColorOf(AVA_HAIR_COLORS, c.hairC);
+    var topC = avaColorOf(AVA_CLOTH_COLORS, c.topC);
+    var botC = avaColorOf(AVA_CLOTH_COLORS, c.bottomC);
+    var neck = '<rect x="44" y="62" width="12" height="12" rx="4" fill="' + avaShade(skin, -18) + '"/>';
+    var ears = '<circle cx="26" cy="45" r="5" fill="' + avaShade(skin, -12) + '"/>' +
+               '<circle cx="74" cy="45" r="5" fill="' + avaShade(skin, -12) + '"/>';
+    var w = opts.size || 100;
+    var cls = opts.cls ? (' class="' + opts.cls + '"') : '';
+    return '<svg viewBox="0 0 100 140" width="' + w + '" height="' + Math.round(w * 1.4) + '"' + cls +
+           ' role="img" aria-label="我的角色">' +
+      (opts.noBg ? '' : avaBg(c.bg)) +
+      avaHairBack(c.hair, hairC) +
+      avaBottom(c.bottom, botC, skin) +
+      neck +
+      avaTop(c.top, topC, skin) +
+      ears +
+      avaHeadPath(c.face, skin) +
+      avaFaceParts() +
+      avaHairFront(c.hair, hairC) +
+      avaAcc(c.acc, hairC) +
+      '</svg>';
+  }
+  /* 排行榜那種小圖：只要頭部，不畫身體與背景 */
+  function avatarHeadSvg(cfg, size, owned){
+    var c = avaNormalize(cfg, owned);
+    var skin = avaColorOf(AVA_SKINS, c.skin);
+    var hairC = avaColorOf(AVA_HAIR_COLORS, c.hairC);
+    return '<svg viewBox="12 2 76 76" width="' + size + '" height="' + size + '" class="prac-ava-head" role="img" aria-hidden="true">' +
+      '<circle cx="50" cy="40" r="37" fill="' + avaFind(AVA_BGS, c.bg).c + '"/>' +
+      avaHairBack(c.hair, hairC) +
+      '<circle cx="26" cy="45" r="5" fill="' + avaShade(skin, -12) + '"/>' +
+      '<circle cx="74" cy="45" r="5" fill="' + avaShade(skin, -12) + '"/>' +
+      avaHeadPath(c.face, skin) + avaFaceParts() +
+      avaHairFront(c.hair, hairC) + avaAcc(c.acc, hairC) + '</svg>';
+  }
+
   /* 標章定義：check(st) 回傳 true 就是拿到了。st 是後端回傳的統計。 */
   // 每一個標章都寫上 now(s)／goal：沒拿到的會顯示「目前 3 / 10」，
   // 學生才看得出自己離下一個成就還差多少，不會以為系統壞掉。
@@ -9153,6 +9626,16 @@
   ];
   /* 統一的達成判定：有 check 就用 check，沒有就用 now(s) >= goal */
   function pracBadgeGoal(b, s){ return b.goalOf ? b.goalOf(s) : b.goal; }
+  /* 標章拿到時發幾顆寶石：直接用門檻分級，不用一個一個手寫（後端有同一份對照表） */
+  function pracBadgeGem(b){
+    if (b.goalOf) return 500;                 // 全通關這類終極標章
+    var g = b.goal || 0;
+    if (g <= 5) return 20;
+    if (g <= 30) return 40;
+    if (g <= 150) return 80;
+    if (g <= 1000) return 200;
+    return 500;
+  }
   function pracBadgeGot(b, s){
     try {
       if (b.check) return !!b.check(s);
@@ -9234,6 +9717,9 @@
       .then(function(res){
         if (res && res.ok){
           pracProfile = res;
+          pracAvatar = res.avatar || {};
+          pracOwned = res.owned || {};
+          pracGems = Number(res.gems || 0);
           statusEl.textContent = '';
           renderPracticeProfile();
         } else {
@@ -9266,7 +9752,9 @@
 
     var wrongN = (pracProfile && pracProfile.wrong) ? pracProfile.wrong.length : 0;
     st.pendingWrong = wrongN;                      // 「錯題歸零」要用
+    renderAvatarMini();
     document.getElementById('pracStats').innerHTML =
+      '<div><b id="pracGemStat"></b><span>寶石</span></div>' +
       '<div><b>' + st.correct + '</b><span>累積答對</span></div>' +
       '<div><b>' + st.accuracy + '%</b><span>總正確率</span></div>' +
       '<div><b>' + st.streakDays + '</b><span>連續天數</span></div>' +
@@ -9277,8 +9765,12 @@
     pracRenderBadgeWall(document.getElementById('pracBadgeWall'), st,
                         document.getElementById('pracBadgeCount'));
 
+    renderPracGemStat();
     renderWrongBook();
     renderLeaderboard();
+    if (pracProfTab === 'avatar') renderAvatarEditor();
+    if (pracProfTab === 'shop') renderShop();
+    claimBadgeGems(st);            // 有新標章就自動換成寶石
   }
 
   /* 標章牆：分成幾個可收摺的小標籤（預設收合，要看再點開）。
@@ -9331,6 +9823,180 @@
     var now = 0;
     try { now = b.now(st) || 0; } catch (e) { now = 0; }
     return Math.max(0, Math.min(1, now / goal));
+  }
+
+  /* ============ 我的角色 ＋ 商店街 ============ */
+  var pracAvatar = null;        // 目前的頭像設定
+  var pracOwned = {};           // 已經買到的東西 { 'hair_ponytail':1, … }
+  var pracGems = 0;             // 寶石餘額
+  var pracAvaSaveTimer = null;
+
+  function gemIcon(){
+    return '<svg viewBox="0 0 24 24" class="prac-gem-ico" aria-hidden="true">' +
+      '<path d="M7 3h10l4 6-9 12L3 9z" fill="#4fc3d9"/>' +
+      '<path d="M7 3h10l-5 6z" fill="#8fe3f0"/>' +
+      '<path d="M3 9h18l-9 12z" fill="#2f9fbd"/></svg>';
+  }
+  function gemText(n){ return gemIcon() + '<b>' + Number(n || 0).toLocaleString('en-US') + '</b>'; }
+
+  /* ---- 頭像編輯 ---- */
+  function renderAvatarEditor(){
+    var prev = document.getElementById('pracAvaPreview');
+    var box = document.getElementById('pracAvaParts');
+    if (!prev || !box) return;
+    var cfg = avaNormalize(pracAvatar, pracOwned);
+    prev.innerHTML = avatarSvg(cfg, { size: 190, owned: pracOwned });
+    var html = '';
+    AVA_GROUPS.forEach(function(g){
+      html += '<div class="prac-ava-row"><span class="prac-ava-row-name">' + g.name + '</span><div class="prac-ava-opts">';
+      g.list.forEach(function(it){
+        var sel = (cfg[g.key] === it.id);
+        var owned = avaOwned(g.key, it.id, pracOwned);
+        var cls = 'prac-ava-opt' + (sel ? ' is-on' : '') + (owned ? '' : ' is-locked');
+        var inner;
+        if (g.color){
+          inner = '<span class="prac-ava-swatch" style="background:' + it.c + '"></span>';
+        } else if (g.key === 'bg'){
+          inner = '<span class="prac-ava-swatch" style="background:' + it.c + '"></span>';
+        } else {
+          // 零件縮圖：只換這一個零件，其他維持目前的樣子
+          var one = {}; Object.keys(cfg).forEach(function(k){ one[k] = cfg[k]; });
+          one[g.key] = it.id;
+          inner = avatarSvg(one, { size: 46, owned: null, noBg: (g.key !== 'bg') });
+        }
+        html += '<button type="button" class="' + cls + '" data-ava-pick="' + g.key + '|' + it.id + '"' +
+                (owned ? '' : ' title="需要 ' + it.price + ' 顆寶石，去商店街買"') + '>' +
+                inner + '<span class="prac-ava-opt-name">' + it.name + '</span>' +
+                (owned ? '' : '<span class="prac-ava-lock">' + gemText(it.price) + '</span>') +
+                '</button>';
+      });
+      html += '</div></div>';
+    });
+    box.innerHTML = html;
+  }
+
+  function pickAvatarPart(group, id){
+    if (!avaOwned(group, id, pracOwned)){
+      // 沒買的直接帶去商店街
+      pracProfTab = 'shop';
+      syncProfileTabs();
+      var st = document.getElementById('pracShopStatus');
+      if (st) st.textContent = '這個還沒買，先在下面買起來就能換上了。';
+      return;
+    }
+    if (!pracAvatar) pracAvatar = {};
+    pracAvatar[group] = id;
+    renderAvatarEditor();
+    renderAvatarMini();
+    scheduleAvatarSave();
+  }
+  function scheduleAvatarSave(){
+    if (pracAvaSaveTimer) clearTimeout(pracAvaSaveTimer);
+    var st = document.getElementById('pracAvaStatus');
+    if (st) st.textContent = '儲存中…';
+    pracAvaSaveTimer = setTimeout(function(){
+      if (!currentUser){ if (st) st.textContent = '（沒有登入，換裝不會保存）'; return; }
+      callApi('practiceShop', { actorAccount: currentUser.account, actorPassword: currentPassword,
+                                op: 'saveAvatar', avatar: avaNormalize(pracAvatar, pracOwned) })
+        .then(function(res){
+          if (st) st.textContent = (res && res.ok) ? '✓ 已存檔，下次登入還是這一身。'
+                                                   : ('⚠ 沒存成功：' + ((res && res.error) || '後端需要更新'));
+        })
+        .catch(function(){ if (st) st.textContent = '⚠ 沒存成功（連線問題）。'; });
+    }, 600);
+  }
+  function renderAvatarMini(){
+    var el = document.getElementById('pracAvaMini');
+    if (el) el.innerHTML = avatarHeadSvg(pracAvatar, 56, pracOwned);
+  }
+
+  /* ---- 商店街 ---- */
+  function renderShop(){
+    var grid = document.getElementById('pracShopGrid');
+    var gemEl = document.getElementById('pracShopGems');
+    if (!grid) return;
+    if (gemEl) gemEl.innerHTML = '我的寶石 ' + gemText(pracGems);
+    var cfg = avaNormalize(pracAvatar, pracOwned);
+    var html = '';
+    AVA_GROUPS.forEach(function(g){
+      if (!g.shop) return;
+      var items = g.list.filter(function(it){ return it.price > 0; });
+      if (!items.length) return;
+      var boughtN = items.filter(function(it){ return pracOwned[avaItemId(g.key, it.id)]; }).length;
+      html += '<details class="book prac-shop-group"><summary>' +
+                '<span class="book-tag">' + g.name + '</span>' +
+                '<span class="prac-badge-group-count">已擁有 ' + boughtN + ' / ' + items.length + '</span>' +
+              '</summary><div class="book-body"><div class="prac-shop-wall">';
+      items.forEach(function(it){
+        var key = avaItemId(g.key, it.id);
+        var has = !!pracOwned[key];
+        var afford = pracGems >= it.price;
+        var one = {}; Object.keys(cfg).forEach(function(k){ one[k] = cfg[k]; });
+        one[g.key] = it.id;
+        html += '<div class="prac-shop-item' + (has ? ' is-owned' : '') + '">' +
+                  avatarSvg(one, { size: 70, owned: null, noBg: (g.key !== 'bg') }) +
+                  '<span class="prac-shop-name">' + it.name + '</span>' +
+                  (has
+                    ? '<button type="button" class="btn btn-ghost btn-sm" data-shop-wear="' + g.key + '|' + it.id + '">穿上</button>'
+                    : '<button type="button" class="btn btn-primary btn-sm" data-shop-buy="' + key + '"' +
+                      (afford ? '' : ' disabled') + '>' + gemText(it.price) + '</button>') +
+                '</div>';
+      });
+      html += '</div></div></details>';
+    });
+    grid.innerHTML = html ||
+      '<p class="query-empty">商店街還沒有商品。</p>';
+  }
+
+  function buyItem(itemId){
+    if (!currentUser) return;
+    var st = document.getElementById('pracShopStatus');
+    st.textContent = '購買中…';
+    callApi('practiceShop', { actorAccount: currentUser.account, actorPassword: currentPassword,
+                              op: 'buy', itemId: itemId })
+      .then(function(res){
+        if (res && res.ok){
+          pracGems = res.gems;
+          pracOwned = res.owned || pracOwned;
+          st.textContent = '✓ 買到了！可以到「我的角色」換上，或直接按下面的「穿上」。';
+          renderShop(); renderAvatarEditor(); renderPracGemStat();
+        } else {
+          st.textContent = '⚠ ' + ((res && res.error) || '買不成功');
+        }
+      })
+      .catch(function(){ st.textContent = '⚠ 買不成功（連線問題）。'; });
+  }
+
+  function renderPracGemStat(){
+    var el = document.getElementById('pracGemStat');
+    if (el) el.innerHTML = gemText(pracGems);
+    var shopGem = document.getElementById('pracShopGems');
+    if (shopGem) shopGem.innerHTML = '我的寶石 ' + gemText(pracGems);
+  }
+
+  /* ---- 新標章自動換寶石 ---- */
+  function claimBadgeGems(st){
+    if (!currentUser || !pracProfile) return;
+    var claimed = pracProfile.claimedBadges || {};
+    var pending = [];
+    PRAC_BADGES.forEach(function(b){
+      if (pracBadgeGot(b, st) && !claimed[b.id]) pending.push(b.id);
+    });
+    if (!pending.length) return;
+    callApi('practiceShop', { actorAccount: currentUser.account, actorPassword: currentPassword,
+                              op: 'claimBadges', badges: pending })
+      .then(function(res){
+        if (!res || !res.ok) return;
+        pracProfile.claimedBadges = res.badges || claimed;
+        if (res.gained > 0){
+          pracGems = res.gems;
+          renderPracGemStat();
+          var el = document.getElementById('pracBadgeCount');
+          if (el) el.innerHTML += '　<span class="prac-gem-pop">新標章 ＋' +
+            res.gained + ' 顆寶石！</span>';
+          renderShop();
+        }
+      }).catch(function(){ /* 拿不到就算了，下次再試 */ });
   }
 
   function renderWrongBook(){
@@ -9436,9 +10102,10 @@
       PRAC_BADGES.forEach(function(b){ if (pracBadgeGot(b, st)) badges++; });
       var tr = document.createElement('tr');
       if (String(r.sid) === mySid) tr.className = 'prac-board-me';
-      var nameCell = isAdmin
+      var ava = avatarHeadSvg(r.avatar || {}, 26, null);
+      var nameCell = ava + (isAdmin
         ? '<button type="button" class="prac-name-btn" data-student-card="' + r.sid + '">' + r.name + '</button>'
-        : r.name;
+        : '<span class="prac-board-name">' + r.name + '</span>');
       tr.innerHTML = '<td class="mono">' + rank + '</td><td>' + nameCell + '</td>' +
                      '<td class="prac-col-lv"><span class="prac-lv-chip">Lv.' + lv.cur.lv + '</span>' +
                        '<span class="prac-lv-name">' + lv.cur.name + '</span></td>' +
@@ -9515,6 +10182,8 @@
     var name = res.name || fallbackName || '';
     document.getElementById('pracStudentCardTitle').textContent =
       name + '（學號 ' + res.sid + (res.viewClass ? '・' + res.viewClass + ' 班' : '') + '）的等級與成就';
+    var scAva = document.getElementById('pracScAvaMini');
+    if (scAva) scAva.innerHTML = avatarHeadSvg(res.avatar || {}, 56, null);
     document.getElementById('pracScLevelMedal').innerHTML = pracMedalSvg(lvl.cur.lv);
     document.getElementById('pracScLevelName').textContent = 'Lv.' + lvl.cur.lv + '　' + lvl.cur.name;
     var fill = document.getElementById('pracScLevelFill');
@@ -9559,6 +10228,19 @@
       '「累積答對」只算不重複的題目；正確率則是全部作答（含重複練的）算出來的。';
   }
 
+  function syncProfileTabs(){
+    Array.prototype.forEach.call(document.querySelectorAll('#pracProfileTabs [data-prof-tab]'), function(b){
+      b.classList.toggle('is-on', b.getAttribute('data-prof-tab') === pracProfTab);
+    });
+    [['pracProfBadges','badges'], ['pracProfWrong','wrong'], ['pracProfBoard','board'],
+     ['pracProfAvatar','avatar'], ['pracProfShop','shop']].forEach(function(pair){
+      var el = document.getElementById(pair[0]);
+      if (el) el.hidden = (pracProfTab !== pair[1]);
+    });
+    if (pracProfTab === 'avatar') renderAvatarEditor();
+    if (pracProfTab === 'shop') renderShop();
+  }
+
   /* ---- 事件：分頁切換、錯題本操作 ---- */
   document.addEventListener('click', function(e){
     var nameBtn = e.target.closest('[data-student-card]');
@@ -9577,12 +10259,22 @@
     var pt = e.target.closest('#pracProfileTabs [data-prof-tab]');
     if (pt){
       pracProfTab = pt.getAttribute('data-prof-tab');
-      Array.prototype.forEach.call(document.querySelectorAll('#pracProfileTabs [data-prof-tab]'), function(b){
-        b.classList.toggle('is-on', b === pt);
-      });
-      document.getElementById('pracProfBadges').hidden = pracProfTab !== 'badges';
-      document.getElementById('pracProfWrong').hidden  = pracProfTab !== 'wrong';
-      document.getElementById('pracProfBoard').hidden  = pracProfTab !== 'board';
+      syncProfileTabs();
+      return;
+    }
+    var pick = e.target.closest('[data-ava-pick]');
+    if (pick){
+      var pv = pick.getAttribute('data-ava-pick').split('|');
+      pickAvatarPart(pv[0], pv[1]);
+      return;
+    }
+    var buy = e.target.closest('[data-shop-buy]');
+    if (buy){ buyItem(buy.getAttribute('data-shop-buy')); return; }
+    var wear = e.target.closest('[data-shop-wear]');
+    if (wear){
+      var wv = wear.getAttribute('data-shop-wear').split('|');
+      pickAvatarPart(wv[0], wv[1]);
+      pracProfTab = 'avatar'; syncProfileTabs();
       return;
     }
     var bt = e.target.closest('#pracBoardTabs [data-board-tab]');
