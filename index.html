@@ -10229,11 +10229,18 @@
     var isAdmin = !!duelData.isAdmin;
     var html = '';
 
-    if (!isAdmin){
+    if (isAdmin){
+      html += '<div class="exam-meta" style="margin-bottom:12px;">' +
+        '<label>挑哪一個班（也決定下面看哪一班的排行榜）<select id="duelBoardClass"></select></label></div>';
+      if (!duelBoardClass){
+        html += '<p class="query-empty">請先選一個班級，就能挑那一班的學生對戰，也會看到那一班的排行榜。</p>';
+      }
+    }
+    {
       var rate = me.games ? Math.round(me.win / me.games * 100) : 0;
       html += '<div class="prac-stats duel-stats">' +
         '<div><b>' + (me.rating || 1000) + '</b><span>對戰積分</span></div>' +
-        '<div><b>' + (duelData.myRank || '—') + '</b><span>班上名次</span></div>' +
+        '<div><b>' + (duelData.myRank || '—') + '</b><span>' + (isAdmin ? '這班的名次' : '班上名次') + '</span></div>' +
         '<div><b>' + (me.games || 0) + '</b><span>總場次</span></div>' +
         '<div><b>' + (me.win || 0) + '－' + (me.lose || 0) + '－' + (me.draw || 0) + '</b><span>勝－敗－平</span></div>' +
         '<div><b>' + rate + '%</b><span>勝率</span></div>' +
@@ -10249,12 +10256,16 @@
             '<button type="button" class="btn btn-ghost" data-duel-cancel="' + duelData.draft.id + '">取消</button>' +
           '</span></div>';
       } else {
-        html += '<div class="duel-new">' +
-          '<label>出題範圍<select id="duelScope"></select></label>' +
-          '<label>對手<select id="duelOpp"></select></label>' +
-          '<button type="button" class="btn btn-primary" id="duelStartBtn">發起挑戰（全螢幕 ' + DUEL_N + ' 題）</button>' +
-        '</div><p class="prac-save-status">規則：雙方答一模一樣的 ' + DUEL_N +
-          ' 題，先比答對題數，同分再比總用時。對戰的題目一樣會算進你的練習紀錄與累積答對。</p>';
+        if (!isAdmin || duelBoardClass){
+          html += '<div class="duel-new">' +
+            '<label>出題範圍<select id="duelScope"></select></label>' +
+            '<label>對手<select id="duelOpp"></select></label>' +
+            '<button type="button" class="btn btn-primary" id="duelStartBtn">發起挑戰（全螢幕 ' + DUEL_N + ' 題）</button>' +
+          '</div><p class="prac-save-status">規則：雙方答一模一樣的 ' + DUEL_N +
+            ' 題，先比答對題數，同分再比總用時。對戰的題目一樣會算進練習紀錄與累積答對。' +
+            (isAdmin ? '　老師也正式列入所選班級的對戰排行榜。'
+                     : '　對手選單裡有「程老師」，打贏積分比你高的人會加很多分。') + '</p>';
+        }
       }
 
       function listBlock(title, arr, kind){
@@ -10275,7 +10286,8 @@
         return h + '</ul>';
       }
       html += listBlock('有人挑戰你', duelData.inbox, 'inbox');
-      html += listBlock('公開擂台（同班同學發的，誰都可以接）', duelData.open, 'open');
+      html += listBlock(isAdmin ? ('公開擂台（' + (duelBoardClass || '－') + ' 班，誰都可以接）')
+                                 : '公開擂台（同班同學發的，誰都可以接）', duelData.open, 'open');
       html += listBlock('你發出去的戰帖', duelData.outbox, 'outbox');
 
       // 最近戰績
@@ -10301,10 +10313,7 @@
 
     // 對戰排行榜
     html += '<h3 class="ledger-subhead">對戰排行榜' +
-            (isAdmin ? '' : '（同班，看得到前 10 名與自己）') + '</h3>';
-    if (isAdmin){
-      html += '<div class="exam-meta" style="margin-bottom:10px;"><label>看哪一個班<select id="duelBoardClass"></select></label></div>';
-    }
+            (isAdmin ? ('　' + (duelBoardClass || '（未選班級）')) : '（同班，看得到前 10 名與自己）') + '</h3>';
     html += '<div class="ledger-wrap"><table class="ledger">' +
       '<thead><tr><th>名次</th><th>姓名</th><th>積分</th><th>場次</th><th>勝－敗－平</th><th class="prac-col-total">勝率</th><th class="prac-col-total">最高連勝</th></tr></thead><tbody>';
     var rows = (duelData.board || []);
@@ -10328,7 +10337,8 @@
     }
     html += '</tbody></table></div>' +
       '<p class="prac-save-status">積分用 Elo 制：所有人從 1000 分開始，' +
-      '打贏積分比你高的人加比較多分，輸給積分低的人扣比較多。一場最多加減 24 分上下。</p>';
+      '打贏積分比你高的人加比較多分，輸給積分低的人扣比較多，一場最多加減 24 分上下。' +
+      '老師不屬於任何班級，但每一班的對戰排行榜都看得到他。</p>';
     box.innerHTML = html;
 
     // 下拉選單填值
@@ -10516,6 +10526,7 @@
       btn.disabled = true; btn.textContent = '建立戰帖中…';
       callApi('duel', { actorAccount: currentUser.account, actorPassword: currentPassword,
                         op: 'create', opponentSid: parts[0], opponentName: parts[1],
+                        className: duelBoardClass,          // 老師要指定挑哪一班
                         scope: duelScopeById(scope).name, questions: qs })
         .then(function(r){
           btn.disabled = false; btn.textContent = '發起挑戰（全螢幕 ' + DUEL_N + ' 題）';
