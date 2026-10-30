@@ -830,6 +830,15 @@
   .duel-mid{display:flex;flex-direction:column;align-items:center;gap:2px;}
   .duel-timer{font-family:"JetBrains Mono",monospace;font-size:1.6rem;font-weight:700;}
   .duel-prog{font-size:.76rem;color:var(--ink-soft);white-space:nowrap;}
+  .duel-timer.is-low{color:var(--red);}
+  .duel-timebar{display:block;width:min(240px,34vw);height:5px;border-radius:3px;background:var(--surface-2);overflow:hidden;}
+  .duel-timebar > span{display:block;height:100%;width:100%;background:var(--teal);transition:width .2s linear;}
+  .duel-point{font-size:.72rem;color:var(--teal);font-family:"JetBrains Mono",monospace;white-space:nowrap;}
+  .duel-vs{font-size:.95rem;color:var(--ink-soft);}
+  .duel-final-sub{font-size:.9rem;color:var(--ink-soft);margin-bottom:10px;}
+  .duel-cls{display:inline-block;margin-left:6px;padding:0 6px;border-radius:3px;
+    background:var(--indigo-tint);color:var(--indigo-strong);font-size:.68rem;font-weight:700;}
+  .duel-flash b{font-family:"JetBrains Mono",monospace;font-size:1.1em;}
   .duel-body{flex:1;display:flex;flex-direction:column;gap:14px;padding-top:18px;max-width:960px;width:100%;margin:0 auto;}
   .duel-type{align-self:flex-start;}
   .duel-stem{font-size:1.1rem;line-height:1.9;}
@@ -1200,11 +1209,13 @@
       <span class="duel-who"><b id="duelMeName">我</b><span class="duel-score" id="duelMeScore">0</span></span>
     </div>
     <div class="duel-mid">
-      <span class="duel-timer" id="duelTimer">0:00</span>
+      <span class="duel-timer" id="duelTimer">3:00</span>
       <span class="duel-prog" id="duelProg"></span>
+      <span class="duel-timebar"><span id="duelTimeBar"></span></span>
+      <span class="duel-point" id="duelPoint"></span>
     </div>
     <div class="duel-side duel-side-right">
-      <span class="duel-who"><b id="duelOppName">對手</b><span class="duel-score">VS</span></span>
+      <span class="duel-who"><b id="duelOppName">對手</b><span class="duel-score duel-vs">VS</span></span>
       <span class="duel-ava" id="duelOppAva"></span>
     </div>
   </div>
@@ -10146,19 +10157,28 @@
       }).catch(function(){ /* 拿不到就算了，下次再試 */ });
   }
 
-  /* ============ 對戰：非同步擂台賽 ============
-     雙方答一模一樣的 10 題（用題目種子重現），先比答對題數，同分再比總用時。
-     不用同時在線，所以不需要 WebSocket，現有的 Apps Script 後端就撐得住。 */
+  /* ============ 對戰：非同步擂台賽（v39 計分制）============
+     雙方答一模一樣的 10 題（用題目種子重現）。
+     每題限時 3 分鐘、滿分 100 分：答錯或時間到 0 分，答對給 50 分底分再加最多 50 分速度分。
+     比總得分決勝負，所以不用再另外比時間，也不需要 Elo 積分。
+     排行榜全校一起排，比勝場數與勝率。 */
 
-  var DUEL_N = 10;                 // 一場幾題
-  var duelData = null;             // 後端回傳的戰帖／戰績／排行榜
-  var duelBoardTab = 'rating';
+  var DUEL_N = 10;
+  var DUEL_LIMIT_MS = 180000;      // 每題 3 分鐘
+  var DUEL_BASE = 50, DUEL_SPEED = 50;
+  var duelData = null;
+  var duelBoardTab = 'win';        // win / winRate / avgScore
+  var duelMateClass = '';          // 對手要挑哪一班（空＝不分班）
 
+  function duelQuestionScore(correct, ms){
+    if (!correct) return 0;
+    var left = Math.max(0, DUEL_LIMIT_MS - Math.max(0, ms)) / DUEL_LIMIT_MS;
+    return Math.round(DUEL_BASE + DUEL_SPEED * left);
+  }
   function findPracType(id){
     for (var i = 0; i < PRACTICE_TYPES.length; i++) if (PRACTICE_TYPES[i].id === id) return PRACTICE_TYPES[i];
     return null;
   }
-  /* 可以挑的出題範圍：全部、各冊、各小節 */
   function duelScopes(){
     var out = [{ id:'all', name:'全部題型', ids: PRACTICE_TYPES.map(function(t){ return t.id; }) }];
     var books = {}, secs = {};
@@ -10178,7 +10198,6 @@
     for (var i = 0; i < all.length; i++) if (all[i].id === id) return all[i];
     return all[0];
   }
-  /* 抽 10 題：題型盡量不重複，每題記下種子，雙方才會拿到一模一樣的題目 */
   function duelMakeQuestions(scopeId){
     var sc = duelScopeById(scopeId);
     var pool = sc.ids.slice();
@@ -10186,25 +10205,21 @@
     for (var i = 0; i < DUEL_N; i++){
       if (!pool.length) pool = sc.ids.slice();
       var k = Math.floor(Math.random() * pool.length);
-      var tid = pool.splice(k, 1)[0];
-      qs.push([tid, newPracSeed()]);
+      qs.push([pool.splice(k, 1)[0], newPracSeed()]);
     }
     return qs;
   }
-
   function duelFmtTime(ms){
-    var s = Math.round((ms || 0) / 1000);
+    var s = Math.max(0, Math.round((ms || 0) / 1000));
     return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2);
   }
 
   /* ---------- 資料讀取 ---------- */
-  var duelBoardClass = '';
   function loadDuel(){
     if (!currentUser) return;
     var statusEl = document.getElementById('duelStatus');
     if (statusEl) statusEl.textContent = '讀取中…';
-    callApi('duel', { actorAccount: currentUser.account, actorPassword: currentPassword,
-                      op: 'list', className: duelBoardClass })
+    callApi('duel', { actorAccount: currentUser.account, actorPassword: currentPassword, op: 'list' })
       .then(function(res){
         if (res && res.ok){ duelData = res; if (statusEl) statusEl.textContent = ''; renderDuelPanel(); }
         else {
@@ -10217,10 +10232,15 @@
   }
 
   /* ---------- 畫面 ---------- */
-  function duelPlayerChip(sid, name, avatar){
+  function duelPlayerChip(sid, name, avatar, cls){
     return '<span class="duel-chip">' + avatarHeadSvg(avatar || {}, 26, null) +
-           '<span>' + (name || sid) + '</span></span>';
+           '<span>' + (name || sid) + (cls ? '<span class="duel-cls">' + cls + '</span>' : '') + '</span></span>';
   }
+  var DUEL_BOARD_COLS = {
+    win:      { head:'勝場', key:'win' },
+    winRate:  { head:'勝率', key:'winRate' },
+    avgScore: { head:'平均得分', key:'avgScore' }
+  };
   function renderDuelPanel(){
     var box = document.getElementById('duelPanel');
     if (!box) return;
@@ -10229,143 +10249,160 @@
     var isAdmin = !!duelData.isAdmin;
     var html = '';
 
-    if (isAdmin){
-      html += '<div class="exam-meta" style="margin-bottom:12px;">' +
-        '<label>挑哪一個班（也決定下面看哪一班的排行榜）<select id="duelBoardClass"></select></label></div>';
-      if (!duelBoardClass){
-        html += '<p class="query-empty">請先選一個班級，就能挑那一班的學生對戰，也會看到那一班的排行榜。</p>';
-      }
+    html += '<div class="prac-stats duel-stats">' +
+      '<div><b>' + (me.win || 0) + '</b><span>勝場</span></div>' +
+      '<div><b>' + (duelData.myRank || '—') + '</b><span>全校名次</span></div>' +
+      '<div><b>' + (me.games || 0) + '</b><span>總場次</span></div>' +
+      '<div><b>' + (me.win || 0) + '－' + (me.lose || 0) + '－' + (me.draw || 0) + '</b><span>勝－敗－平</span></div>' +
+      '<div><b>' + (me.winRate || 0) + '%</b><span>勝率</span></div>' +
+      '<div><b>' + (me.avgScore || 0) + '</b><span>平均得分</span></div>' +
+      '<div><b>' + (me.best || 0) + '</b><span>最佳單場</span></div>' +
+    '</div>';
+
+    if (duelData.draft){
+      html += '<div class="duel-alert"><b>你有一場還沒打完</b>' +
+        '<span>戰帖已經開出去了，先把它打完（或取消）才能再開新的一場。</span>' +
+        '<span class="duel-alert-btns">' +
+          '<button type="button" class="btn btn-primary" data-duel-resume="' + duelData.draft.id + '">繼續這一場</button>' +
+          '<button type="button" class="btn btn-ghost" data-duel-cancel="' + duelData.draft.id + '">取消</button>' +
+        '</span></div>';
+    } else {
+      html += '<div class="duel-new">' +
+        '<label>出題範圍<select id="duelScope"></select></label>' +
+        '<label>對手班級<select id="duelMateClass"></select></label>' +
+        '<label>對手<select id="duelOpp"></select></label>' +
+        '<button type="button" class="btn btn-primary" id="duelStartBtn">發起挑戰（全螢幕 ' + DUEL_N + ' 題）</button>' +
+      '</div>' +
+      '<p class="prac-save-status">規則：雙方答一模一樣的 ' + DUEL_N + ' 題，' +
+        '<b>每題限時 3 分鐘、滿分 100 分</b>——答錯或時間到 0 分，答對給 ' + DUEL_BASE +
+        ' 分底分再加最多 ' + DUEL_SPEED + ' 分速度分（越快越高），一場滿分 ' + (DUEL_N * 100) + ' 分。' +
+        '總得分高的獲勝。對手可以挑別班的同學' + (isAdmin ? '' : '，也可以挑戰程老師') +
+        '。對戰的題目一樣會算進練習紀錄與累積答對。</p>';
     }
-    {
-      var rate = me.games ? Math.round(me.win / me.games * 100) : 0;
-      html += '<div class="prac-stats duel-stats">' +
-        '<div><b>' + (me.rating || 1000) + '</b><span>對戰積分</span></div>' +
-        '<div><b>' + (duelData.myRank || '—') + '</b><span>' + (isAdmin ? '這班的名次' : '班上名次') + '</span></div>' +
-        '<div><b>' + (me.games || 0) + '</b><span>總場次</span></div>' +
-        '<div><b>' + (me.win || 0) + '－' + (me.lose || 0) + '－' + (me.draw || 0) + '</b><span>勝－敗－平</span></div>' +
-        '<div><b>' + rate + '%</b><span>勝率</span></div>' +
-        '<div><b>' + (me.streak || 0) + '</b><span>目前連勝</span></div>' +
+
+    function listBlock(title, arr, kind){
+      if (!arr || !arr.length) return '';
+      var h = '<h3 class="ledger-subhead">' + title + '</h3><ul class="duel-list">';
+      arr.forEach(function(d){
+        var opp = (d.mine === 'a')
+          ? duelPlayerChip(d.bSid, d.bName || '（公開擂台，等人來接）', null, '')
+          : duelPlayerChip(d.aSid, d.aName, null, d.className);
+        h += '<li><span class="duel-list-main">' + opp +
+             '<span class="duel-scope">' + d.scope + '　' + d.qCount + ' 題</span></span>';
+        if (kind === 'inbox') h += '<button type="button" class="btn btn-primary" data-duel-accept="' + d.id + '">接受挑戰</button>';
+        else if (kind === 'open') h += '<button type="button" class="btn btn-primary" data-duel-accept="' + d.id + '">我來接</button>';
+        else if (kind === 'outbox') h += '<span class="duel-wait">等待對手…</span>' +
+             '<button type="button" class="btn btn-ghost" data-duel-cancel="' + d.id + '">取消</button>';
+        h += '</li>';
+      });
+      return h + '</ul>';
+    }
+    html += listBlock('有人挑戰你', duelData.inbox, 'inbox');
+    html += listBlock('公開擂台（全校都看得到，誰都可以接）', duelData.open, 'open');
+    html += listBlock('你發出去的戰帖', duelData.outbox, 'outbox');
+
+    if (duelData.history && duelData.history.length){
+      html += '<h3 class="ledger-subhead">最近的戰績</h3><div class="ledger-wrap"><table class="ledger">' +
+        '<thead><tr><th>對手</th><th>結果</th><th>比分</th><th class="prac-col-total">答對</th><th class="prac-col-total">用時</th></tr></thead><tbody>';
+      duelData.history.forEach(function(d){
+        var iAmA = (d.mine === 'a');
+        var myS = iAmA ? d.aScore : d.bScore, opS = iAmA ? d.bScore : d.aScore;
+        var myC = iAmA ? d.aCorrect : d.bCorrect, opC = iAmA ? d.bCorrect : d.aCorrect;
+        var myT = iAmA ? d.aTime : d.bTime;
+        var oppName = iAmA ? (d.bName || d.bSid) : (d.aName || d.aSid);
+        var r = (!d.winner) ? '平手' : (d.winner === duelData.sid ? '勝' : '敗');
+        html += '<tr><td>' + oppName + '</td>' +
+          '<td class="duel-res duel-res-' + (r === '勝' ? 'win' : (r === '敗' ? 'lose' : 'draw')) + '">' + r + '</td>' +
+          '<td class="mono"><b>' + myS + '</b> : ' + opS + '</td>' +
+          '<td class="mono prac-col-total">' + myC + ' : ' + opC + '</td>' +
+          '<td class="mono prac-col-total">' + duelFmtTime(myT) + '</td></tr>';
+      });
+      html += '</tbody></table></div>';
+    }
+
+    // ---- 排行榜：全校一起排 ----
+    var col = DUEL_BOARD_COLS[duelBoardTab] || DUEL_BOARD_COLS.win;
+    html += '<h3 class="ledger-subhead">對戰排行榜（全校一起排）</h3>' +
+      '<div class="prac-tabs prac-tabs-sub" id="duelBoardTabs">' +
+        '<button type="button" class="btn btn-ghost btn-sm' + (duelBoardTab === 'win' ? ' is-on' : '') + '" data-duel-board="win">勝場數</button>' +
+        '<button type="button" class="btn btn-ghost btn-sm' + (duelBoardTab === 'winRate' ? ' is-on' : '') + '" data-duel-board="winRate">勝率</button>' +
+        '<button type="button" class="btn btn-ghost btn-sm' + (duelBoardTab === 'avgScore' ? ' is-on' : '') + '" data-duel-board="avgScore">平均得分</button>' +
       '</div>';
-
-      // 還沒打完的那一場，一定要先解決
-      if (duelData.draft){
-        html += '<div class="duel-alert"><b>你有一場還沒打完</b>' +
-          '<span>戰帖已經開出去了，先把它打完（或取消）才能再開新的一場。</span>' +
-          '<span class="duel-alert-btns">' +
-            '<button type="button" class="btn btn-primary" data-duel-resume="' + duelData.draft.id + '">繼續這一場</button>' +
-            '<button type="button" class="btn btn-ghost" data-duel-cancel="' + duelData.draft.id + '">取消</button>' +
-          '</span></div>';
-      } else {
-        if (!isAdmin || duelBoardClass){
-          html += '<div class="duel-new">' +
-            '<label>出題範圍<select id="duelScope"></select></label>' +
-            '<label>對手<select id="duelOpp"></select></label>' +
-            '<button type="button" class="btn btn-primary" id="duelStartBtn">發起挑戰（全螢幕 ' + DUEL_N + ' 題）</button>' +
-          '</div><p class="prac-save-status">規則：雙方答一模一樣的 ' + DUEL_N +
-            ' 題，先比答對題數，同分再比總用時。對戰的題目一樣會算進練習紀錄與累積答對。' +
-            (isAdmin ? '　老師也正式列入所選班級的對戰排行榜。'
-                     : '　對手選單裡有「程老師」，打贏積分比你高的人會加很多分。') + '</p>';
-        }
-      }
-
-      function listBlock(title, arr, kind){
-        if (!arr || !arr.length) return '';
-        var h = '<h3 class="ledger-subhead">' + title + '</h3><ul class="duel-list">';
-        arr.forEach(function(d){
-          var opp = (d.mine === 'a')
-            ? duelPlayerChip(d.bSid, d.bName || '（公開擂台，等人來接）', null)
-            : duelPlayerChip(d.aSid, d.aName, null);
-          h += '<li><span class="duel-list-main">' + opp +
-               '<span class="duel-scope">' + d.scope + '　' + d.qCount + ' 題</span></span>';
-          if (kind === 'inbox') h += '<button type="button" class="btn btn-primary" data-duel-accept="' + d.id + '">接受挑戰</button>';
-          else if (kind === 'open') h += '<button type="button" class="btn btn-primary" data-duel-accept="' + d.id + '">我來接</button>';
-          else if (kind === 'outbox') h += '<span class="duel-wait">等待對手…</span>' +
-               '<button type="button" class="btn btn-ghost" data-duel-cancel="' + d.id + '">取消</button>';
-          h += '</li>';
-        });
-        return h + '</ul>';
-      }
-      html += listBlock('有人挑戰你', duelData.inbox, 'inbox');
-      html += listBlock(isAdmin ? ('公開擂台（' + (duelBoardClass || '－') + ' 班，誰都可以接）')
-                                 : '公開擂台（同班同學發的，誰都可以接）', duelData.open, 'open');
-      html += listBlock('你發出去的戰帖', duelData.outbox, 'outbox');
-
-      // 最近戰績
-      if (duelData.history && duelData.history.length){
-        html += '<h3 class="ledger-subhead">最近的戰績</h3><div class="ledger-wrap"><table class="ledger">' +
-          '<thead><tr><th>對手</th><th>結果</th><th>比分</th><th>用時</th><th>積分</th></tr></thead><tbody>';
-        duelData.history.forEach(function(d){
-          var iAmA = (d.mine === 'a');
-          var myScore = iAmA ? d.aScore : d.bScore, opScore = iAmA ? d.bScore : d.aScore;
-          var myTime = iAmA ? d.aTime : d.bTime, opTime = iAmA ? d.bTime : d.aTime;
-          var oppName = iAmA ? (d.bName || d.bSid) : (d.aName || d.aSid);
-          var r = (!d.winner) ? '平手' : (d.winner === duelData.sid ? '勝' : '敗');
-          var dl = d.delta ? (iAmA ? d.delta.a : d.delta.b) : 0;
-          html += '<tr><td>' + oppName + '</td>' +
-            '<td class="duel-res duel-res-' + (r === '勝' ? 'win' : (r === '敗' ? 'lose' : 'draw')) + '">' + r + '</td>' +
-            '<td class="mono">' + myScore + ' : ' + opScore + '</td>' +
-            '<td class="mono">' + duelFmtTime(myTime) + ' / ' + duelFmtTime(opTime) + '</td>' +
-            '<td class="mono">' + (dl > 0 ? '+' : '') + dl + '</td></tr>';
-        });
-        html += '</tbody></table></div>';
-      }
-    }
-
-    // 對戰排行榜
-    html += '<h3 class="ledger-subhead">對戰排行榜' +
-            (isAdmin ? ('　' + (duelBoardClass || '（未選班級）')) : '（同班，看得到前 10 名與自己）') + '</h3>';
+    var rows = (duelData.board || []).slice();
+    var second = (duelBoardTab === 'win') ? 'winRate' : 'win';
+    rows.sort(function(x, y){ return (y[col.key] - x[col.key]) || (y[second] - x[second]) || (y.avgScore - x.avgScore); });
+    var mySid = duelData.sid;
+    var myIdx = -1;
+    rows.forEach(function(r, i){ if (r.sid === mySid) myIdx = i; });
     html += '<div class="ledger-wrap"><table class="ledger">' +
-      '<thead><tr><th>名次</th><th>姓名</th><th>積分</th><th>場次</th><th>勝－敗－平</th><th class="prac-col-total">勝率</th><th class="prac-col-total">最高連勝</th></tr></thead><tbody>';
-    var rows = (duelData.board || []);
+      '<thead><tr><th>名次</th><th>姓名</th><th class="prac-col-lv">班級</th><th>' + col.head + '</th>' +
+      '<th>場次</th><th class="prac-col-badge">勝－敗－平</th><th class="prac-col-total">最佳單場</th></tr></thead><tbody>';
     if (!rows.length){
-      html += '<tr class="empty-row"><td colspan="7">' +
-        (isAdmin ? '這個班還沒有人對戰過。' : '還沒有人對戰過，你可以當第一個。') + '</td></tr>';
+      html += '<tr class="empty-row"><td colspan="7">還沒有人對戰過，你可以當第一個。</td></tr>';
     } else {
       rows.forEach(function(r, i){
-        var rank = (!isAdmin && duelData.myRank && r.sid === duelData.sid) ? duelData.myRank : (i + 1);
-        var wr = r.games ? Math.round(r.win / r.games * 100) : 0;
         var nameCell = avatarHeadSvg(r.avatar || {}, 26, null) + (isAdmin
           ? '<button type="button" class="prac-name-btn" data-student-card="' + r.sid + '">' + r.name + '</button>'
           : '<span class="prac-board-name">' + r.name + '</span>');
-        html += '<tr' + (r.sid === duelData.sid ? ' class="prac-board-me"' : '') + '>' +
-          '<td class="mono">' + rank + '</td><td>' + nameCell + '</td>' +
-          '<td class="mono"><b>' + r.rating + '</b></td><td class="mono">' + r.games + '</td>' +
-          '<td class="mono">' + r.win + '－' + r.lose + '－' + r.draw + '</td>' +
-          '<td class="mono prac-col-total">' + wr + '%</td>' +
-          '<td class="mono prac-col-total">' + r.bestStreak + '</td></tr>';
+        var v = r[col.key] + (duelBoardTab === 'winRate' ? '%' : '');
+        html += '<tr' + (r.sid === mySid ? ' class="prac-board-me"' : '') + '>' +
+          '<td class="mono">' + (i + 1) + '</td><td>' + nameCell + '</td>' +
+          '<td class="prac-col-lv">' + (r.className || '老師') + '</td>' +
+          '<td class="mono"><b>' + v + '</b></td><td class="mono">' + r.games + '</td>' +
+          '<td class="mono prac-col-badge">' + r.win + '－' + r.lose + '－' + r.draw + '</td>' +
+          '<td class="mono prac-col-total">' + r.best + '</td></tr>';
       });
     }
     html += '</tbody></table></div>' +
-      '<p class="prac-save-status">積分用 Elo 制：所有人從 1000 分開始，' +
-      '打贏積分比你高的人加比較多分，輸給積分低的人扣比較多，一場最多加減 24 分上下。' +
-      '老師不屬於任何班級，但每一班的對戰排行榜都看得到他。</p>';
+      '<p class="prac-save-status">' +
+      (isAdmin ? '老師看得到全部的人；學生看得到三個排法各自的前 10 名與自己。'
+               : ('你目前全校第 ' + (duelData.myRank || '—') + ' 名（共 ' + (duelData.boardCount || 0) + ' 人上榜），' +
+                  '榜上只列前 10 名與你自己。')) +
+      '　排序：勝場數一樣就比勝率，再一樣就比平均得分。</p>';
     box.innerHTML = html;
 
     // 下拉選單填值
     var sc = document.getElementById('duelScope');
-    if (sc){
-      sc.innerHTML = duelScopes().map(function(s){
-        return '<option value="' + s.id + '">' + s.name + '</option>';
-      }).join('');
+    if (sc) sc.innerHTML = duelScopes().map(function(s){
+      return '<option value="' + s.id + '">' + s.name + '</option>'; }).join('');
+    var mc = document.getElementById('duelMateClass');
+    if (mc){
+      mc.innerHTML = '<option value="">不分班級（全校）</option>' +
+        (duelData.classes || []).map(function(c){ return '<option value="' + c + '">' + c + '</option>'; }).join('');
+      mc.value = duelMateClass || '';
     }
+    renderDuelOpponents();
+  }
+
+  /* 對手選單：依選到的班級篩，老師永遠排在最前面 */
+  function renderDuelOpponents(){
     var op = document.getElementById('duelOpp');
-    if (op){
-      var opts = '<option value="">公開擂台（誰都可以接）</option>';
-      (duelData.mates || []).forEach(function(m){
+    if (!op || !duelData) return;
+    var list = (duelData.mates || []).filter(function(m){
+      if (!duelMateClass) return true;
+      return m.className === duelMateClass || m.sid === 'teacher' || m.className === '老師';
+    });
+    var opts = '<option value="">公開擂台（全校誰都可以接）</option>';
+    // 注意：用物件當分組表時，'110' 這種「數字樣」的鍵會被 JS 排到字串鍵前面，
+    // 所以分組順序要自己用陣列維護，老師才會固定排在最前面。
+    var order = [], byClass = {};
+    list.forEach(function(m){
+      var k = m.className || '其他';
+      if (!byClass[k]){ byClass[k] = []; order.push(k); }
+      byClass[k].push(m);
+    });
+    order.forEach(function(k){
+      opts += '<optgroup label="' + k + '">';
+      byClass[k].forEach(function(m){
         opts += '<option value="' + m.sid + '|' + m.name + '">' + m.name + '</option>';
       });
-      op.innerHTML = opts;
-    }
-    var bc = document.getElementById('duelBoardClass');
-    if (bc){
-      bc.innerHTML = '<option value="">請選一個班級</option>' +
-        (duelData.classes || []).map(function(c){ return '<option value="' + c + '">' + c + '</option>'; }).join('');
-      bc.value = duelBoardClass || '';
-    }
+      opts += '</optgroup>';
+    });
+    op.innerHTML = opts;
   }
 
   /* ---------- 全螢幕對戰 ---------- */
-  var duelState = null;
+  var duelState = null, duelTimer = null;
   function duelOpenArena(){
     var el = document.getElementById('duelArena');
     el.hidden = false;
@@ -10378,12 +10415,13 @@
     var el = document.getElementById('duelArena');
     el.hidden = true;
     document.body.classList.remove('duel-on');
+    if (duelTimer) clearInterval(duelTimer);
     if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(function(){});
     duelState = null;
   }
-
   function duelBegin(duelId, questions, oppName, oppAvatar){
-    duelState = { id:duelId, qs:questions, i:0, correct:0, t0:Date.now(), answers:[], rows:[], done:false };
+    duelState = { id:duelId, qs:questions, i:0, correct:0, score:0,
+                  t0:Date.now(), answers:[], rows:[], done:false };
     document.getElementById('duelMeName').textContent = (currentUser && currentUser.name) || '我';
     document.getElementById('duelMeAva').innerHTML = avatarHeadSvg(pracAvatar, 40, pracOwned);
     document.getElementById('duelOppName').textContent = oppName || '等待對手';
@@ -10391,16 +10429,30 @@
     document.getElementById('duelResult').hidden = true;
     document.getElementById('duelBody').hidden = false;
     duelOpenArena();
-    duelTick();
     duelNextQuestion();
   }
-  var duelTimer = null;
-  function duelTick(){
+  function duelStartTimer(){
     if (duelTimer) clearInterval(duelTimer);
     duelTimer = setInterval(function(){
-      if (!duelState || duelState.done){ clearInterval(duelTimer); return; }
-      document.getElementById('duelTimer').textContent = duelFmtTime(Date.now() - duelState.t0);
-    }, 500);
+      var s = duelState;
+      if (!s || s.done){ clearInterval(duelTimer); return; }
+      var used = Date.now() - s.qStart;
+      var left = DUEL_LIMIT_MS - used;
+      var el = document.getElementById('duelTimer');
+      var bar = document.getElementById('duelTimeBar');
+      if (left <= 0){
+        el.textContent = '0:00';
+        if (bar) bar.style.width = '0%';
+        if (!s.locked) duelTimeUp();
+        return;
+      }
+      el.textContent = duelFmtTime(left);
+      el.className = 'duel-timer' + (left < 30000 ? ' is-low' : '');
+      if (bar) bar.style.width = Math.max(0, left / DUEL_LIMIT_MS * 100) + '%';
+      // 即時顯示「現在答對可以拿幾分」
+      var pv = document.getElementById('duelPoint');
+      if (pv) pv.textContent = '現在答對 ' + duelQuestionScore(true, used) + ' 分';
+    }, 200);
   }
   function duelNextQuestion(){
     var s = duelState;
@@ -10410,9 +10462,9 @@
     var t = findPracType(pair[0]);
     if (!t){ s.i++; duelNextQuestion(); return; }
     var q = pracGenQuestion(t, pair[1]);
-    s.q = q; s.type = t; s.qStart = Date.now();
+    s.q = q; s.type = t; s.qStart = Date.now(); s.locked = false;
     document.getElementById('duelProg').textContent = '第 ' + (s.i + 1) + ' / ' + s.qs.length + ' 題';
-    document.getElementById('duelMeScore').textContent = s.correct;
+    document.getElementById('duelMeScore').textContent = s.score;
     document.getElementById('duelTypeTag').textContent = (t.book ? t.book + '　' : '') + t.section + '｜' + t.name;
     document.getElementById('duelStem').innerHTML = q.stem;
     var box = document.getElementById('duelChoices');
@@ -10427,38 +10479,68 @@
       box.appendChild(btn);
     });
     document.getElementById('duelFlash').hidden = true;
+    duelStartTimer();
+  }
+  function duelRecord(ok, idx, used){
+    var s = duelState;
+    var got = duelQuestionScore(ok, used);
+    s.score += got;
+    if (ok) s.correct++;
+    s.rows.push({
+      section: (s.type.book ? s.type.book + ' ' : '') + s.type.section,
+      typeId: s.type.id, typeName: s.type.name,
+      stem: stripHtml(s.q.stem),
+      answer: (idx == null) ? '（時間到沒作答）' : stripHtml(s.q.choices[idx].html),
+      correctAnswer: stripHtml(s.q.answerHtml), isCorrect: ok, self: '',
+      seed: s.q.seed || ''
+    });
+    s.answers.push(got);
+    document.getElementById('duelMeScore').textContent = s.score;
+    return got;
+  }
+  function duelAdvance(delay){
+    setTimeout(function(){
+      if (!duelState) return;
+      duelState.i++;
+      duelNextQuestion();
+    }, delay);
   }
   function duelAnswer(idx){
     var s = duelState;
     if (!s || !s.q || s.locked) return;
     s.locked = true;
+    if (duelTimer) clearInterval(duelTimer);
+    var used = Date.now() - s.qStart;
     var ok = !!s.q.choices[idx].ok;
-    if (ok) s.correct++;
     Array.prototype.forEach.call(document.querySelectorAll('#duelChoices .duel-choice'), function(b, i){
       b.disabled = true;
       if (s.q.choices[i].ok) b.classList.add('is-correct');
       if (i === idx && !ok) b.classList.add('is-wrong');
     });
+    var got = duelRecord(ok, idx, used);
     var flash = document.getElementById('duelFlash');
     flash.hidden = false;
     flash.className = 'duel-flash ' + (ok ? 'is-correct' : 'is-wrong');
-    flash.innerHTML = ok ? '✓ 答對' : ('✗ 正確答案：' + s.q.answerHtml);
-    document.getElementById('duelMeScore').textContent = s.correct;
-    // 這一題也要進練習紀錄（對戰打的題目一樣算練習）
-    s.rows.push({
-      section: (s.type.book ? s.type.book + ' ' : '') + s.type.section,
-      typeId: s.type.id, typeName: s.type.name,
-      stem: stripHtml(s.q.stem), answer: stripHtml(s.q.choices[idx].html),
-      correctAnswer: stripHtml(s.q.answerHtml), isCorrect: ok, self: '',
-      seed: s.q.seed || ''
+    flash.innerHTML = ok
+      ? ('✓ 答對　<b>＋' + got + ' 分</b>　（用了 ' + duelFmtTime(used) + '）')
+      : ('✗ 0 分　正確答案：' + s.q.answerHtml);
+    duelAdvance(ok ? 900 : 1600);
+  }
+  function duelTimeUp(){
+    var s = duelState;
+    if (!s || !s.q || s.locked) return;
+    s.locked = true;
+    if (duelTimer) clearInterval(duelTimer);
+    Array.prototype.forEach.call(document.querySelectorAll('#duelChoices .duel-choice'), function(b, i){
+      b.disabled = true;
+      if (s.q.choices[i].ok) b.classList.add('is-correct');
     });
-    s.answers.push(ok ? 1 : 0);
-    setTimeout(function(){
-      if (!duelState) return;
-      duelState.locked = false;
-      duelState.i++;
-      duelNextQuestion();
-    }, ok ? 700 : 1500);
+    duelRecord(false, null, DUEL_LIMIT_MS);
+    var flash = document.getElementById('duelFlash');
+    flash.hidden = false;
+    flash.className = 'duel-flash is-wrong';
+    flash.innerHTML = '⏱ 時間到，這一題 0 分　正確答案：' + s.q.answerHtml;
+    duelAdvance(1600);
   }
   function duelFinish(){
     var s = duelState;
@@ -10470,17 +10552,17 @@
     var res = document.getElementById('duelResult');
     res.hidden = false;
     res.innerHTML = '<div class="duel-result-card"><h3>你答完了</h3>' +
-      '<div class="duel-final"><b>' + s.correct + '</b> / ' + s.qs.length + ' 題答對　用時 ' + duelFmtTime(timeMs) + '</div>' +
+      '<div class="duel-final"><b>' + s.score + '</b> 分 / ' + (s.qs.length * 100) + ' 分</div>' +
+      '<div class="duel-final-sub">答對 ' + s.correct + ' / ' + s.qs.length + ' 題　總用時 ' + duelFmtTime(timeMs) + '</div>' +
       '<p class="prac-save-status" id="duelSubmitStatus">結算中…</p>' +
       '<button type="button" class="btn btn-primary" id="duelDoneBtn" hidden>回對戰頁</button></div>';
-    // 練習紀錄照常送（來源標成對戰）
     if (currentUser){
       callApi('savePractice', { actorAccount: currentUser.account, actorPassword: currentPassword,
                                 rows: s.rows, source: 'duel' }).catch(function(){});
     }
     callApi('duel', { actorAccount: currentUser.account, actorPassword: currentPassword,
-                      op: 'submit', duelId: s.id, score: s.correct, timeMs: timeMs,
-                      answers: s.answers })
+                      op: 'submit', duelId: s.id, score: s.score, correct: s.correct,
+                      timeMs: timeMs, answers: s.answers })
       .then(function(r){
         var st = document.getElementById('duelSubmitStatus');
         var btn = document.getElementById('duelDoneBtn');
@@ -10489,14 +10571,12 @@
         if (r.settled && r.duel){
           var d = r.duel, iAmA = (d.mine === 'a');
           var my = iAmA ? d.aScore : d.bScore, op = iAmA ? d.bScore : d.aScore;
-          var myT = iAmA ? d.aTime : d.bTime, opT = iAmA ? d.bTime : d.aTime;
-          var dl = d.delta ? (iAmA ? d.delta.a : d.delta.b) : 0;
+          var myC = iAmA ? d.aCorrect : d.bCorrect, opC = iAmA ? d.bCorrect : d.aCorrect;
           var word = (!d.winner) ? '平手！' : (d.winner === duelData.sid ? '你贏了！' : '這次輸了');
           var gem = (!d.winner) ? 40 : (d.winner === duelData.sid ? 60 : 20);
           if (st) st.innerHTML = '<span class="duel-verdict ' +
             (!d.winner ? 'draw' : (d.winner === duelData.sid ? 'win' : 'lose')) + '">' + word + '</span>' +
-            '　比分 ' + my + ' : ' + op + '　用時 ' + duelFmtTime(myT) + ' / ' + duelFmtTime(opT) +
-            '　積分 ' + (dl > 0 ? '+' : '') + dl +
+            '　比分 <b>' + my + '</b> : ' + op + '　（答對 ' + myC + ' : ' + opC + ' 題）' +
             '　<span class="prac-gem-pop">' + gemIcon() + ' ＋' + gem + '</span>';
         } else {
           if (st) st.textContent = '✓ 成績已送出，等對手答完就會自動結算（到時候回來看戰績）。';
@@ -10517,6 +10597,8 @@
     if (e.target.closest('#duelDoneBtn') || e.target.closest('#duelQuit')){
       duelCloseArena(); loadDuel(); loadPracticeProfile(); return;
     }
+    var bt = e.target.closest('[data-duel-board]');
+    if (bt){ duelBoardTab = bt.getAttribute('data-duel-board'); renderDuelPanel(); return; }
     if (e.target.closest('#duelStartBtn')){
       var scope = document.getElementById('duelScope').value;
       var oppRaw = document.getElementById('duelOpp').value;
@@ -10526,7 +10608,6 @@
       btn.disabled = true; btn.textContent = '建立戰帖中…';
       callApi('duel', { actorAccount: currentUser.account, actorPassword: currentPassword,
                         op: 'create', opponentSid: parts[0], opponentName: parts[1],
-                        className: duelBoardClass,          // 老師要指定挑哪一班
                         scope: duelScopeById(scope).name, questions: qs })
         .then(function(r){
           btn.disabled = false; btn.textContent = '發起挑戰（全螢幕 ' + DUEL_N + ' 題）';
@@ -10555,9 +10636,8 @@
     }
     var rs = e.target.closest('[data-duel-resume]');
     if (rs){
-      var rid = rs.getAttribute('data-duel-resume');
       var d = duelData && duelData.draft;
-      if (d && d.questions) duelBegin(rid, d.questions, d.bName || '（等人來接）', null);
+      if (d && d.questions) duelBegin(rs.getAttribute('data-duel-resume'), d.questions, d.bName || '（等人來接）', null);
       return;
     }
     var cc = e.target.closest('[data-duel-cancel]');
@@ -10569,7 +10649,10 @@
     }
   });
   document.addEventListener('change', function(e){
-    if (e.target && e.target.id === 'duelBoardClass'){ duelBoardClass = e.target.value; loadDuel(); }
+    if (e.target && e.target.id === 'duelMateClass'){
+      duelMateClass = e.target.value;
+      renderDuelOpponents();
+    }
   });
 
   function renderWrongBook(){
