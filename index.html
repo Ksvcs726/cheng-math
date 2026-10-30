@@ -9649,7 +9649,14 @@
     callApi('getPracticeLogs', { actorAccount: currentUser.account, actorPassword: currentPassword }).then(function(res){
       if (res && res.ok){
         practiceLogCache = res.logs || [];
-        statusEl.textContent = '共 ' + practiceLogCache.length + ' 筆紀錄。';
+        // 後端只回傳最近 5000 筆；把試算表裡實際有幾列一起寫出來，
+        // 老師才知道「練習紀錄」分頁長到什麼程度了（超過 10 萬列建議分學年封存）
+        var all = (res.totalRows != null) ? res.totalRows : practiceLogCache.length;
+        statusEl.textContent = (all > practiceLogCache.length)
+          ? ('試算表共 ' + all.toLocaleString('en-US') + ' 列，這裡顯示最近 ' +
+             practiceLogCache.length.toLocaleString('en-US') + ' 筆。' +
+             (all >= 100000 ? '　⚠ 列數偏多，建議分學年封存。' : ''))
+          : ('共 ' + practiceLogCache.length + ' 筆紀錄。');
         populatePracticeClassOptions();
         renderPracticeLogTables();
       } else {
