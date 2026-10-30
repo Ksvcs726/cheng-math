@@ -236,6 +236,7 @@
     box-shadow:0 12px 40px var(--shadow);padding:24px;width:100%;max-width:420px;
     max-height:90vh;overflow-y:auto;
   }
+  .modal-box-wide{max-width:900px;}
   .modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px;}
   .modal-head h3{font-size:1.1rem;}
   .modal-close{
@@ -709,6 +710,23 @@
   .prac-badge-name{display:block;font-size:.8rem;font-weight:700;color:var(--ink);line-height:1.35;}
   .prac-badge.is-locked .prac-badge-name{color:var(--ink-soft);font-weight:500;}
   .prac-badge-cond{display:block;font-size:.68rem;color:var(--ink-soft);line-height:1.4;margin-top:2px;}
+  .prac-badge-prog{
+    display:inline-block;margin-top:4px;padding:1px 6px;border-radius:3px;
+    background:var(--surface);border:1px solid var(--border);
+    font-family:"JetBrains Mono",monospace;font-size:.66rem;color:var(--indigo-strong);
+  }
+  /* 排行榜：等級徽記與可點的學生姓名（老師專用） */
+  .prac-lv-chip{
+    display:inline-block;padding:1px 6px;border-radius:3px;margin-right:4px;
+    background:var(--indigo-tint);color:var(--indigo-strong);
+    font-family:"JetBrains Mono",monospace;font-size:.72rem;font-weight:700;
+  }
+  .prac-name-btn{
+    background:none;border:none;padding:0;cursor:pointer;font:inherit;
+    color:var(--indigo-strong);font-weight:600;text-decoration:underline;
+    text-underline-offset:3px;text-decoration-style:dotted;
+  }
+  .prac-name-btn:hover{color:var(--teal);}
   .prac-wrong-item{display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;}
   .prac-wrong-main{flex:1;min-width:200px;}
   .prac-wrong-type{font-size:.78rem;color:var(--teal);font-weight:600;}
@@ -732,6 +750,12 @@
     .prac-stats b{font-size:1.05rem;}
     .prac-badge-wall{grid-template-columns:1fr 1fr;gap:8px;}
     .prac-tabs .btn{flex:1 1 0;min-width:0;padding:8px 4px;font-size:.76rem;}
+    /* 手機螢幕窄：排行榜只留「名次／姓名／Lv.／該榜數字／正確率」，
+       等級名稱、成就數、作答數先收起來，重點數字才不會被擠到畫面外。 */
+    .prac-lv-name,
+    .ledger .prac-col-badge,
+    .ledger .prac-col-total{display:none;}
+    .prac-lv-chip{margin-right:0;}
   }
   /* 聯立不等式：圖形接近正方形，寬螢幕時不要被拉成巨大的方塊，
      多出來的寬度拿去把兩個不等式面板並排，整體高度也比較短。 */
@@ -973,6 +997,37 @@
       <button type="submit" class="btn btn-primary">更新密碼</button>
     </form>
     <span class="roster-status" id="pwStatus"></span>
+  </div>
+</div>
+
+<!-- 老師點學生姓名後，顯示那位學生的等級與成就（排行榜、練習紀錄兩邊都可以點） -->
+<div class="modal-overlay" id="pracStudentCardOverlay" hidden>
+  <div class="modal-box modal-box-wide prac-profile" id="pracStudentCard" role="dialog" aria-modal="true" aria-labelledby="pracStudentCardTitle">
+    <div class="modal-head">
+      <h3 id="pracStudentCardTitle">學生成就</h3>
+      <button type="button" class="modal-close" id="pracStudentCardClose" aria-label="關閉">×</button>
+    </div>
+    <div class="prac-profile-top">
+      <div class="prac-level">
+        <span class="prac-level-medal" id="pracScLevelMedal"></span>
+        <div class="prac-level-info">
+          <div class="prac-level-name" id="pracScLevelName">—</div>
+          <div class="prac-level-bar"><span id="pracScLevelFill"></span></div>
+          <div class="prac-level-next" id="pracScLevelNext"></div>
+        </div>
+      </div>
+      <div class="prac-stats" id="pracScStats"></div>
+    </div>
+    <p class="prac-save-status" id="pracScBadgeCount"></p>
+    <div class="prac-badge-wall" id="pracScBadgeWall"></div>
+    <h3 class="ledger-subhead" style="margin-top:20px;">這位學生最弱的題型</h3>
+    <div class="ledger-wrap">
+      <table class="ledger">
+        <thead><tr><th>章節</th><th>題型</th><th>作答數</th><th>答對</th><th>正確率</th></tr></thead>
+        <tbody id="pracScTypeBody"></tbody>
+      </table>
+    </div>
+    <p class="prac-save-status" id="pracScStatus"></p>
   </div>
 </div>
 
@@ -1790,9 +1845,13 @@
               <button type="button" class="btn btn-ghost btn-sm is-on" data-prof-tab="badges">成就標章</button>
               <button type="button" class="btn btn-ghost btn-sm" data-prof-tab="wrong">錯題本</button>
               <button type="button" class="btn btn-ghost btn-sm" data-prof-tab="board">班級排行榜</button>
+              <button type="button" class="btn btn-ghost btn-sm" id="pracProfileRefresh" title="重新讀取最新的等級、成就與排行榜">↻ 重新整理</button>
               <span class="roster-status" id="pracProfileStatus"></span>
             </div>
-            <div id="pracProfBadges"><div class="prac-badge-wall" id="pracBadgeWall"></div></div>
+            <div id="pracProfBadges">
+              <p class="prac-save-status" id="pracBadgeCount"></p>
+              <div class="prac-badge-wall" id="pracBadgeWall"></div>
+            </div>
             <div id="pracProfWrong" hidden>
               <div class="roster-actions">
                 <button type="button" class="btn btn-primary" id="pracReviewBtn">開始複習錯題（最多 5 題）</button>
@@ -1813,13 +1872,14 @@
               <div class="prac-myrank" id="pracMyRank" hidden></div>
               <div class="ledger-wrap">
                 <table class="ledger">
-                  <thead><tr><th>名次</th><th>姓名</th><th id="pracBoardColHead">累積答對</th><th>練習題數</th><th>正確率</th></tr></thead>
+                  <thead><tr><th>名次</th><th>姓名</th><th class="prac-col-lv">等級</th><th class="prac-col-badge">成就</th><th id="pracBoardColHead">累積答對</th><th class="prac-col-total">作答數</th><th>正確率</th></tr></thead>
                   <tbody id="pracBoardBody"></tbody>
                 </table>
               </div>
               <p class="prac-save-status" id="pracBoardNote"></p>
             </div>
           </div>
+
 
           <div class="book-list" id="pracTypeList"></div>
         </div>
@@ -8937,14 +8997,21 @@
 
   // 等級門檻看「累積答對題數」。名稱照課本的主題走，從數線一路到對數。
   var PRAC_LEVELS = [
-    { lv:1, need:0,    name:'數線新手'     },
-    { lv:2, need:20,   name:'坐標探索者'   },
-    { lv:3, need:50,   name:'函數學徒'     },
-    { lv:4, need:100,  name:'方程式好手'   },
-    { lv:5, need:180,  name:'幾何行家'     },
-    { lv:6, need:300,  name:'數列專家'     },
-    { lv:7, need:500,  name:'對數大師'     },
-    { lv:8, need:800,  name:'數學傳奇'     }
+    { lv:1,  need:0,    name:'數線新手'     },
+    { lv:2,  need:20,   name:'坐標探索者'   },
+    { lv:3,  need:50,   name:'函數學徒'     },
+    { lv:4,  need:100,  name:'方程式好手'   },
+    { lv:5,  need:180,  name:'幾何行家'     },
+    { lv:6,  need:300,  name:'數列專家'     },
+    { lv:7,  need:450,  name:'多項式工匠'   },
+    { lv:8,  need:650,  name:'不等式判官'   },
+    { lv:9,  need:900,  name:'指數高手'     },
+    { lv:10, need:1200, name:'對數大師'     },
+    { lv:11, need:1600, name:'解析幾何能手' },
+    { lv:12, need:2100, name:'級數推手'     },
+    { lv:13, need:2700, name:'線性規劃軍師' },
+    { lv:14, need:3500, name:'數理策士'     },
+    { lv:15, need:4500, name:'數學傳奇'     }
   ];
   function pracLevelOf(correct){
     var cur = PRAC_LEVELS[0];
@@ -8955,7 +9022,9 @@
   }
   // 等級獎章：外圈顏色隨等級變深，中間是等級數字
   function pracMedalSvg(lv){
-    var ring = ['#8aa0c8', '#6f9ec4', '#4fa8a0', '#3f9f7a', '#c9a227', '#d08a3c', '#c0632f', '#a3406b'][lv - 1] || '#8aa0c8';
+    var ring = ['#8aa0c8', '#6f9ec4', '#4fa8a0', '#3f9f7a', '#7bb04a', '#c9a227', '#d6952b',
+                '#d08a3c', '#c0632f', '#b8452f', '#a3406b', '#8e3f87', '#6b46a8', '#4a4fb0',
+                '#2f6fd0'][lv - 1] || '#8aa0c8';
     return '<svg viewBox="0 0 64 64" role="img" aria-label="Lv.' + lv + '">' +
       '<circle cx="32" cy="32" r="27" fill="none" stroke="' + ring + '" stroke-width="4"/>' +
       '<circle cx="32" cy="32" r="20" fill="' + ring + '" opacity=".17"/>' +
@@ -8981,25 +9050,67 @@
   }
 
   /* 標章定義：check(st) 回傳 true 就是拿到了。st 是後端回傳的統計。 */
+  // 每一個標章都寫上 now(s)／goal：沒拿到的會顯示「目前 3 / 10」，
+  // 學生才看得出自己離下一個成就還差多少，不會以為系統壞掉。
   var PRAC_BADGES = [
-    { id:'first',    ico:'star',     name:'旗開得勝',   cond:'答對第 1 題',                 check:function(s){ return s.correct >= 1; } },
-    { id:'perfect1', ico:'target',   name:'滿分一輪',   cond:'單輪 5 題全對',               check:function(s){ return s.perfectRounds >= 1; } },
-    { id:'perfect5', ico:'target',   name:'常勝軍',     cond:'單輪全對 5 次',               check:function(s){ return s.perfectRounds >= 5; } },
-    { id:'streak10', ico:'bolt',    name:'十連星',     cond:'連續答對 10 題',              check:function(s){ return s.bestStreak >= 10; } },
-    { id:'streak20', ico:'bolt',    name:'二十連星',   cond:'連續答對 20 題',              check:function(s){ return s.bestStreak >= 20; } },
-    { id:'streak30', ico:'bolt',    name:'三十連星',   cond:'連續答對 30 題',              check:function(s){ return s.bestStreak >= 30; } },
-    { id:'hundred',  ico:'up',       name:'百題達成',   cond:'累積答對 100 題',             check:function(s){ return s.correct >= 100; } },
-    { id:'five',     ico:'up',       name:'五百題達成', cond:'累積答對 500 題',             check:function(s){ return s.correct >= 500; } },
-    { id:'thousand', ico:'crown',    name:'千題達成',   cond:'累積答對 1000 題',            check:function(s){ return s.correct >= 1000; } },
-    { id:'master1',  ico:'book',     name:'題型精熟',   cond:'一種題型練滿 20 題、正確率 ≥ 80%', check:function(s){ return s.masteredTypes >= 1; } },
-    { id:'master5',  ico:'book',     name:'五型精熟',   cond:'5 種題型達到精熟',            check:function(s){ return s.masteredTypes >= 5; } },
-    { id:'section1', ico:'shield',   name:'小節通關',   cond:'一個小節的每個題型都答對過',  check:function(s){ return s.clearedSections >= 1; } },
-    { id:'section5', ico:'shield',   name:'五節通關',   cond:'5 個小節全部通關',            check:function(s){ return s.clearedSections >= 5; } },
-    { id:'daily3',   ico:'calendar', name:'三日不輟',   cond:'連續 3 天都有練習',           check:function(s){ return s.streakDays >= 3; } },
-    { id:'daily7',   ico:'calendar', name:'七日不輟',   cond:'連續 7 天都有練習',           check:function(s){ return s.streakDays >= 7; } },
-    { id:'comeback', ico:'bolt',    name:'越挫越勇',   cond:'錯題本克服 10 題',            check:function(s){ return s.resolvedWrong >= 10; } },
-    { id:'steady',   ico:'shield',   name:'穩紮穩打',   cond:'練滿 100 題且正確率 ≥ 80%',   check:function(s){ return s.total >= 100 && s.accuracy >= 80; } }
+    // ── 起步 ──
+    { id:'first',    ico:'star',     name:'旗開得勝',   cond:'答對第 1 題',   goal:1,    now:function(s){ return s.correct; } },
+    { id:'perfect1', ico:'target',   name:'滿分一輪',   cond:'單輪 5 題全對', goal:1,    now:function(s){ return s.perfectRounds; } },
+    { id:'daily3',   ico:'calendar', name:'三日不輟',   cond:'連續 3 天都有練習', goal:3, now:function(s){ return s.streakDays; } },
+    { id:'comeback1',ico:'bolt',     name:'捲土重來',   cond:'錯題本克服 1 題', goal:1,  now:function(s){ return s.resolvedWrong; } },
+    // ── 累積答對（不重複的題目才算）──
+    { id:'fifty',    ico:'up',       name:'五十題達成', cond:'累積答對 50 題',   goal:50,   now:function(s){ return s.correct; } },
+    { id:'hundred',  ico:'up',       name:'百題達成',   cond:'累積答對 100 題',  goal:100,  now:function(s){ return s.correct; } },
+    { id:'three',    ico:'up',       name:'三百題達成', cond:'累積答對 300 題',  goal:300,  now:function(s){ return s.correct; } },
+    { id:'five',     ico:'up',       name:'五百題達成', cond:'累積答對 500 題',  goal:500,  now:function(s){ return s.correct; } },
+    { id:'thousand', ico:'crown',    name:'千題達成',   cond:'累積答對 1000 題', goal:1000, now:function(s){ return s.correct; } },
+    { id:'twoK',     ico:'crown',    name:'兩千題達成', cond:'累積答對 2000 題', goal:2000, now:function(s){ return s.correct; } },
+    { id:'fourK',    ico:'crown',    name:'四千題達成', cond:'累積答對 4000 題', goal:4000, now:function(s){ return s.correct; } },
+    // ── 連勝 ──
+    { id:'streak10', ico:'bolt',     name:'十連星',     cond:'連續答對 10 題',  goal:10,  now:function(s){ return s.bestStreak; } },
+    { id:'streak20', ico:'bolt',     name:'二十連星',   cond:'連續答對 20 題',  goal:20,  now:function(s){ return s.bestStreak; } },
+    { id:'streak30', ico:'bolt',     name:'三十連星',   cond:'連續答對 30 題',  goal:30,  now:function(s){ return s.bestStreak; } },
+    { id:'streak50', ico:'bolt',     name:'五十連星',   cond:'連續答對 50 題',  goal:50,  now:function(s){ return s.bestStreak; } },
+    { id:'streak100',ico:'bolt',     name:'百連星',     cond:'連續答對 100 題', goal:100, now:function(s){ return s.bestStreak; } },
+    // ── 單輪全對 ──
+    { id:'perfect5', ico:'target',   name:'常勝軍',     cond:'單輪全對 5 次',  goal:5,  now:function(s){ return s.perfectRounds; } },
+    { id:'perfect20',ico:'target',   name:'百戰百勝',   cond:'單輪全對 20 次', goal:20, now:function(s){ return s.perfectRounds; } },
+    { id:'perfect50',ico:'target',   name:'未嘗敗績',   cond:'單輪全對 50 次', goal:50, now:function(s){ return s.perfectRounds; } },
+    // ── 題型精熟與通關 ──
+    { id:'master1',  ico:'book',     name:'題型精熟',   cond:'一種題型練滿 20 題、正確率 ≥ 80%', goal:1,  now:function(s){ return s.masteredTypes; } },
+    { id:'master5',  ico:'book',     name:'五型精熟',   cond:'5 種題型達到精熟',   goal:5,  now:function(s){ return s.masteredTypes; } },
+    { id:'master15', ico:'book',     name:'十五型精熟', cond:'15 種題型達到精熟',  goal:15, now:function(s){ return s.masteredTypes; } },
+    { id:'master30', ico:'book',     name:'三十型精熟', cond:'30 種題型達到精熟',  goal:30, now:function(s){ return s.masteredTypes; } },
+    { id:'section1', ico:'shield',   name:'小節通關',   cond:'一個小節的每個題型都答對過', goal:1,  now:function(s){ return s.clearedSections; } },
+    { id:'section5', ico:'shield',   name:'五節通關',   cond:'5 個小節全部通關',   goal:5,  now:function(s){ return s.clearedSections; } },
+    { id:'section12',ico:'shield',   name:'半壁江山',   cond:'12 個小節全部通關',  goal:12, now:function(s){ return s.clearedSections; } },
+    { id:'sectionAll',ico:'crown',   name:'全章通關',   cond:'所有小節全部通關',   goal:null,
+      now:function(s){ return s.clearedSections; }, goalOf:function(s){ return s.totalSections; } },
+    // ── 持續練習 ──
+    { id:'daily7',   ico:'calendar', name:'七日不輟',   cond:'連續 7 天都有練習',  goal:7,   now:function(s){ return s.streakDays; } },
+    { id:'daily14',  ico:'calendar', name:'半月不輟',   cond:'連續 14 天都有練習', goal:14,  now:function(s){ return s.streakDays; } },
+    { id:'daily30',  ico:'calendar', name:'整月不輟',   cond:'連續 30 天都有練習', goal:30,  now:function(s){ return s.streakDays; } },
+    { id:'active30', ico:'calendar', name:'勤學三十日', cond:'累計 30 天有練習',   goal:30,  now:function(s){ return s.activeDays; } },
+    { id:'active100',ico:'calendar', name:'百日功',     cond:'累計 100 天有練習',  goal:100, now:function(s){ return s.activeDays; } },
+    // ── 錯題本與穩定度 ──
+    { id:'comeback', ico:'bolt',     name:'越挫越勇',   cond:'錯題本克服 10 題', goal:10, now:function(s){ return s.resolvedWrong; } },
+    { id:'comeback30',ico:'bolt',    name:'不屈不撓',   cond:'錯題本克服 30 題', goal:30, now:function(s){ return s.resolvedWrong; } },
+    { id:'steady',   ico:'shield',   name:'穩紮穩打',   cond:'練滿 100 題且正確率 ≥ 80%', goal:100,
+      now:function(s){ return s.total; }, check:function(s){ return s.total >= 100 && s.accuracy >= 80; } },
+    { id:'sniper',   ico:'target',   name:'精準射手',   cond:'練滿 300 題且正確率 ≥ 90%', goal:300,
+      now:function(s){ return s.total; }, check:function(s){ return s.total >= 300 && s.accuracy >= 90; } },
+    { id:'weekly50', ico:'star',     name:'一週五十',   cond:'本週答對 50 題',  goal:50,  now:function(s){ return s.weekCorrect; } },
+    { id:'weekly100',ico:'star',     name:'一週破百',   cond:'本週答對 100 題', goal:100, now:function(s){ return s.weekCorrect; } }
   ];
+  /* 統一的達成判定：有 check 就用 check，沒有就用 now(s) >= goal */
+  function pracBadgeGoal(b, s){ return b.goalOf ? b.goalOf(s) : b.goal; }
+  function pracBadgeGot(b, s){
+    try {
+      if (b.check) return !!b.check(s);
+      var g = pracBadgeGoal(b, s);
+      return !!g && b.now(s) >= g;
+    } catch (e) { return false; }
+  }
 
   var pracProfile = null;          // 後端回傳的原始資料
   var pracProfTab = 'badges';
@@ -9014,6 +9125,11 @@
       if (t.total >= 20 && t.correct / t.total >= 0.8) mastered++;
       if (t.correct >= 1) doneTypes[t.typeId] = true;
     });
+    // 排行榜那一列給的是精簡版統計（doneTypes／masteredTypes 已經由後端算好）
+    if (me.doneTypes){
+      me.doneTypes.forEach(function(id){ doneTypes[id] = true; });
+      mastered = me.masteredTypes || mastered;
+    }
     // 小節通關：該小節底下每一個題型都至少答對過一題
     var sectionTypes = {};
     PRACTICE_TYPES.forEach(function(t){
@@ -9028,7 +9144,9 @@
     });
     return {
       total:total, correct:correct,
-      accuracy: total ? Math.round(correct / total * 1000) / 10 : 0,
+      // 正確率看的是「實際作答過幾題」（含重複練的），累積答對則不算重複題
+      accuracy: total ? Math.round((me.rawCorrect != null ? me.rawCorrect : correct) / total * 1000) / 10 : 0,
+      totalSections: Object.keys(sectionTypes).length,
       weekCorrect: me.weekCorrect || 0,
       bestStreak: me.bestStreak || 0,
       perfectRounds: me.perfectRounds || 0,
@@ -9092,21 +9210,36 @@
       '<div><b>' + wrongN + '</b><span>錯題待複習</span></div>';
 
     // 標章牆
-    var wall = document.getElementById('pracBadgeWall');
-    wall.innerHTML = '';
-    PRAC_BADGES.forEach(function(b){
-      var got = false;
-      try { got = !!b.check(st); } catch (e) { got = false; }
-      var el = document.createElement('div');
-      el.className = 'prac-badge ' + (got ? 'is-got' : 'is-locked');
-      el.innerHTML = '<span class="prac-badge-ico">' + pracBadgeSvg(b.ico, got) + '</span>' +
-                     '<span class="prac-badge-txt"><span class="prac-badge-name">' + b.name + '</span>' +
-                     '<span class="prac-badge-cond">' + b.cond + '</span></span>';
-      wall.appendChild(el);
-    });
+    pracRenderBadgeWall(document.getElementById('pracBadgeWall'), st,
+                        document.getElementById('pracBadgeCount'));
 
     renderWrongBook();
     renderLeaderboard();
+  }
+
+  /* 標章牆：已達成的排前面，沒達成的寫出「目前 3 / 10」，學生才知道還差多少 */
+  function pracRenderBadgeWall(wall, st, countEl){
+    if (!wall) return;
+    wall.innerHTML = '';
+    var got = [], left = [];
+    PRAC_BADGES.forEach(function(b){ (pracBadgeGot(b, st) ? got : left).push(b); });
+    if (countEl) countEl.textContent = '已取得 ' + got.length + ' / ' + PRAC_BADGES.length + ' 個成就標章';
+    got.concat(left).forEach(function(b){
+      var ok = pracBadgeGot(b, st);
+      var prog = '';
+      if (!ok){
+        var goal = pracBadgeGoal(b, st);
+        var now = 0;
+        try { now = b.now(st) || 0; } catch (e) { now = 0; }
+        if (goal) prog = '<span class="prac-badge-prog">目前 ' + Math.min(now, goal) + ' / ' + goal + '</span>';
+      }
+      var el = document.createElement('div');
+      el.className = 'prac-badge ' + (ok ? 'is-got' : 'is-locked');
+      el.innerHTML = '<span class="prac-badge-ico">' + pracBadgeSvg(b.ico, ok) + '</span>' +
+                     '<span class="prac-badge-txt"><span class="prac-badge-name">' + b.name + '</span>' +
+                     '<span class="prac-badge-cond">' + b.cond + '</span>' + prog + '</span>';
+      wall.appendChild(el);
+    });
   }
 
   function renderWrongBook(){
@@ -9163,9 +9296,14 @@
     var rows = ((pracProfile && pracProfile.leaderboard) || []).slice();
     if (pracBoardTab === 'accuracy') rows = rows.filter(function(r){ return r.total >= 50; });
     rows.sort(function(a, b){ return (b[col.key] - a[col.key]) || (b.correct - a.correct); });
-    var mySid = pracProfile ? String(pracProfile.sid) : '';
+    var mySid = pracProfile ? String(pracProfile.viewerSid || pracProfile.sid) : '';
     var myRank = -1;
     rows.forEach(function(r, i){ if (String(r.sid) === mySid) myRank = i + 1; });
+    // 學生只拿得到「前 10 名＋自己」，名次與總人數一律用後端算好的
+    var ranks = (pracProfile && pracProfile.myRanks) || null;
+    if (ranks && ranks[col.key]) myRank = ranks[col.key];
+    var boardTotal = (ranks && ranks[col.key + 'Of'] != null) ? ranks[col.key + 'Of'] : rows.length;
+    var boardFull = !!(pracProfile && pracProfile.boardFull);
 
     // 「我目前第幾名」單獨拉出來寫一行，不用在表格裡找
     var rankEl = document.getElementById('pracMyRank');
@@ -9173,13 +9311,20 @@
     if (isAdmin){
       rankEl.hidden = true;
     } else if (myRank > 0){
-      var meRow = rows[myRank - 1];
-      var ahead = (myRank > 1) ? rows[myRank - 2] : null;
+      var myIdx = -1;
+      rows.forEach(function(r, i){ if (String(r.sid) === mySid) myIdx = i; });
+      var meRow = (myIdx >= 0) ? rows[myIdx] : { correct:0, weekCorrect:0, streakDays:0, accuracy:0 };
+      // 學生只拿到前 10 名＋自己，名單裡「我的上一位」不一定真的是我的前一名；
+      // 名次對得起來才寫「距離第 N 名」，對不起來就寫「距離第 10 名」。
+      var aheadIdx = (myIdx > 0) ? myIdx - 1 : -1;
+      var aheadRank = (myIdx + 1 === myRank) ? myRank - 1 : (aheadIdx >= 0 ? aheadIdx + 1 : 0);
+      var ahead = (aheadIdx >= 0) ? rows[aheadIdx] : null;
       var gap = ahead ? (ahead[col.key] - meRow[col.key]) : 0;
+      var pct = (pracBoardTab === 'accuracy') ? '%' : '';
       rankEl.hidden = false;
-      rankEl.innerHTML = '你目前第 <b>' + myRank + '</b> 名　（' + pracProfile.className + ' 班共 ' + rows.length + ' 人上榜）' +
-        '<span class="prac-myrank-sub">' + colName + '：' + meRow[col.key] + (pracBoardTab === 'accuracy' ? '%' : '') +
-        (ahead ? ('　距離第 ' + (myRank - 1) + ' 名還差 ' + (Math.round(gap * 10) / 10) + (pracBoardTab === 'accuracy' ? '%' : ''))
+      rankEl.innerHTML = '你目前第 <b>' + myRank + '</b> 名　（' + pracProfile.className + ' 班共 ' + boardTotal + ' 人上榜）' +
+        '<span class="prac-myrank-sub">' + colName + '：' + meRow[col.key] + pct +
+        (ahead ? ('　距離第 ' + aheadRank + ' 名還差 ' + (Math.round(gap * 10) / 10) + pct)
                : '　目前是第一名，繼續保持！') + '</span>';
     } else {
       rankEl.hidden = false;
@@ -9188,43 +9333,145 @@
         : '你還沒有上這個榜　<span class="prac-myrank-sub">先去練幾題，馬上就會出現在這裡</span>';
     }
     body.innerHTML = '';
+    // 一列：名次、姓名（老師可以點）、等級、成就數、該榜的數字、作答數、正確率
+    function boardRow(r, rank){
+      var st = pracBuildStats(r);
+      var lv = pracLevelOf(st.correct);
+      var badges = 0;
+      PRAC_BADGES.forEach(function(b){ if (pracBadgeGot(b, st)) badges++; });
+      var tr = document.createElement('tr');
+      if (String(r.sid) === mySid) tr.className = 'prac-board-me';
+      var nameCell = isAdmin
+        ? '<button type="button" class="prac-name-btn" data-student-card="' + r.sid + '">' + r.name + '</button>'
+        : r.name;
+      tr.innerHTML = '<td class="mono">' + rank + '</td><td>' + nameCell + '</td>' +
+                     '<td class="prac-col-lv"><span class="prac-lv-chip">Lv.' + lv.cur.lv + '</span>' +
+                       '<span class="prac-lv-name">' + lv.cur.name + '</span></td>' +
+                     '<td class="mono prac-col-badge">' + badges + ' / ' + PRAC_BADGES.length + '</td>' +
+                     '<td class="mono">' + r[col.key] + (pracBoardTab === 'accuracy' ? '%' : '') + '</td>' +
+                     '<td class="mono prac-col-total">' + r.total + '</td><td class="mono">' + r.accuracy + '%</td>';
+      return tr;
+    }
     if (!rows.length){
-      body.innerHTML = '<tr class="empty-row"><td colspan="5">' +
+      body.innerHTML = '<tr class="empty-row"><td colspan="7">' +
         (isAdmin ? (pracBoardClass ? ('這個班還沒有人練習過。') : '請先在上面選一個班級。')
                  : '還沒有人上榜，你可以當第一個。') + '</td></tr>';
+    } else if (boardFull){
+      // 老師：整班完整名次
+      rows.forEach(function(r, i){ body.appendChild(boardRow(r, i + 1)); });
     } else {
-      rows.slice(0, 10).forEach(function(r, i){
-        var tr = document.createElement('tr');
-        if (String(r.sid) === mySid) tr.className = 'prac-board-me';
-        tr.innerHTML = '<td class="mono">' + (i + 1) + '</td><td>' + r.name + '</td>' +
-                       '<td class="mono">' + r[col.key] + (pracBoardTab === 'accuracy' ? '%' : '') + '</td>' +
-                       '<td class="mono">' + r.total + '</td><td class="mono">' + r.accuracy + '%</td>';
-        body.appendChild(tr);
-      });
+      rows.slice(0, 10).forEach(function(r, i){ body.appendChild(boardRow(r, i + 1)); });
       if (myRank > 10){
-        var me = rows[myRank - 1];
-        var tr2 = document.createElement('tr');
-        tr2.className = 'prac-board-me';
-        tr2.innerHTML = '<td class="mono">' + myRank + '</td><td>' + me.name + '</td>' +
-                        '<td class="mono">' + me[col.key] + (pracBoardTab === 'accuracy' ? '%' : '') + '</td>' +
-                        '<td class="mono">' + me.total + '</td><td class="mono">' + me.accuracy + '%</td>';
-        body.appendChild(tr2);
+        var myIdx2 = -1;
+        rows.forEach(function(r, i){ if (String(r.sid) === mySid) myIdx2 = i; });
+        if (myIdx2 >= 0) body.appendChild(boardRow(rows[myIdx2], myRank));
       }
     }
     if (isAdmin){
       note.textContent = pracBoardClass
-        ? ('目前看的是 ' + pracBoardClass + ' 班的排行榜。老師不屬於任何班級，您自己的練習不會列入學生的排行榜。')
-        : '老師不屬於任何班級，所以自己的練習不會進排行榜。請先在上面選一個班級，就能看那一班的排名。';
+        ? ('目前看的是 ' + pracBoardClass + ' 班的完整排行榜（共 ' + rows.length + ' 人）。點學生姓名可以看他的等級與成就。老師不屬於任何班級，您自己的練習不會列入學生的排行榜。')
+        : '老師不屬於任何班級，所以自己的練習不會進排行榜。請先在上面選一個班級，就能看那一班的完整排名。';
     } else {
       note.textContent = (pracBoardTab === 'accuracy')
-        ? '正確率榜只列練滿 50 題的人（避免只做兩題全對就第一名）。只比同班同學。'
-        : '只比同班同學，前 10 名；你自己那一列會標起來。';
-      if (myRank === -1 && rows.length) note.textContent += '　你還沒有上榜。';
+        ? '正確率榜只列練滿 50 題的人（避免只做兩題全對就第一名），只比同班同學，看得到前 10 名與自己。'
+        : '只比同班同學，看得到前 10 名與自己那一列（會標起來）。';
+      note.textContent += '　「累積答對」只算不重複的題目，同一題再練不會重複累積。';
+      if (myRank <= 0 && rows.length) note.textContent += '　你還沒有上榜。';
     }
+  }
+
+  /* ============ 老師：點學生姓名，看他的等級與成就 ============ */
+  function closeStudentCard(){
+    var ov = document.getElementById('pracStudentCardOverlay');
+    if (ov) ov.hidden = true;
+  }
+  function openStudentCard(sid, fallbackName){
+    if (!currentUser || currentUser.role !== 'admin') return;
+    var ov = document.getElementById('pracStudentCardOverlay');
+    if (!ov) return;
+    ov.hidden = false;
+    document.getElementById('pracStudentCardTitle').textContent =
+      (fallbackName ? fallbackName : '學生') + '（學號 ' + sid + '）的等級與成就';
+    document.getElementById('pracScStatus').textContent = '讀取中…';
+    document.getElementById('pracScBadgeWall').innerHTML = '';
+    document.getElementById('pracScTypeBody').innerHTML = '';
+    callApi('getPracticeProfile', { actorAccount: currentUser.account, actorPassword: currentPassword,
+                                    targetSid: sid })
+      .then(function(res){
+        if (!res || !res.ok){
+          document.getElementById('pracScStatus').textContent =
+            '⚠ ' + ((res && res.error) || '讀取失敗（後端可能還沒更新，需要重新部署 Apps Script）');
+          return;
+        }
+        renderStudentCard(res, fallbackName);
+      })
+      .catch(function(){ document.getElementById('pracScStatus').textContent = '⚠ 讀取失敗（連線問題）。'; });
+  }
+  function renderStudentCard(res, fallbackName){
+    var me = res.me || { total:0, correct:0, byType:[] };
+    var st = pracBuildStats(me);
+    var lvl = pracLevelOf(st.correct);
+    var name = res.name || fallbackName || '';
+    document.getElementById('pracStudentCardTitle').textContent =
+      name + '（學號 ' + res.sid + (res.viewClass ? '・' + res.viewClass + ' 班' : '') + '）的等級與成就';
+    document.getElementById('pracScLevelMedal').innerHTML = pracMedalSvg(lvl.cur.lv);
+    document.getElementById('pracScLevelName').textContent = 'Lv.' + lvl.cur.lv + '　' + lvl.cur.name;
+    var fill = document.getElementById('pracScLevelFill');
+    var nextTxt = document.getElementById('pracScLevelNext');
+    if (lvl.next){
+      var span = lvl.next.need - lvl.cur.need;
+      fill.style.width = Math.max(3, Math.round((st.correct - lvl.cur.need) / span * 100)) + '%';
+      nextTxt.textContent = '再答對 ' + (lvl.next.need - st.correct) + ' 題升上 Lv.' + lvl.next.lv + '　' + lvl.next.name;
+    } else {
+      fill.style.width = '100%';
+      nextTxt.textContent = '已經是最高等級。';
+    }
+    var wrongN = (res.wrong || []).length;
+    document.getElementById('pracScStats').innerHTML =
+      '<div><b>' + st.correct + '</b><span>累積答對</span></div>' +
+      '<div><b>' + st.total + '</b><span>作答數</span></div>' +
+      '<div><b>' + st.accuracy + '%</b><span>正確率</span></div>' +
+      '<div><b>' + st.streakDays + '</b><span>連續天數</span></div>' +
+      '<div><b>' + st.bestStreak + '</b><span>最長連勝</span></div>' +
+      '<div><b>' + wrongN + '</b><span>錯題待複習</span></div>';
+    pracRenderBadgeWall(document.getElementById('pracScBadgeWall'), st,
+                        document.getElementById('pracScBadgeCount'));
+    // 最弱的題型（作答滿 3 題才列，正確率低的排前面）
+    var tb = document.getElementById('pracScTypeBody');
+    tb.innerHTML = '';
+    var types = (me.byType || []).filter(function(t){ return t.total >= 3; });
+    types.sort(function(a, b){ return (a.correct / a.total) - (b.correct / b.total); });
+    if (!types.length){
+      tb.innerHTML = '<tr class="empty-row"><td colspan="5">練習題數還不夠，看不出弱項。</td></tr>';
+    } else {
+      types.slice(0, 12).forEach(function(t){
+        var rate = Math.round(t.correct / t.total * 100);
+        var tr = document.createElement('tr');
+        tr.innerHTML = '<td>' + (t.section || '') + '</td><td>' + (t.name || t.typeId) + '</td>' +
+          '<td class="mono">' + t.total + '</td><td class="mono">' + t.correct + '</td>' +
+          '<td class="mono' + (rate < 60 ? ' prac-low' : '') + '">' + rate + '%</td>';
+        tb.appendChild(tr);
+      });
+    }
+    document.getElementById('pracScStatus').textContent =
+      '「累積答對」只算不重複的題目；正確率則是全部作答（含重複練的）算出來的。';
   }
 
   /* ---- 事件：分頁切換、錯題本操作 ---- */
   document.addEventListener('click', function(e){
+    var nameBtn = e.target.closest('[data-student-card]');
+    if (nameBtn){
+      openStudentCard(nameBtn.getAttribute('data-student-card'), (nameBtn.textContent || '').trim());
+      return;
+    }
+    if (e.target.closest('#pracStudentCardClose')){ closeStudentCard(); return; }
+    if (e.target.id === 'pracStudentCardOverlay'){ closeStudentCard(); return; }   // 點外面也關掉
+    if (e.target.closest('#pracProfileRefresh')){
+      var rs = document.getElementById('pracProfileStatus');
+      if (rs) rs.textContent = '重新讀取中…';
+      loadPracticeProfile();
+      return;
+    }
     var pt = e.target.closest('#pracProfileTabs [data-prof-tab]');
     if (pt){
       pracProfTab = pt.getAttribute('data-prof-tab');
@@ -9379,7 +9626,8 @@
     } else {
       list.forEach(function(st){
         var tr = document.createElement('tr');
-        tr.innerHTML = '<td class="mono">' + st.sid + '</td><td>' + st.name + '</td>' +
+        tr.innerHTML = '<td class="mono">' + st.sid + '</td>' +
+          '<td><button type="button" class="prac-name-btn" data-student-card="' + st.sid + '">' + st.name + '</button></td>' +
           '<td class="mono">' + st.total + '</td><td class="mono">' + st.correct + '</td>' +
           '<td class="mono">' + Math.round(st.correct / st.total * 100) + '%</td>' +
           '<td class="mono">' + st.got + '</td><td class="mono">' + st.partial + '</td><td class="mono">' + st.lost + '</td>' +
@@ -9831,7 +10079,12 @@
     if (result) result.innerHTML = '<p class="query-empty">查詢中…</p>';
     callApi('getGrades', { actorAccount: currentUser.account, actorPassword: currentPassword }).then(function(res){
       if (!res.ok){ if (result) result.innerHTML = '<p class="query-empty">' + (res.error || '查詢失敗。') + '</p>'; return; }
-      renderQueryResult('studentQueryResult', currentUser.sid, res.grades || []);
+      // 小老師為了登記成績，後端會把「整個班級」的成績都傳回來，
+      // 但「我的小考成績」只能是自己的，這裡一定要再依自己的學號篩一次，
+      // 否則會看到全班的筆數與平均，姓名也會變成名單最後一個人。
+      var mySid = String(currentUser.sid || currentUser.account || '');
+      var mine = (res.grades || []).filter(function(g){ return String(g.sid) === mySid; });
+      renderQueryResult('studentQueryResult', mySid, mine);
     });
   }
 
@@ -10420,6 +10673,8 @@
     if (e.key !== 'Escape') return;
     if (loginModalOverlay && !loginModalOverlay.hidden) closeLoginModal();
     if (pwModalOverlay && !pwModalOverlay.hidden) closePwModal();
+    var scOv = document.getElementById('pracStudentCardOverlay');
+    if (scOv && !scOv.hidden) scOv.hidden = true;
   });
 
   var topbarLoginBtn = document.getElementById('topbarLoginBtn');
