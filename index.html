@@ -1,3 +1,12 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<!-- 這一行非常重要：沒有它，手機瀏覽器會假裝自己有 980px 寬，
+     所有 @media (max-width:…) 的手機版設定都不會生效，畫面會變成「縮小版的電腦版」。 -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#10151C">
+<meta name="description" content="程老師的數學教室：課堂筆記、習作解析、考卷解答、互動動畫與互動式練功坊。">
 <title>程老師的數學教室</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -850,6 +859,8 @@
   } catch(e){ document.documentElement.setAttribute('data-theme', 'dark'); }
 })();
 </script>
+</head>
+<body>
 
 <header class="topbar" id="topbar">
   <div class="topbar-inner">
@@ -10031,3 +10042,6 @@
 
 })();
 </script>
+
+</body>
+</html>
