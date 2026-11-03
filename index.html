@@ -15363,6 +15363,39 @@
       '<br>如果這裡出現某位同學的名字，可能是<b>你開的公開擂台被他接走了</b>，不是你去挑戰他。' +
       '<br>對方接了卻一直沒打完的話，閒置超過 40 分鐘就會出現<b>作廢</b>按鈕，不會永遠卡在這裡。',
       duelData.outbox, 'outbox');
+    // ---- 老師專用：直接處理掉卡住的場次，不用再改程式 ----
+    if (isAdmin && (duelData.stuck || []).length){
+      html += '<h3 class="ledger-subhead">對戰管理（老師專用）　<span class="duel-count">' +
+              duelData.stuck.length + '</span></h3>' +
+        '<p class="duel-note">全校<b>還沒結束</b>的場次都列在這裡，卡住的可以直接處理掉。' +
+        '<br>「<b>作廢</b>」＝這一場不算，雙方都不計分、不算勝敗；' +
+        '「<b>判棄權</b>」＝沒交卷的那一方以 0 分計，照現有成績結算（會算勝敗、會發寶石）。' +
+        '<br>兩個按鈕都要<b>按兩次</b>才算數。</p>' +
+        '<div class="ledger-wrap"><table class="ledger"><thead><tr>' +
+        '<th>發起</th><th>對手</th><th>範圍</th><th>狀態</th>' +
+        '<th class="prac-col-total">閒置</th><th>處理</th></tr></thead><tbody>';
+      duelData.stuck.forEach(function(d){
+        var aTxt = '<b>' + (d.aName || d.aSid) + '</b>　' +
+                   (d.aDone ? '<span class="duel-scope">' + d.aScore + ' 分</span>'
+                            : '<span class="duel-scope">未交卷</span>');
+        var bTxt = d.bSid
+          ? ('<b>' + (d.bName || d.bSid) + '</b>　' +
+             (d.bDone ? '<span class="duel-scope">' + d.bScore + ' 分</span>'
+                      : '<span class="duel-scope">未交卷</span>'))
+          : '<span class="duel-scope">還沒人接</span>';
+        var canForfeit = !!d.bSid && (d.aDone || d.bDone) && !(d.aDone && d.bDone);
+        html += '<tr><td>' + aTxt + '</td><td>' + bTxt + '</td>' +
+          '<td>' + d.scope + '</td><td>' + d.status + '</td>' +
+          '<td class="mono prac-col-total">' + duelIdleTxt(d.idleMin) + '</td>' +
+          '<td><button type="button" class="btn btn-ghost btn-sm" data-duel-admin="void" ' +
+              'data-duel-id="' + d.id + '">作廢</button>' +
+          (canForfeit ? ' <button type="button" class="btn btn-ghost btn-sm" data-duel-admin="forfeit" ' +
+                        'data-duel-id="' + d.id + '">判棄權</button>' : '') +
+          '</td></tr>';
+      });
+      html += '</tbody></table></div>';
+    }
+
     if (!(duelData.inbox || []).length && !(duelData.open || []).length && !(duelData.outbox || []).length
         && !duelData.draft){
       html += '<p class="duel-note duel-note-empty">目前沒有任何進行中的戰帖。' +
@@ -15726,6 +15759,32 @@
     if (rs){
       var d = duelData && duelData.draft;
       if (d && d.questions) duelBegin(rs.getAttribute('data-duel-resume'), d.questions, d.bName || '（等人來接）', null);
+      return;
+    }
+    var ad = e.target.closest('[data-duel-admin]');
+    if (ad){
+      // 會動到別人的成績，所以一樣要按兩次
+      if (!ad.dataset.armed){
+        ad.dataset.armed = '1';
+        ad.dataset.label = ad.textContent;
+        ad.textContent = '再按一次確定';
+        setTimeout(function(){
+          if (!ad.dataset.armed) return;
+          ad.dataset.armed = ''; ad.textContent = ad.dataset.label || '作廢';
+        }, 4000);
+        return;
+      }
+      ad.dataset.armed = '';
+      duelClearError();
+      ad.disabled = true; ad.textContent = '處理中…';
+      callApi('duel', { actorAccount: currentUser.account, actorPassword: currentPassword,
+                        op: (ad.getAttribute('data-duel-admin') === 'void' ? 'adminVoid' : 'adminForfeit'),
+                        duelId: ad.getAttribute('data-duel-id') })
+        .then(function(r){
+          if (!r || !r.ok) duelShowError((r && r.error) || '處理失敗', '對戰管理');
+          loadDuel();
+        })
+        .catch(function(){ duelShowError('連不到後端（網路或 Apps Script 的問題）。', '對戰管理'); });
       return;
     }
     var cc = e.target.closest('[data-duel-cancel]');
