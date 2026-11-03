@@ -664,6 +664,31 @@
   svg.prac-fig .pf-shade{fill:var(--teal);opacity:.28;}
   svg.prac-fig .pf-dot{fill:var(--red);}
   svg.prac-fig .pf-label{fill:var(--ink-soft);font-size:10px;}
+  /* 幾何小圖（三角形、扇形、向量、棋盤、范氏圖） */
+  svg.prac-fig .gf-face{fill:var(--indigo);opacity:.10;}
+  svg.prac-fig .gf-face2{fill:var(--teal);opacity:.22;}
+  svg.prac-fig .gf-face3{fill:var(--red);opacity:.16;}
+  svg.prac-fig .gf-edge{stroke:var(--indigo);stroke-width:1.9;fill:none;stroke-linejoin:round;}
+  svg.prac-fig .gf-edge.is-dash{stroke-dasharray:4 3;}
+  svg.prac-fig .gf-thin{stroke:var(--ink-soft);stroke-width:1;fill:none;}
+  svg.prac-fig .gf-thin.is-dash{stroke-dasharray:3 3;}
+  svg.prac-fig .gf-vec{stroke:var(--red);stroke-width:2.1;fill:none;stroke-linecap:round;}
+  svg.prac-fig .gf-vec.is-dash{stroke-dasharray:5 4;}
+  svg.prac-fig .gf-vec2{stroke:var(--teal);stroke-width:2.1;fill:none;stroke-linecap:round;}
+  svg.prac-fig .gf-arrow{fill:var(--red);stroke:none;}
+  svg.prac-fig .gf-arrow2{fill:var(--teal);stroke:none;}
+  svg.prac-fig .gf-arc{stroke:var(--teal);stroke-width:1.5;fill:none;}
+  svg.prac-fig .gf-txt{fill:var(--ink);font-size:11px;}
+  svg.prac-fig .gf-txt.is-pt{font-weight:700;}
+  svg.prac-fig .gf-txt.is-side{fill:var(--ink-soft);font-size:10.5px;}
+  svg.prac-fig .gf-txt.is-ang{fill:var(--teal);font-size:10.5px;}
+  svg.prac-fig .gf-dot{fill:var(--indigo);}
+  svg.prac-fig .gf-txt.is-vlab{fill:var(--red);font-style:italic;font-weight:700;font-size:12px;}
+  svg.prac-fig .gf-txt.is-vlab2{fill:var(--teal);font-style:italic;font-weight:700;font-size:12px;}
+  svg.prac-fig .gf-mark{stroke:var(--amber,#d9a441);stroke-width:2.4;fill:none;stroke-linecap:round;}
+  svg.prac-fig .gf-markhead{fill:var(--amber,#d9a441);stroke:none;}
+  svg.prac-geo{max-width:340px;}
+  @media (min-width:1100px){ svg.prac-geo{max-width:400px;} }
   .prac-choice-tag{
     flex-shrink:0;width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
     background:var(--border);color:var(--ink);font-family:"JetBrains Mono",monospace;font-size:.8rem;font-weight:700;
@@ -4731,6 +4756,388 @@
     });
   }
 
+
+  /* ---- 幾何小圖：沒有坐標軸的純圖形 ----
+     三角形、扇形、向量、棋盤街道、范氏圖都用這一個。
+     傳進來的是「數學座標」（y 向上），內部自動等比例縮放，圖形不會被壓扁。
+     cfg = {
+       polys:[{pts:[{x,y}…], cls}], segs:[{x1,y1,x2,y2,dash,cls}],
+       arrows:[{x1,y1,x2,y2,dash,cls}], circles:[{cx,cy,r,dash,cls}],
+       arcs:[{cx,cy,r,a1,a2}]（角度，逆時針）,
+       angles:[{at,from,to,label,right}], dots:[{x,y,label,dx,dy,anchor}],
+       labels:[{x,y,text,cls,dx,dy,anchor}],
+       sideLabels:[{x1,y1,x2,y2,text,off}], ref:{x,y}, box:{xMin,xMax,yMin,yMax}
+     } */
+  function geoFig(cfg){
+    var W = cfg.w || 320, H = cfg.h || 220, M = (cfg.pad == null) ? 30 : cfg.pad;
+    var xs = [], ys = [];
+    function see(x, y){ if (isFinite(x) && isFinite(y)){ xs.push(x); ys.push(y); } }
+    (cfg.segs || []).forEach(function(g){ see(g.x1, g.y1); see(g.x2, g.y2); });
+    (cfg.arrows || []).forEach(function(g){ see(g.x1, g.y1); see(g.x2, g.y2); });
+    (cfg.sideLabels || []).forEach(function(g){ see(g.x1, g.y1); see(g.x2, g.y2); });
+    (cfg.polys || []).forEach(function(p){ (p.pts || []).forEach(function(q){ see(q.x, q.y); }); });
+    (cfg.circles || []).forEach(function(c){ see(c.cx - c.r, c.cy - c.r); see(c.cx + c.r, c.cy + c.r); });
+    (cfg.arcs || []).forEach(function(c){ see(c.cx - c.r, c.cy - c.r); see(c.cx + c.r, c.cy + c.r); });
+    (cfg.dots || []).forEach(function(d){ see(d.x, d.y); });
+    (cfg.labels || []).forEach(function(d){ see(d.x, d.y); });
+    if (cfg.box){ see(cfg.box.xMin, cfg.box.yMin); see(cfg.box.xMax, cfg.box.yMax); }
+    if (!xs.length){ see(0, 0); see(1, 1); }
+    var xMin = Math.min.apply(null, xs), xMax = Math.max.apply(null, xs);
+    var yMin = Math.min.apply(null, ys), yMax = Math.max.apply(null, ys);
+    if (xMax - xMin < 1e-9){ xMin -= 1; xMax += 1; }
+    if (yMax - yMin < 1e-9){ yMin -= 1; yMax += 1; }
+    var s = Math.min((W - 2 * M) / (xMax - xMin), (H - 2 * M) / (yMax - yMin));
+    var ox = (W - (xMax - xMin) * s) / 2, oy = (H - (yMax - yMin) * s) / 2;
+    function X(x){ return ox + (x - xMin) * s; }
+    function Y(y){ return H - oy - (y - yMin) * s; }
+    function f(v){ return (Math.round(v * 10) / 10); }
+    function clampX(v){ return Math.max(6, Math.min(W - 6, v)); }
+    function clampY(v){ return Math.max(12, Math.min(H - 4, v)); }
+
+    // 圖形的「中心」，用來決定邊標籤要往哪一邊偏
+    var ref = cfg.ref || { x:(xMin + xMax) / 2, y:(yMin + yMax) / 2 };
+    var out = [];
+    out.push('<svg class="prac-fig prac-geo" viewBox="0 0 ' + W + ' ' + H + '" role="img">');
+
+    (cfg.polys || []).forEach(function(p){
+      if (!p.pts || p.pts.length < 3) return;
+      out.push('<polygon class="' + (p.cls || 'gf-face') + '" points="' +
+        p.pts.map(function(q){ return f(X(q.x)) + ',' + f(Y(q.y)); }).join(' ') + '"/>');
+    });
+    (cfg.circles || []).forEach(function(c){
+      out.push('<circle class="' + (c.cls || 'gf-edge') + (c.dash ? ' is-dash' : '') +
+        '" cx="' + f(X(c.cx)) + '" cy="' + f(Y(c.cy)) + '" r="' + f(c.r * s) + '"/>');
+    });
+    // 圓弧：a1、a2 是數學上的角度（逆時針），轉成螢幕要把 y 反過來
+    function arcPath(cx, cy, r, a1, a2){
+      var x1 = X(cx + r * Math.cos(a1 * Math.PI / 180)), y1 = Y(cy + r * Math.sin(a1 * Math.PI / 180));
+      var x2 = X(cx + r * Math.cos(a2 * Math.PI / 180)), y2 = Y(cy + r * Math.sin(a2 * Math.PI / 180));
+      var big = (Math.abs(a2 - a1) > 180) ? 1 : 0;
+      return 'M ' + f(x1) + ' ' + f(y1) + ' A ' + f(r * s) + ' ' + f(r * s) + ' 0 ' + big + ' 0 ' + f(x2) + ' ' + f(y2);
+    }
+    (cfg.arcs || []).forEach(function(c){
+      out.push('<path class="' + (c.cls || 'gf-edge') + (c.dash ? ' is-dash' : '') +
+        '" d="' + arcPath(c.cx, c.cy, c.r, c.a1, c.a2) + '"/>');
+    });
+    (cfg.segs || []).forEach(function(g){
+      out.push('<line class="' + (g.cls || 'gf-edge') + (g.dash ? ' is-dash' : '') +
+        '" x1="' + f(X(g.x1)) + '" y1="' + f(Y(g.y1)) + '" x2="' + f(X(g.x2)) + '" y2="' + f(Y(g.y2)) + '"/>');
+    });
+    // 向量：線段 ＋ 自己畫的箭頭（不用 marker，才不會多張圖的 id 互相撞到）
+    (cfg.arrows || []).forEach(function(g){
+      var x1 = X(g.x1), y1 = Y(g.y1), x2 = X(g.x2), y2 = Y(g.y2);
+      var ang = Math.atan2(y2 - y1, x2 - x1), L = 10, w = 4.4;
+      var bx = x2 - L * Math.cos(ang), by = y2 - L * Math.sin(ang);
+      out.push('<line class="' + (g.cls || 'gf-vec') + (g.dash ? ' is-dash' : '') +
+        '" x1="' + f(x1) + '" y1="' + f(y1) + '" x2="' + f(bx) + '" y2="' + f(by) + '"/>');
+      out.push('<polygon class="' + (g.head || 'gf-arrow') + '" points="' +
+        f(x2) + ',' + f(y2) + ' ' +
+        f(bx + w * Math.sin(ang)) + ',' + f(by - w * Math.cos(ang)) + ' ' +
+        f(bx - w * Math.sin(ang)) + ',' + f(by + w * Math.cos(ang)) + '"/>');
+    });
+    // 角：小圓弧（直角畫小方塊）＋ 角度標籤
+    (cfg.angles || []).forEach(function(a){
+      var vx = X(a.at.x), vy = Y(a.at.y);
+      var d1 = Math.atan2(Y(a.from.y) - vy, X(a.from.x) - vx);
+      var d2 = Math.atan2(Y(a.to.y) - vy, X(a.to.x) - vx);
+      var r = a.r || 18;
+      if (a.right){
+        var k = 9;
+        var p1 = [vx + k * Math.cos(d1), vy + k * Math.sin(d1)];
+        var p3 = [vx + k * Math.cos(d2), vy + k * Math.sin(d2)];
+        var p2 = [p1[0] + p3[0] - vx, p1[1] + p3[1] - vy];
+        out.push('<polyline class="gf-arc" fill="none" points="' +
+          f(p1[0]) + ',' + f(p1[1]) + ' ' + f(p2[0]) + ',' + f(p2[1]) + ' ' + f(p3[0]) + ',' + f(p3[1]) + '"/>');
+      } else {
+        var sweep = ((d2 - d1 + Math.PI * 2) % (Math.PI * 2)) > Math.PI ? 0 : 1;
+        out.push('<path class="gf-arc" d="M ' + f(vx + r * Math.cos(d1)) + ' ' + f(vy + r * Math.sin(d1)) +
+          ' A ' + r + ' ' + r + ' 0 0 ' + sweep + ' ' + f(vx + r * Math.cos(d2)) + ' ' + f(vy + r * Math.sin(d2)) + '"/>');
+      }
+      if (a.label){
+        var mid = Math.atan2((Math.sin(d1) + Math.sin(d2)) / 2, (Math.cos(d1) + Math.cos(d2)) / 2);
+        var lr = (a.right ? 20 : r + 13);
+        out.push('<text class="gf-txt is-ang" text-anchor="middle" x="' + f(clampX(vx + lr * Math.cos(mid))) +
+          '" y="' + f(clampY(vy + lr * Math.sin(mid) + 4)) + '">' + a.label + '</text>');
+      }
+    });
+    // 邊長標籤：放在中點，往遠離圖形中心的方向推開
+    (cfg.sideLabels || []).forEach(function(g){
+      var mx = (g.x1 + g.x2) / 2, my = (g.y1 + g.y2) / 2;
+      var nx = -(g.y2 - g.y1), ny = (g.x2 - g.x1);            // 線段的法線
+      if ((mx - ref.x) * nx + (my - ref.y) * ny < 0){ nx = -nx; ny = -ny; }   // 指向圖形外側
+      var L = Math.sqrt(nx * nx + ny * ny) || 1;
+      var off = (g.off == null) ? 15 : g.off;
+      out.push('<text class="gf-txt is-side" text-anchor="middle" x="' + f(clampX(X(mx) + nx / L * off)) +
+        '" y="' + f(clampY(Y(my) - ny / L * off + 4)) + '">' + g.text + '</text>');
+    });
+    (cfg.dots || []).forEach(function(d){
+      out.push('<circle class="gf-dot" cx="' + f(X(d.x)) + '" cy="' + f(Y(d.y)) + '" r="' + (d.r || 3) + '"/>');
+      if (d.label){
+        var ddx = (d.dx == null) ? (d.x >= ref.x ? 8 : -8) : d.dx;
+        var ddy = (d.dy == null) ? (d.y >= ref.y ? -8 : 13) : d.dy;
+        out.push('<text class="gf-txt is-pt" text-anchor="' + (d.anchor || (ddx < 0 ? 'end' : 'start')) +
+          '" x="' + f(clampX(X(d.x) + ddx)) + '" y="' + f(clampY(Y(d.y) + ddy)) + '">' + d.label + '</text>');
+      }
+    });
+    (cfg.labels || []).forEach(function(d){
+      out.push('<text class="' + (d.cls || 'gf-txt') + '" text-anchor="' + (d.anchor || 'middle') +
+        '" x="' + f(clampX(X(d.x) + (d.dx || 0))) + '" y="' + f(clampY(Y(d.y) + (d.dy || 0))) + '">' + d.text + '</text>');
+    });
+    out.push('</svg>');
+    return '<span class="prac-fig-wrap">' + out.join('') + '</span>';
+  }
+
+  /* 三角形圖：A、B、C 三個頂點（數學座標），可以標三邊與三角
+     opt = { sides:{a:'…',b:'…',c:'…'}, angles:{A:'…',B:'…',C:'…'}, right:'C',
+             names:{A:'A',B:'B',C:'C'} }  a 是 BC、b 是 CA、c 是 AB */
+  function triLabFig(A, B, C, opt){
+    opt = opt || {};
+    var nm = opt.names || {};
+    var G = { x:(A.x + B.x + C.x) / 3, y:(A.y + B.y + C.y) / 3 };
+    var sides = opt.sides || {}, angs = opt.angles || {};
+    var sl = [];
+    if (sides.a) sl.push({x1:B.x, y1:B.y, x2:C.x, y2:C.y, text:sides.a});
+    if (sides.b) sl.push({x1:C.x, y1:C.y, x2:A.x, y2:A.y, text:sides.b});
+    if (sides.c) sl.push({x1:A.x, y1:A.y, x2:B.x, y2:B.y, text:sides.c});
+    var an = [];
+    if (angs.A) an.push({at:A, from:B, to:C, label:angs.A, right:(opt.right === 'A')});
+    if (angs.B) an.push({at:B, from:C, to:A, label:angs.B, right:(opt.right === 'B')});
+    if (angs.C) an.push({at:C, from:A, to:B, label:angs.C, right:(opt.right === 'C')});
+    if (opt.right && !angs[opt.right]){
+      var V = { A:[A, B, C], B:[B, C, A], C:[C, A, B] }[opt.right];
+      an.push({at:V[0], from:V[1], to:V[2], right:true});
+    }
+    return geoFig({
+      w:opt.w || 320, h:opt.h || 215, ref:G,
+      polys:[{pts:[A, B, C]}],
+      segs:[{x1:A.x, y1:A.y, x2:B.x, y2:B.y}, {x1:B.x, y1:B.y, x2:C.x, y2:C.y},
+            {x1:C.x, y1:C.y, x2:A.x, y2:A.y}].concat(opt.segs || []),
+      sideLabels:sl, angles:an,
+      dots:[{x:A.x, y:A.y, label:nm.A || 'A'}, {x:B.x, y:B.y, label:nm.B || 'B'},
+            {x:C.x, y:C.y, label:nm.C || 'C'}].concat(opt.dots || []),
+      labels:opt.labels || []
+    });
+  }
+
+  /* 由兩邊夾角算出第三點，畫三角形用：B 在原點、C 在正 x 軸上 */
+  function triFromSAS(bc, ang, ab){
+    var B = { x:0, y:0 }, C = { x:bc, y:0 };
+    var A = { x:ab * Math.cos(ang * Math.PI / 180), y:ab * Math.sin(ang * Math.PI / 180) };
+    return { A:A, B:B, C:C };
+  }
+  /* 由三邊長算出三個頂點（B 在原點、C 在正 x 軸） */
+  function triFromSSS(a, b, c){
+    var B = { x:0, y:0 }, C = { x:a, y:0 };
+    var cx = (a * a + c * c - b * b) / (2 * a);
+    var cy2 = c * c - cx * cx;
+    var A = { x:cx, y:Math.sqrt(cy2 > 0 ? cy2 : 1) };
+    return { A:A, B:B, C:C };
+  }
+
+  /* 扇形：半徑畫成 1，圓心角 deg（從正 x 軸逆時針量） */
+  function sectorFig(deg, rTxt){
+    var R = 1, N = 60, pts = [{ x:0, y:0 }];
+    for (var i = 0; i <= N; i++){
+      var t = deg * i / N * Math.PI / 180;
+      pts.push({ x:R * Math.cos(t), y:R * Math.sin(t) });
+    }
+    var P = { x:R, y:0 }, Q = { x:R * Math.cos(deg * Math.PI / 180), y:R * Math.sin(deg * Math.PI / 180) };
+    var O = { x:0, y:0 };
+    return geoFig({
+      w:300, h:215, pad:34, ref:O,
+      polys:[{ pts:pts, cls:'gf-face' }],
+      arcs:[{ cx:0, cy:0, r:R, a1:0, a2:deg }],
+      segs:[{ x1:0, y1:0, x2:P.x, y2:P.y }, { x1:0, y1:0, x2:Q.x, y2:Q.y }],
+      angles:[{ at:O, from:P, to:Q, label:deg + '°', r:(deg >= 180 ? 15 : 24) }],
+      labels:[{ x:R / 2, y:0, text:rTxt, dy:15, cls:'gf-txt is-side' }],
+      dots:[{ x:0, y:0, label:'O', dx:-11, dy:14, anchor:'middle' }]
+    });
+  }
+
+
+  /* 范氏圖：兩個相交的圓 ＋ 宇集方框，可以把某一塊塗起來
+     塗色的區域直接用圓弧算出路徑（不用 mask／clipPath 的 id），
+     所以同一顆種子畫出來的圖永遠一模一樣。
+     cfg = { onlyA, both, onlyB, outside（各區要寫的字，用 | 換行）,
+             shade:'union'|'inter'|'diffAB'|'compA', nameA, nameB } */
+  function vennFig(cfg){
+    cfg = cfg || {};
+    var W = 320, H = 200;
+    var RX = 8, RY = 14, RW = W - 16, RH = H - 22;
+    var cxA = 128, cxB = 192, cy = 108, r = 70;
+    var xm = (cxA + cxB) / 2, hh = Math.sqrt(r * r - Math.pow((cxB - cxA) / 2, 2));
+    var P1 = xm.toFixed(1) + ',' + (cy - hh).toFixed(1);     // 上面的交點
+    var P2 = xm.toFixed(1) + ',' + (cy + hh).toFixed(1);     // 下面的交點
+    function arc(to, big, sweep){ return ' A ' + r + ' ' + r + ' 0 ' + big + ' ' + sweep + ' ' + to; }
+    var SHAPE = {
+      inter:  'M ' + P1 + arc(P2, 0, 1) + arc(P1, 0, 1) + ' Z',
+      union:  'M ' + P1 + arc(P2, 1, 0) + arc(P1, 1, 0) + ' Z',
+      diffAB: 'M ' + P1 + arc(P2, 1, 0) + arc(P1, 0, 1) + ' Z'
+    };
+    var o = [];
+    o.push('<svg class="prac-fig prac-geo" viewBox="0 0 ' + W + ' ' + H + '" role="img">');
+    if (cfg.shade === 'compA'){
+      // 方框挖掉 A：用 evenodd 讓圓變成一個洞
+      o.push('<path class="gf-face2" fill-rule="evenodd" d="M ' + RX + ',' + RY + ' h ' + RW + ' v ' + RH +
+             ' h ' + (-RW) + ' Z M ' + (cxA - r) + ',' + cy + ' A ' + r + ' ' + r + ' 0 1 0 ' + (cxA + r) + ',' + cy +
+             ' A ' + r + ' ' + r + ' 0 1 0 ' + (cxA - r) + ',' + cy + ' Z"/>');
+    } else if (SHAPE[cfg.shade]){
+      o.push('<path class="gf-face2" d="' + SHAPE[cfg.shade] + '"/>');
+    }
+    o.push('<rect class="gf-thin" x="' + RX + '" y="' + RY + '" width="' + RW + '" height="' + RH + '" rx="4"/>');
+    o.push('<circle class="gf-edge" cx="' + cxA + '" cy="' + cy + '" r="' + r + '"/>');
+    o.push('<circle class="gf-edge" cx="' + cxB + '" cy="' + cy + '" r="' + r + '"/>');
+    o.push('<text class="gf-txt is-pt" x="' + (RX + 8) + '" y="' + (RY + 15) + '">U</text>');
+    o.push('<text class="gf-txt is-pt" text-anchor="middle" x="' + (cxA - 46) + '" y="' + (cy - 56) + '">' +
+           (cfg.nameA || 'A') + '</text>');
+    o.push('<text class="gf-txt is-pt" text-anchor="middle" x="' + (cxB + 46) + '" y="' + (cy - 56) + '">' +
+           (cfg.nameB || 'B') + '</text>');
+    function put(x, txt){
+      if (txt == null || txt === '') return;
+      var lines = String(txt).split('|');
+      lines.forEach(function(line, i){
+        o.push('<text class="gf-txt" text-anchor="middle" x="' + x + '" y="' +
+               (cy + 5 - (lines.length - 1) * 7 + i * 15) + '">' + line + '</text>');
+      });
+    }
+    put(cxA - 36, cfg.onlyA);
+    put(xm, cfg.both);
+    put(cxB + 36, cfg.onlyB);
+    if (cfg.outside != null && cfg.outside !== ''){
+      o.push('<text class="gf-txt" text-anchor="end" x="' + (RX + RW - 8) + '" y="' + (RY + RH - 8) + '">' +
+             cfg.outside + '</text>');
+    }
+    o.push('</svg>');
+    return '<span class="prac-fig-wrap">' + o.join('') + '</span>';
+  }
+
+  /* 棋盤式街道：向右 a 格、向上 b 格，順便畫一條示範路線 */
+  function gridFig(a, b, path){
+    var segs = [], dots = [], i;
+    for (i = 0; i <= a; i++) segs.push({ x1:i, y1:0, x2:i, y2:b, cls:'gf-thin' });
+    for (i = 0; i <= b; i++) segs.push({ x1:0, y1:i, x2:a, y2:i, cls:'gf-thin' });
+    // 示範路線：右、上交錯走，看起來比較像真的在走路
+    var px = 0, py = 0, left = a, up = b, route = [];
+    while (left > 0 || up > 0){
+      var goRight = (up === 0) || (left > 0 && ((left + up) % 2 === 0));
+      if (goRight){ route.push({ x1:px, y1:py, x2:px + 1, y2:py, cls:'gf-vec' }); px++; left--; }
+      else { route.push({ x1:px, y1:py, x2:px, y2:py + 1, cls:'gf-vec' }); py++; up--; }
+    }
+    return geoFig({
+      w:320, h:200, pad:26, ref:{ x:a / 2, y:b / 2 },
+      segs:segs.concat(path === false ? [] : route),
+      dots:[{ x:0, y:0, label:'A', dx:-7, dy:14, anchor:'middle' },
+            { x:a, y:b, label:'B', dx:8, dy:-7, anchor:'middle' }]
+    });
+  }
+
+  /* 圓上 n 個點，示範選 k 個點連起來 */
+  function circlePtsFig(n, k){
+    var pts = [], i, j;
+    for (i = 0; i < n; i++){
+      var t = Math.PI / 2 + i * 2 * Math.PI / n;
+      pts.push({ x:Math.cos(t), y:Math.sin(t) });
+    }
+    var segs = [];
+    if (n <= 6){
+      for (i = 0; i < n; i++){
+        for (j = i + 1; j < n; j++){
+          segs.push({ x1:pts[i].x, y1:pts[i].y, x2:pts[j].x, y2:pts[j].y, cls:'gf-thin', dash:true });
+        }
+      }
+    }
+    var pick = [];
+    for (i = 0; i < k; i++) pick.push(pts[Math.round(i * n / k) % n]);
+    for (i = 0; i < pick.length; i++){
+      var q = pick[(i + 1) % pick.length];
+      if (k === 2 && i === 1) break;
+      segs.push({ x1:pick[i].x, y1:pick[i].y, x2:q.x, y2:q.y, cls:'gf-vec' });
+    }
+    return geoFig({
+      w:300, h:205, pad:24, ref:{ x:0, y:0 },
+      segs:segs,
+      dots:pts.map(function(p){ return { x:p.x, y:p.y, r:3.2 }; })
+    });
+  }
+
+  /* 平行四邊形 ABCD：A 左下、B 右下、C 右上、D 左上
+     opt = { diag:true（畫對角線）, o:true（標交點 O）, va:'a', vb:'b', mark:'AC'（要強調的向量） } */
+  function paraFig(opt){
+    opt = opt || {};
+    var A = { x:0, y:0 }, B = { x:4.2, y:0 }, D = { x:1.5, y:2.6 };
+    var C = { x:B.x + D.x - A.x, y:B.y + D.y - A.y };
+    var P = { A:A, B:B, C:C, D:D, O:{ x:(A.x + C.x) / 2, y:(A.y + C.y) / 2 } };
+    var ref = P.O;
+    var segs = [{ x1:A.x, y1:A.y, x2:B.x, y2:B.y }, { x1:B.x, y1:B.y, x2:C.x, y2:C.y },
+                { x1:C.x, y1:C.y, x2:D.x, y2:D.y }, { x1:D.x, y1:D.y, x2:A.x, y2:A.y }];
+    if (opt.diag){
+      segs.push({ x1:A.x, y1:A.y, x2:C.x, y2:C.y, cls:'gf-thin', dash:true });
+      segs.push({ x1:B.x, y1:B.y, x2:D.x, y2:D.y, cls:'gf-thin', dash:true });
+    }
+    var arrows = [], labels = [];
+    if (opt.va !== false){
+      arrows.push({ x1:A.x, y1:A.y, x2:B.x, y2:B.y, cls:'gf-vec', head:'gf-arrow' });
+      labels.push({ x:(A.x + B.x) / 2, y:(A.y + B.y) / 2, text:opt.va || 'a', dy:16, cls:'gf-txt is-vlab' });
+    }
+    if (opt.vb !== false){
+      arrows.push({ x1:A.x, y1:A.y, x2:D.x, y2:D.y, cls:'gf-vec2', head:'gf-arrow2' });
+      labels.push({ x:(A.x + D.x) / 2, y:(A.y + D.y) / 2, text:opt.vb || 'b', dx:-13, cls:'gf-txt is-vlab2' });
+    }
+    if (opt.mark && opt.mark.length === 2 && P[opt.mark.charAt(0)] && P[opt.mark.charAt(1)]){
+      var s0 = P[opt.mark.charAt(0)], e0 = P[opt.mark.charAt(1)];
+      var mdx = e0.x - s0.x, mdy = e0.y - s0.y, mL = Math.sqrt(mdx * mdx + mdy * mdy) || 1;
+      var ox0 = -mdy / mL * 0.22, oy0 = mdx / mL * 0.22;      // 往法線方向挪一點點
+      arrows.push({ x1:s0.x + ox0, y1:s0.y + oy0, x2:e0.x + ox0, y2:e0.y + oy0,
+                    cls:'gf-mark', head:'gf-markhead' });
+    }
+    var dots = ['A', 'B', 'C', 'D'].map(function(L){ return { x:P[L].x, y:P[L].y, label:L }; });
+    if (opt.o) dots.push({ x:P.O.x, y:P.O.y, label:'O', dx:7, dy:-7 });
+    return geoFig({
+      w:320, h:205, ref:ref, polys:[{ pts:[A, B, C, D] }],
+      segs:segs, arrows:arrows, labels:labels, dots:dots
+    });
+  }
+
+  /* 線段 AB 的 n 等分點，可以再畫一支箭頭表示某個向量 */
+  function divideFig(labels, from, to){
+    var n = labels.length - 1, i;
+    var dots = labels.map(function(L, i2){ return { x:i2, y:0, label:L, dx:0, dy:17, anchor:'middle' }; });
+    var segs = [{ x1:0, y1:0, x2:n, y2:0 }];
+    var arrows = [];
+    if (from != null && to != null){
+      arrows.push({ x1:labels.indexOf(from), y1:0.62, x2:labels.indexOf(to), y2:0.62, cls:'gf-vec' });
+    }
+    return geoFig({
+      w:320, h:120, pad:28, ref:{ x:n / 2, y:0 },
+      segs:segs, arrows:arrows, dots:dots,
+      box:{ xMin:0, xMax:n, yMin:-0.35, yMax:1.0 }
+    });
+  }
+
+  /* 向量化簡用：把算式裡出現的點畫出來，每一項畫一支箭頭 */
+  function chainFig(expr){
+    var POS = { A:{ x:0, y:0 }, B:{ x:3.3, y:1.7 }, C:{ x:6.6, y:0.3 }, D:{ x:8.6, y:2.6 }, O:{ x:3.4, y:-1.7 } };
+    var parts = expr.split(/([+-])/);
+    var terms = [{ sign:'+', v:parts[0] }];
+    for (var i = 1; i < parts.length; i += 2) terms.push({ sign:parts[i], v:parts[i + 1] });
+    var used = {}, arrows = [];
+    terms.forEach(function(t){
+      var s = POS[t.v.charAt(0)], e = POS[t.v.charAt(1)];
+      if (!s || !e) return;
+      used[t.v.charAt(0)] = 1; used[t.v.charAt(1)] = 1;
+      arrows.push({ x1:s.x, y1:s.y, x2:e.x, y2:e.y,
+                    cls:(t.sign === '-' ? 'gf-vec2' : 'gf-vec'),
+                    head:(t.sign === '-' ? 'gf-arrow2' : 'gf-arrow') });
+    });
+    var dots = Object.keys(used).map(function(L){ return { x:POS[L].x, y:POS[L].y, label:L }; });
+    var cx = 0, cy = 0;
+    dots.forEach(function(d){ cx += d.x; cy += d.y; });
+    return geoFig({
+      w:330, h:190, pad:30, ref:{ x:cx / dots.length, y:cy / dots.length },
+      arrows:arrows, dots:dots
+    });
+  }
+
   /* ---- 線性規劃：產生一個「頂點都是整數」的有界可行解區域 ----
      回傳 {lines:[{a,b,c}], c1, c2, verts:[{x,y}], sysRows:[...]} ，
      限制是 x≥0、y≥0、a1x+b1y≤c1、a2x+b2y≤c2 */
@@ -6969,9 +7376,31 @@
           return f1 + f2;
         }
         var ans = fac(p, q, r, s);
+        /* 干擾選項：乘開後若剛好等於原式（例如只是把兩個括號對調），就是同一個答案，要濾掉 */
+        var cand = [
+          [p, -q, r, -s], [p, -q, r, s], [p, q, r, -s],
+          [p, s, r, q], [r, q, p, s], [r, s, p, q],
+          [p, (q + 1 === 0 ? q + 2 : q + 1), r, s],
+          [p, q, r, (s + 1 === 0 ? s + 2 : s + 1)],
+          [p, (q - 1 === 0 ? q - 2 : q - 1), r, s],
+          [p, q, r, (s - 1 === 0 ? s - 2 : s - 1)]
+        ];
+        var wrongs = [], seenKey = [facKey(p, q, r, s)];
+        function facKey(a1, b1, a2, b2){
+          return [a1 + '|' + b1, a2 + '|' + b2].sort().join('　');
+        }
+        cand.forEach(function(c){
+          var a1 = c[0], b1 = c[1], a2 = c[2], b2 = c[3];
+          if (b1 === 0 || b2 === 0) return;
+          if (a1 * a2 === A && b1 * b2 === C && (a1 * b2 + b1 * a2) === B) return;
+          var k = facKey(a1, b1, a2, b2);
+          if (seenKey.indexOf(k) >= 0) return;    // 只是把兩個括號對調，不是新的選項
+          seenKey.push(k);
+          wrongs.push(fac(a1, b1, a2, b2));
+        });
         return {
           stem:'利用十字交乘法因式分解 ' + polyHtml([A, B, C]) + ' 。',
-          choices:shuffleChoices(ans, [fac(p, -q, r, -s), fac(p, s, r, q), fac(p, -q, r, s), fac(r, q, p, s)]),
+          choices:shuffleChoices(ans, wrongs),
           answerHtml:ans,
           steps:[
             {eq:'A = ' + A + '，B = ' + B + '，C = ' + C, why:'先把三個係數看清楚'},
@@ -7632,18 +8061,24 @@
         }
         var m = (p - q) / (a - b), n = p - m * a;
         var ans = polyHtml([m, n]);
+        var wrongs = [];
+        [[n, m], [-m, n], [m, -n], [-m, -n], [m, n + 1], [m + 1, n], [m, n - 1]].forEach(function(c){
+          var h = polyHtml([c[0], c[1]]);
+          if (h === ans || wrongs.indexOf(h) >= 0) return;
+          wrongs.push(h);
+        });
         return {
-          stem:'多項式 f ( x ) 除以 ( ' + xMinus(a) + ' ) 的餘式為 ' + p +
-               '，除以 ( ' + xMinus(b) + ' ) 的餘式為 ' + q +
+          stem:'多項式 f ( x ) 除以 ( ' + xMinus(a) + ' ) 的餘式為 ' + nStr(p) +
+               '，除以 ( ' + xMinus(b) + ' ) 的餘式為 ' + nStr(q) +
                '，求 f ( x ) 除以 ( ' + xMinus(a) + ' )( ' + xMinus(b) + ' ) 的餘式。',
-          choices:shuffleChoices(ans, [polyHtml([n, m]), polyHtml([-m, n]), polyHtml([m, -n]), String(p + q)]),
+          choices:shuffleChoices(ans, wrongs),
           answerHtml:ans,
           steps:[
             {eq:'設餘式為 r ( x ) = mx ＋ n', why:'除式是二次，餘式最多一次'},
             {eq:'f ( x ) = ( ' + xMinus(a) + ' )( ' + xMinus(b) + ' ) q ( x ) ＋ mx ＋ n', why:'寫出除法原理'},
-            {eq:'代 x = ' + a + '：f ( ' + a + ' ) = ' + m + 'a… ⇒ ' + a + 'm ＋ n = ' + p, why:'前面那一項變 0，而 f(' + a + ') 就是第一個餘式'},
-            {eq:'代 x = ' + b + '：' + b + 'm ＋ n = ' + q, why:'同理得到第二個式子'},
-            {eq:'兩式相減：' + (a - b) + 'm = ' + (p - q) + ' ⇒ m = ' + m + '，n = ' + n, why:'解聯立方程組'},
+            {eq:'代 x = ' + nStr(a) + '：' + nStr(a) + 'm ＋ n = ' + nStr(p), why:'前面那一項變 0，而 f( ' + nStr(a) + ' ) 就是第一個餘式'},
+            {eq:'代 x = ' + nStr(b) + '：' + nStr(b) + 'm ＋ n = ' + nStr(q), why:'同理得到第二個式子'},
+            {eq:'兩式相減：' + nStr(a - b) + 'm = ' + nStr(p - q) + ' ⇒ m = ' + nStr(m) + '，n = ' + nStr(n), why:'解聯立方程組'},
             {eq:'故餘式為 ' + ans, why:'寫出一次式'}
           ]
         };
@@ -7761,6 +8196,8 @@
       gen:function(fix){
         var p = fix ? fix.p : rndNonZero(-5, 5);
         var q = fix ? fix.q : rndNonZero(-6, 6);
+        /* p 和 q 相等時 ( x ＋ p )( x² ＋ q ) 和 ( x² ＋ p )( x ＋ q ) 會變成同一個答案 */
+        if (!fix){ while (q === p) q = rndNonZero(-6, 6); }
         var poly = polyHtml([1, p, q, p * q]);
         var ans = '( ' + xMinus(-p) + ' )( x²' + termStr(q, '', false) + ' )';
         return {
@@ -9228,6 +9665,7 @@
         var ga = gcdInt(an, ad) || 1;
         var aHtml = piHtml(an / ga, ad / ga);
         var isS = (ask === 'S');
+        var fig = sectorFig(deg, r + ' 公分');
         var ans = isS ? (sHtml + ' 公分') : (aHtml + ' 平方公分');
         var wrongs = isS
           ? [aHtml + ' 公分', piHtml(sn / gs * 2, sd / gs) + ' 公分', (r * deg) + ' 公分', piHtml(sn / gs, sd / gs * 2) + ' 公分']
@@ -9235,7 +9673,7 @@
              piHtml(r * tn, td) + ' 平方公分', piHtml(an / ga, ad / ga * 2) + ' 平方公分'];
         return {
           stem:'設一扇形的半徑為 ' + r + ' 公分，圓心角為 ' + deg + '°，求此扇形的' +
-               (isS ? '弧長。' : '面積。'),
+               (isS ? '弧長。' : '面積。') + fig,
           choices: shuffleChoices(ans, wrongs),
           answerHtml: ans,
           steps:[
@@ -9414,8 +9852,14 @@
         var wrongs = [owrong, String(c), fracH(String(c), '2'),
                       (rad === 1 ? String(n2 * 2) : (n2 * 2) + sqrtH(rad))];
         var want = (fn === 'sin') ? '對邊' : '鄰邊';
+        // 圖：直角在 C，已知角在 B，斜邊 AB = c
+        var adj = c * Math.cos(deg * Math.PI / 180), opp = c * Math.sin(deg * Math.PI / 180);
+        var sd = { c:String(c) };
+        if (fn === 'sin') sd.b = '?'; else sd.a = '?';
+        var fig = triLabFig({x:adj, y:opp}, {x:0, y:0}, {x:adj, y:0},
+                            { angles:{ B:deg + '°' }, right:'C', sides:sd });
         return {
-          stem:'直角三角形中，一銳角為 ' + deg + '°，斜邊長為 ' + c + '，求此角的' + want + '長。',
+          stem:'直角三角形中，一銳角為 ' + deg + '°，斜邊長為 ' + c + '，求此角的' + want + '長（圖中的 ? ）。' + fig,
           choices: shuffleChoices(ans, wrongs),
           answerHtml: ans,
           steps:[
@@ -9778,8 +10222,13 @@
         var wrong1 = (den2 / g2 === 1) ? w1core : fracH(w1core, String(den2 / g2));
         var wrongs = [wrong1, String(a), String(a * 2), fracH(String(a), '2')];
         var C = 180 - A - B;
+        var sA = Math.sin(A * Math.PI / 180), sB = Math.sin(B * Math.PI / 180), sC = Math.sin(C * Math.PI / 180);
+        var Vt = triFromSSS(a, a * sB / sA, a * sC / sA);
+        var fig = triLabFig(Vt.A, Vt.B, Vt.C,
+                   { angles:{ A:A + '°', B:B + '°' }, right:(A === 90 ? 'A' : (B === 90 ? 'B' : (C === 90 ? 'C' : ''))),
+                     sides:{ a:'a = ' + a, b:'b = ?' } });
         return {
-          stem:'△ABC 中，∠A = ' + A + '°，∠B = ' + B + '°，a = ' + a + '，求 b。',
+          stem:'△ABC 中，∠A = ' + A + '°，∠B = ' + B + '°，a = ' + a + '，求 b。' + fig,
           choices: shuffleChoices(ans, wrongs),
           answerHtml: ans,
           steps:[
@@ -9813,8 +10262,12 @@
         var wrongs = [String(a + b), String(Math.abs(a - b)),
                       String(Math.round(Math.sqrt(a * a + b * b))), String(c + 1), String(c - 1)]
                      .filter(function(x){ return x !== String(c); });
+        var Vt = triFromSSS(a, b, c);
+        var fig = triLabFig(Vt.A, Vt.B, Vt.C,
+                   { angles:{ C:C + '°' }, right:(C === 90 ? 'C' : ''),
+                     sides:{ a:'a = ' + a, b:'b = ' + b, c:'c = ?' } });
         return {
-          stem:'△ABC 中，a = ' + a + '，b = ' + b + '，∠C = ' + C + '°，求 c。',
+          stem:'△ABC 中，a = ' + a + '，b = ' + b + '，∠C = ' + C + '°，求 c。' + fig,
           choices: shuffleChoices(String(c), wrongs),
           answerHtml: String(c),
           steps:[
@@ -9844,8 +10297,11 @@
         var a = T.a, b = T.b, c = T.c, C = T.C;
         var top = a * a + b * b - c * c, bot = 2 * a * b;
         var cosv = ratMake(top, bot);
+        var Vt = triFromSSS(a, b, c);
+        var fig = triLabFig(Vt.A, Vt.B, Vt.C,
+                   { angles:{ C:'?' }, sides:{ a:'a = ' + a, b:'b = ' + b, c:'c = ' + c } });
         return {
-          stem:'△ABC 中，三邊為 a = ' + a + '、b = ' + b + '、c = ' + c + '，求 ∠C。',
+          stem:'△ABC 中，三邊為 a = ' + a + '、b = ' + b + '、c = ' + c + '，求 ∠C。' + fig,
           choices: shuffleChoices(C + '°', ['30°','45°','60°','90°','120°','135°','150°']
                      .filter(function(x){ return x !== C + '°'; })),
           answerHtml: C + '°',
@@ -9882,8 +10338,13 @@
                       (m === 1 ? String(n2 * 2) : (n2 * 2) + sqrtH(m)),
                       (d2 === 1 ? String(n2) : fracH(core, String(d2 * 2)))]
                      .filter(function(x){ return x !== ans; });
+        var cLen = Math.sqrt(a * a + b * b - 2 * a * b * Math.cos(C * Math.PI / 180));
+        var Vt = triFromSSS(a, b, cLen);
+        var fig = triLabFig(Vt.A, Vt.B, Vt.C,
+                   { angles:{ C:C + '°' }, right:(C === 90 ? 'C' : ''),
+                     sides:{ a:'a = ' + a, b:'b = ' + b } });
         return {
-          stem:'△ABC 中，a = ' + a + '，b = ' + b + '，夾角 ∠C = ' + C + '°，求此三角形的面積。',
+          stem:'△ABC 中，a = ' + a + '，b = ' + b + '，夾角 ∠C = ' + C + '°，求此三角形的面積。' + fig,
           choices: shuffleChoices(ans, wrongs),
           answerHtml: ans,
           steps:[
@@ -9920,9 +10381,26 @@
         var wrongs = [eye ? h : (h + ' ＋ 2'), String(d), fracH(String(d), '2'),
                       (m === 1 ? String(n2 * 2) : (n2 * 2) + sqrtH(m))]
                      .filter(function(x){ return x !== ans; });
+        var hNum = d * Math.tan(deg * Math.PI / 180) + eye;   // 只拿來畫圖
+        var P = { x:0, y:eye }, F = { x:d, y:0 }, T = { x:d, y:hNum }, E = { x:d, y:eye };
+        var fig = geoFig({
+          w:330, h:215, ref:{ x:d / 2, y:hNum / 2 },
+          polys:[{ pts:[P, E, T] }],
+          segs:[{ x1:0, y1:0, x2:d, y2:0, cls:'gf-thin' },
+                { x1:d, y1:0, x2:d, y2:hNum },
+                { x1:P.x, y1:P.y, x2:T.x, y2:T.y, cls:'gf-vec' },
+                { x1:P.x, y1:P.y, x2:E.x, y2:E.y, cls:'gf-thin', dash:true }]
+            .concat(eye ? [{ x1:0, y1:0, x2:0, y2:eye }] : []),
+          angles:[{ at:P, from:E, to:T, label:deg + '°' }, { at:E, from:P, to:T, right:true }],
+          labels:[{ x:d / 2, y:0, text:d + ' 公尺', dy:16, cls:'gf-txt is-side' },
+                  { x:d, y:hNum / 2, text:'? 公尺', dx:-10, anchor:'end', cls:'gf-txt is-side' }]
+            .concat(eye ? [{ x:0, y:eye / 2, text:eye, dx:-14, cls:'gf-txt is-side' }] : []),
+          dots:[{ x:P.x, y:P.y, label:'小明', dx:-6, dy:-8, anchor:'end' },
+                { x:T.x, y:T.y, label:'樓頂', dx:-6, dy:-8, anchor:'end' }]
+        });
         return {
           stem:'小明站在距離大樓底部 ' + d + ' 公尺的地方，測得大樓頂端的仰角為 ' + deg + '°' +
-               (eye ? ('，小明的眼睛離地 ' + eye + ' 公尺') : '') + '，求大樓的高度（公尺）。',
+               (eye ? ('，小明的眼睛離地 ' + eye + ' 公尺') : '') + '，求大樓的高度（公尺）。' + fig,
           choices: shuffleChoices(ans, wrongs),
           answerHtml: ans,
           steps:[
@@ -9998,7 +10476,8 @@
         var wrongs = [h(M.v, !M.neg), h(M.v === 'a' ? 'b' : 'a', false), h(M.v === 'a' ? 'b' : 'a', true)];
         return {
           stem:'平行四邊形 ABCD 中，若 ' + vecN('AB') + ' = ' + vecN('a') + '、' +
-               vecN('AD') + ' = ' + vecN('b') + '，則 ' + vecN(which) + ' = ？',
+               vecN('AD') + ' = ' + vecN('b') + '，則 ' + vecN(which) + ' = ？（圖中黃色箭頭）' +
+               paraFig({ mark:which }),
           choices: shuffleChoices(ans, wrongs),
           answerHtml: ans,
           steps:[
@@ -10041,7 +10520,7 @@
         var wrongs = t.wr.map(function(w){ return vecN(w); });
         if (t.ans === '0') wrongs = [vecN('AB'), vecN('AC'), '2' + vecN('AB')];
         return {
-          stem:'化簡：' + expr + ' = ？',
+          stem:'化簡：' + expr + ' = ？' + chainFig(t.q),
           choices: shuffleChoices(ans, wrongs),
           answerHtml: ans,
           steps:[
@@ -10094,7 +10573,7 @@
         });
         return {
           stem:mid.join('、') + ' 為線段 AB 的 ' + n + ' 等分點（由 A 往 B 依序排列），' +
-               '試以 ' + vecN('AB') + ' 表示 ' + vecN(from + to) + '。',
+               '試以 ' + vecN('AB') + ' 表示 ' + vecN(from + to) + '。' + divideFig(labels, from, to),
           choices: shuffleChoices(ans, wrongs),
           answerHtml: ans,
           steps:[
@@ -10146,7 +10625,8 @@
         var hint = M.half ? '（O 為兩對角線的交點）' : '';
         return {
           stem:'平行四邊形 ABCD 中，' + vecN('AB') + ' = ' + vecN('a') + '、' + vecN('AD') + ' = ' + vecN('b') +
-               hint + '，試以 ' + vecN('a') + '、' + vecN('b') + ' 表示 ' + vecN(which) + '。',
+               hint + '，試以 ' + vecN('a') + '、' + vecN('b') + ' 表示 ' + vecN(which) + '。（圖中黃色箭頭）' +
+               paraFig({ diag:true, o:true, mark:which }),
           choices: shuffleChoices(ans, wrongs),
           answerHtml: ans,
           steps:[
@@ -11756,7 +12236,7 @@
         cands.forEach(function(x){ if (x !== ans && wrongs.indexOf(x) < 0) wrongs.push(x); });
         return {
           stem:'街道成棋盤狀，由 A 點走到 B 點必須向右走 ' + a + ' 格、向上走 ' + b +
-               ' 格。走捷徑（最短路線）的走法共有幾種？',
+               ' 格。走捷徑（最短路線）的走法共有幾種？（紅線只是其中一種走法）' + gridFig(a, b),
           choices: shuffleChoices(ans, wrongs),
           answerHtml: ans,
           steps:[
@@ -11997,7 +12477,8 @@
         var wrongs = [];
         cands.forEach(function(x){ if (x !== ans && x !== '0' && wrongs.indexOf(x) < 0) wrongs.push(x); });
         return {
-          stem:'平面上有 ' + n + ' 個點，其中任三點不共線，則這些點可以決定幾個' + NAME[k] + '？',
+          stem:'平面上有 ' + n + ' 個點，其中任三點不共線，則這些點可以決定幾個' + NAME[k] + '？' +
+               '（紅線是其中一個' + NAME[k] + '）' + circlePtsFig(n, k),
           choices: shuffleChoices(ans, wrongs),
           answerHtml: ans,
           steps:[
@@ -12178,12 +12659,27 @@
         };
         var R = RES[op];
         var ans = setHtml(R.res);
+        function regTxt(arr){
+          if (!arr.length) return '';
+          var out = [], line = [];
+          arr.forEach(function(x, i){
+            line.push(x);
+            if (line.length === 2 || i === arr.length - 1){ out.push(line.join('、')); line = []; }
+          });
+          return out.join('|');
+        }
+        var fig = vennFig({
+          onlyA:regTxt(setDiff(A, B)), both:regTxt(setInter(A, B)), onlyB:regTxt(setDiff(B, A)),
+          outside:regTxt(setDiff(U, setUnion(A, B))).split('|').join('、'),
+          shade:{ union:'union', inter:'inter', diff:'diffAB', comp:'compA' }[op]
+        });
         var cands = [setHtml(RES.union.res), setHtml(RES.inter.res), setHtml(RES.diff.res),
                      setHtml(RES.comp.res), setHtml(setDiff(B, A)), setHtml(setDiff(U, setUnion(A, B)))];
         var wrongs = [];
         cands.forEach(function(x){ if (x !== ans && wrongs.indexOf(x) < 0) wrongs.push(x); });
         return {
-          stem:'宇集 U = ' + setHtml(U) + '，A = ' + setHtml(A) + '，B = ' + setHtml(B) + '，求 ' + R.txt + '。',
+          stem:'宇集 U = ' + setHtml(U) + '，A = ' + setHtml(A) + '，B = ' + setHtml(B) + '，求 ' + R.txt +
+               '（圖中網底的部分）。' + fig,
           choices: shuffleChoices(ans, wrongs),
           answerHtml: ans,
           steps:[
@@ -12211,9 +12707,13 @@
         var cands = [String(a + b), String(a + b + c), String(a + b - 2 * c), String(a * b), String(v + c)];
         var wrongs = [];
         cands.forEach(function(x){ if (x !== ans && wrongs.indexOf(x) < 0) wrongs.push(x); });
+        var fig = vennFig({
+          nameA:'數學', nameB:'英文',
+          onlyA:(a - c) + ' 人', both:c + ' 人', onlyB:(b - c) + ' 人', shade:'union'
+        });
         return {
           stem:'班上有 ' + a + ' 人參加數學競賽、' + b + ' 人參加英文競賽，其中 ' + c +
-               ' 人兩項都參加。至少參加一項的有幾人？',
+               ' 人兩項都參加。至少參加一項的有幾人？' + fig,
           choices: shuffleChoices(ans, wrongs),
           answerHtml: ans,
           steps:[
@@ -13434,6 +13934,39 @@
   }
 
 
+  /* 題目裡的負號一律用全形 －，和全站其他地方一致。
+     只改標籤外面的文字，而且跳過 <svg>，所以圖形的座標、路徑都不會被動到。 */
+  function pracFixMinus(h){
+    if (typeof h !== 'string' || h.indexOf('-') < 0) return h;
+    var inSvg = false;
+    return h.replace(/<[^>]*>|[^<]+/g, function(seg){
+      if (seg.charAt(0) === '<'){
+        if (/^<svg/i.test(seg)) inSvg = true;
+        else if (/^<\/svg/i.test(seg)) inSvg = false;
+        return seg;
+      }
+      if (inSvg) return seg;
+      return seg.replace(/([\s(（＝=，,、：:×＋－＜＞|\[{]|^)-(?=\d)/g, '$1－');
+    });
+  }
+  function pracFixQ(q){
+    if (!q) return q;
+    q.stem = pracFixMinus(q.stem);
+    if (q.answerHtml) q.answerHtml = pracFixMinus(q.answerHtml);
+    (q.choices || []).forEach(function(c){ c.html = pracFixMinus(c.html); });
+    (q.steps || []).forEach(function(s){ s.eq = pracFixMinus(s.eq); s.why = pracFixMinus(s.why); });
+    return q;
+  }
+  function pracChoicesOk(q){
+    if (!q || !q.choices || q.choices.length !== 4) return false;
+    var seen = [];
+    for (var i = 0; i < q.choices.length; i++){
+      if (seen.indexOf(q.choices[i].html) >= 0) return false;
+      seen.push(q.choices[i].html);
+    }
+    return true;
+  }
+
   /* ---- 第二步：觀念 + 老師帶做一題 ---- */
   function openPracticeType(id){
     pracState.typeId = id;
@@ -13448,7 +13981,7 @@
       conceptEl.appendChild(li);
     });
     document.getElementById('pracFormula').innerHTML = '重點公式：' + t.formula;
-    var ex = t.example();
+    var ex = pracFixQ(t.example());
     document.getElementById('pracExStem').innerHTML = '例題：' + ex.stem;
     pracExBoard.setSteps(ex.steps);
     pracShowView('pracLearnView');
@@ -13462,8 +13995,8 @@
     pracSeed = seed >>> 0;
     var q = null;
     for (var i = 0; i < 80; i++){
-      q = t.gen();
-      if (q && q.choices && q.choices.length === 4) break;
+      q = pracFixQ(t.gen());
+      if (pracChoicesOk(q)) break;
     }
     pracSeed = null;                 // 出完題就恢復成一般的亂數
     if (q) q.seed = seed;
