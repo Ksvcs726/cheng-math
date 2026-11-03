@@ -15197,6 +15197,14 @@
     var s = Math.max(0, Math.round((ms || 0) / 1000));
     return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2);
   }
+  /* 「這一場多久沒動靜了」寫成人看得懂的字 */
+  function duelIdleTxt(min){
+    min = Math.max(0, Number(min) || 0);
+    if (min < 60) return min + ' 分鐘';
+    var hr = Math.floor(min / 60);
+    if (hr < 24) return hr + ' 小時';
+    return Math.floor(hr / 24) + ' 天';
+  }
 
   /* 把錯誤顯示成一個明顯的框（而不是一行會被捲掉的小字），
      而且認得出「後端還沒重新部署」這種最常見的狀況。 */
@@ -15300,9 +15308,14 @@
         var opp = (d.mine === 'a')
           ? duelPlayerChip(d.bSid, oppLabel, null, '')
           : duelPlayerChip(d.aSid, d.aName, null, d.className);
+        // 收件匣裡「自己接過卻沒打完」的那一場要講清楚，不然再按一次會以為壞掉
+        var halfDone = (kind === 'inbox' && d.status === '對手作答中');
         h += '<li><span class="duel-list-main">' + opp +
-             '<span class="duel-scope">' + d.scope + '　' + d.qCount + ' 題</span></span>';
-        if (kind === 'inbox') h += '<button type="button" class="btn btn-primary" data-duel-accept="' + d.id + '">接受挑戰</button>';
+             '<span class="duel-scope">' + d.scope + '　' + d.qCount + ' 題</span>' +
+             (halfDone ? '<span class="duel-wait">你接過這一場但沒打完，可以接回去（題目一樣，重新計時）</span>' : '') +
+             '</span>';
+        if (kind === 'inbox') h += '<button type="button" class="btn btn-primary" data-duel-accept="' + d.id + '">' +
+                                   (halfDone ? '繼續這一場' : '接受挑戰') + '</button>';
         else if (kind === 'open') h += '<button type="button" class="btn btn-primary" data-duel-accept="' + d.id + '">我來接</button>';
         else if (kind === 'outbox'){
           // 自己那一半早就答完了，這裡把成績寫出來，才不會以為「還有東西可以點」
@@ -15311,10 +15324,18 @@
                (d.aCorrect != null ? ('（答對 ' + d.aCorrect + ' / ' + d.qCount + ' 題）') : ''))
             : '<b>你還沒答完</b>';
           // 三種狀態要分清楚，尤其「公開擂台被接走」看起來很像「我向他發戰帖」
-          var waitTxt, canCancel = true;
+          var waitTxt, canCancel = true, cancelLabel = '取消';
           if (d.status === '對手作答中'){
-            waitTxt = '<b class="duel-taken">' + (d.bName || '對方') + ' 已經接下這場，正在作答</b>';
-            canCancel = false;                      // 對方已經開始了，後端也不讓取消
+            if (d.canVoid){
+              // 接了就不見人影（多半是中途離開）。放著會永遠卡住，所以給一個作廢的出口
+              waitTxt = '<b class="duel-taken">' + (d.bName || '對方') + ' 接下這場之後就沒有動靜了（已經 ' +
+                        duelIdleTxt(d.idleMin) + '）</b>' +
+                        '<span>可以把這一場作廢；作廢的場次雙方都不計分、不算勝敗。</span>';
+              cancelLabel = '對方沒打完，作廢這一場';
+            } else {
+              waitTxt = '<b class="duel-taken">' + (d.bName || '對方') + ' 已經接下這場，正在作答</b>';
+              canCancel = false;                    // 對方正在打，後端也不讓取消
+            }
           } else if (d.bSid){
             waitTxt = '等 ' + (d.bName || '對方') + ' 接受並作答';
           } else {
@@ -15322,14 +15343,16 @@
           }
           h += '<span class="duel-mystate">' + mineDone +
                '<span class="duel-wait">' + waitTxt + '</span></span>' +
-               (canCancel ? '<button type="button" class="btn btn-ghost" data-duel-cancel="' + d.id + '">取消</button>' : '');
+               (canCancel ? '<button type="button" class="btn btn-ghost" data-duel-cancel="' + d.id + '">' +
+                            cancelLabel + '</button>' : '');
         }
         h += '</li>';
       });
       return h + '</ul>';
     }
     html += listBlock('有人挑戰你',
-      '別人指名跟你比。按「接受挑戰」會<b>立刻進入全螢幕開始作答</b>，所以準備好再按。',
+      '別人指名跟你比。按「接受挑戰」會<b>立刻進入全螢幕開始作答</b>，所以準備好再按。' +
+      '<br>萬一中途離開（關掉分頁、重新整理、斷線），這一場會留在這裡，回來按<b>「繼續這一場」</b>就能接回去打完。',
       duelData.inbox, 'inbox');
     html += listBlock('公開擂台（全校都看得到，誰都可以接）',
       '同學開的擂台，誰接誰就是對手。按「我來接」一樣會立刻開始作答。',
@@ -15337,7 +15360,8 @@
     html += listBlock('你發出去的戰帖',
       '這些是<b>你自己發起</b>、而且已經答完的場次，現在在等對方。' +
       '這一區沒有東西可以點進去，要等對方答完才會自動結算（結果會出現在下面的「最近的戰績」）。' +
-      '<br>如果這裡出現某位同學的名字，可能是<b>你開的公開擂台被他接走了</b>，不是你去挑戰他。',
+      '<br>如果這裡出現某位同學的名字，可能是<b>你開的公開擂台被他接走了</b>，不是你去挑戰他。' +
+      '<br>對方接了卻一直沒打完的話，閒置超過 40 分鐘就會出現<b>作廢</b>按鈕，不會永遠卡在這裡。',
       duelData.outbox, 'outbox');
     if (!(duelData.inbox || []).length && !(duelData.open || []).length && !(duelData.outbox || []).length
         && !duelData.draft){
@@ -15639,7 +15663,21 @@
     if (e.target.closest('#duelAlertClose')){ duelClearError(); return; }
     var ch = e.target.closest('#duelChoices [data-duel-choice]');
     if (ch){ duelAnswer(Number(ch.getAttribute('data-duel-choice'))); return; }
-    if (e.target.closest('#duelDoneBtn') || e.target.closest('#duelQuit')){
+    var qb = e.target.closest('#duelQuit');
+    if (qb){
+      // 中途離開這一場要從第 1 題重打，所以要按兩次才算數
+      // （用「再按一次」而不是 confirm()：全螢幕底下跳原生對話框會把全螢幕關掉）
+      if (duelState && !duelState.done && !qb.dataset.armed){
+        qb.dataset.armed = '1';
+        qb.textContent = '再按一次就離開 ✕';
+        qb.title = '這一場會留著，回來可以接回去，但要從第 1 題重打';
+        setTimeout(function(){ qb.dataset.armed = ''; qb.textContent = '離開 ✕'; }, 4000);
+        return;
+      }
+      qb.dataset.armed = ''; qb.textContent = '離開 ✕';
+      duelCloseArena(); loadDuel(); loadPracticeProfile(); return;
+    }
+    if (e.target.closest('#duelDoneBtn')){
       duelCloseArena(); loadDuel(); loadPracticeProfile(); return;
     }
     var bt = e.target.closest('[data-duel-board]');
@@ -15692,9 +15730,14 @@
     }
     var cc = e.target.closest('[data-duel-cancel]');
     if (cc){
+      duelClearError();
       callApi('duel', { actorAccount: currentUser.account, actorPassword: currentPassword,
                         op: 'cancel', duelId: cc.getAttribute('data-duel-cancel') })
-        .then(function(){ loadDuel(); });
+        .then(function(r){
+          if (!r || !r.ok) duelShowError((r && r.error) || '取消失敗', '取消戰帖');
+          loadDuel();
+        })
+        .catch(function(){ duelShowError('連不到後端（網路或 Apps Script 的問題）。', '取消戰帖'); });
       return;
     }
   });
