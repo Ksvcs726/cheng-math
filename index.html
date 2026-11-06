@@ -495,9 +495,26 @@
   .vec{position:relative;display:inline-block;padding-top:.22em;white-space:nowrap;}
   .vec::before{content:'\2192';position:absolute;top:-.30em;left:0;right:0;text-align:center;
     font-size:.70em;line-height:1;font-weight:600;pointer-events:none;}
-  sup .frac, sub .frac{font-size:.95em;margin:0 1px;top:0;}
-  sup .frac .num{padding:0 3px 1px;border-bottom-width:1.2px;}
-  sup .frac .den{padding:1px 3px 0;}
+  /* 分數指數（b 的 2/3 次方）：分數有上下兩層，塞進 <sup> 之後整團的高度
+     會把 sup 本來的基線位移吃掉，看起來就變成「b 2⅓」這種帶分數。
+     所以指數裡的分數要自己再縮一次、再往上提一次，才看得出是次方。 */
+  sup .frac, sub .frac{font-size:.62em;margin:0 1px 0 2px;top:-.40em;}
+  sub .frac{top:.10em;}
+  sup .frac .num, sub .frac .num{padding:0 2px 1px;border-bottom-width:1px;}
+  sup .frac .den, sub .frac .den{padding:1px 2px 0;}
+  /* 自動播放講解：正在念的那一步標起來 */
+  .step-item.is-speaking{
+    background:var(--indigo-tint);border-radius:6px;
+    box-shadow:inset 3px 0 0 var(--indigo-strong);
+    padding-left:10px;transition:background .2s;
+  }
+  .narr-bar{
+    margin:6px 0 2px;padding:8px 12px;border-radius:6px;font-size:.86rem;line-height:1.7;
+    background:var(--surface-2);border:1px solid var(--border);color:var(--ink-soft);
+  }
+  .narr-bar b{color:var(--ink);}
+  .narr-rate{display:inline-flex;align-items:center;gap:4px;font-size:.78rem;color:var(--ink-soft);}
+  .narr-rate select{font-size:.78rem;padding:2px 4px;}
   .lp-readout{font-size:.84rem;color:var(--ink-soft);}
   .lp-readout .mono{color:var(--red);font-weight:600;}
   .lp-vertex-list{list-style:none;margin:8px 0 0;padding:0;font-size:.8rem;}
@@ -2211,8 +2228,17 @@
                   <button type="button" class="btn btn-ghost" id="pracExNext">下一步</button>
                   <button type="button" class="btn btn-ghost" id="pracExAll">全部展開</button>
                   <button type="button" class="btn btn-ghost" id="pracExReset">只看第一步</button>
+                  <button type="button" class="btn btn-primary" id="pracExPlay">▶ 播放講解</button>
+                  <label class="narr-rate">語速
+                    <select id="pracExRate">
+                      <option value="0.8">慢</option>
+                      <option value="1" selected>正常</option>
+                      <option value="1.25">快</option>
+                    </select>
+                  </label>
                 </div>
               </div>
+              <p class="narr-bar" id="pracExNarr" hidden></p>
               <p class="prac-stem" id="pracExStem"></p>
               <ol class="steps-list" id="pracExSteps"></ol>
             </div>
@@ -2913,7 +2939,27 @@
         var st = state.steps[state.shown - 1];
         return st ? st.focus : null;
       },
-      shown: function(){ return state.shown; }
+      shown: function(){ return state.shown; },
+      // ↓ 自動播放講解要用的：展開到第 n 步、把第 n 步標起來、拿步驟資料
+      total: function(){ return state.steps.length; },
+      steps: function(){ return state.steps; },
+      showUpTo: function(n){
+        if (!state.steps.length) return;
+        state.shown = Math.max(1, Math.min(state.steps.length, n));
+        render();
+      },
+      mark: function(n){
+        for (var i = 0; i < listEl.children.length; i++){
+          listEl.children[i].classList.toggle('is-speaking', (i === n - 1));
+        }
+        var el = listEl.children[n - 1];
+        if (el && el.scrollIntoView) {
+          try { el.scrollIntoView({ behavior:'smooth', block:'nearest' }); } catch (e) {}
+        }
+      },
+      clearMark: function(){
+        for (var i = 0; i < listEl.children.length; i++) listEl.children[i].classList.remove('is-speaking');
+      }
     };
   }
 
@@ -13847,6 +13893,222 @@
   function pracRoundSize(){
     return (pracState.mode === 'review' && pracState.reviewList) ? pracState.reviewList.length : PRAC_ROUND_SIZE;
   }
+
+  /* ============ 自動播放講解（把「老師帶你做一題」念出來）============
+     做法：把每一步的數學式子轉成「唸得出來的中文」，再用瀏覽器內建的語音合成
+     （speechSynthesis）照順序念，一邊念一邊把那一步展開、標起來。
+     好處是 206 種題型全部自動支援、不用做任何影片檔，而且題目換數字講解也跟著對。
+     沒有語音功能（或被瀏覽器擋住）時就只做畫面的自動展開，用字數估時間往下走。 */
+
+  /* ---- 數學式 → 唸得出來的中文 ---- */
+  var SPEAK_TXT = [
+    [/　/g, ' '],
+    [/－/g, ' 減 '], [/＋/g, ' 加 '], [/×/g, ' 乘 '], [/÷/g, ' 除以 '], [/·/g, ' 乘 '],
+    [/≠/g, ' 不等於 '], [/≥|≧/g, ' 大於等於 '], [/≤|≦/g, ' 小於等於 '],
+    [/＝|=/g, ' 等於 '], [/＞|>/g, ' 大於 '], [/＜|</g, ' 小於 '],
+    [/±/g, ' 正負 '], [/∓/g, ' 負正 '],
+    [/∪/g, ' 聯集 '], [/∩/g, ' 交集 '], [/⊆|⊂/g, ' 包含於 '], [/∈/g, ' 屬於 '],
+    [/∅/g, ' 空集合 '], [/∞/g, ' 無限大 '],
+    [/∵/g, ' 因為 '], [/∴|⇒|⟹|→/g, ' 所以 '],
+    [/∥/g, ' 平行 '], [/⊥/g, ' 垂直 '], [/∠/g, ' 角 '], [/△|Δ/g, ' 三角形 '],
+    [/π/g, ' 圓周率 '], [/°/g, ' 度 '], [/′/g, ' 分 '],
+    [/√/g, ' 根號 '],
+    [/Σ/g, ' sigma '], [/σ/g, ' sigma '], [/μ/g, ' mu '], [/θ/g, ' theta '],
+    [/α/g, ' alpha '], [/β/g, ' beta '], [/γ/g, ' gamma '], [/ω/g, ' omega '],
+    [/ᵢ/g, ' i '], [/_/g, ' 下標 '],
+    [/([0-9a-zA-Z)）])\s*!/g, '$1 階乘 '],
+    [/(\d|\))\s*:\s*(\d|√)/g, '$1 比 $2'],
+    [/²/g, ' 平方 '], [/³/g, ' 立方 '],
+    [/₀/g, ' 0 '], [/₁/g, ' 1 '], [/₂/g, ' 2 '], [/₃/g, ' 3 '], [/₄/g, ' 4 '],
+    [/₅/g, ' 5 '], [/₆/g, ' 6 '], [/₇/g, ' 7 '], [/₈/g, ' 8 '], [/₉/g, ' 9 '], [/ₙ/g, ' n '],
+    [/✓|✔|✗|✕/g, ' '], [/[⏱⚠◀▶①②③④⑤]/g, ' '],
+    [/\s*\|\s*([^|]{1,14}?)\s*\|\s*/g, ' $1 的絕對值 ']
+  ];
+  function speakText(txt){
+    var out = String(txt || '');
+    SPEAK_TXT.forEach(function(r){ out = out.replace(r[0], r[1]); });
+    return out;
+  }
+  function speakCls(el){
+    var c = el.getAttribute ? (el.getAttribute('class') || '') : '';
+    return ' ' + c + ' ';
+  }
+  function speakNode(node){
+    var out = '';
+    for (var i = 0; i < node.childNodes.length; i++){
+      var n = node.childNodes[i];
+      if (n.nodeType === 3){ out += speakText(n.nodeValue); continue; }
+      if (n.nodeType !== 1) continue;
+      var tag = (n.tagName || '').toLowerCase();
+      var cls = speakCls(n);
+      if (tag === 'svg'){ out += ' （請看圖） '; continue; }      // 圖形唸不出來，提醒去看圖
+      if (tag === 'table'){ out += ' （請看表格） '; continue; }
+      if (cls.indexOf(' frac ') >= 0){
+        var den = n.querySelector('.den'), num = n.querySelector('.num');
+        out += ' ' + (den ? speakNode(den) : '') + ' 分之 ' + (num ? speakNode(num) : '') + ' ';
+        continue;
+      }
+      if (cls.indexOf(' rad ') >= 0){
+        var idx = n.querySelector('.rad-idx'), body = n.querySelector('.rad-body');
+        out += ' ' + (idx ? speakNode(idx).trim() + ' 次' : '') + '根號 ' + (body ? speakNode(body) : '') + ' ';
+        continue;
+      }
+      if (cls.indexOf(' vec ') >= 0){ out += ' 向量 ' + speakNode(n) + ' '; continue; }
+      if (cls.indexOf(' pc ') >= 0){
+        var ud = n.querySelector('.pc-ud');
+        var letter = (n.firstChild && n.firstChild.nodeType === 3) ? n.firstChild.nodeValue.trim() : '';
+        var nn = ud && ud.children[0] ? ud.children[0].textContent.trim() : '';
+        var mm = ud && ud.children[1] ? ud.children[1].textContent.trim() : '';
+        out += ' ' + (letter === 'C' ? '組合 C ' : '排列 P ') +
+               speakText(nn) + ' 取 ' + speakText(mm) + ' ';
+        continue;
+      }
+      if (tag === 'sup'){
+        var e = speakNode(n).replace(/\s+/g, ' ').trim();
+        out += (e === '2') ? ' 平方 ' : (e === '3' ? ' 立方 ' : ' 的 ' + e + ' 次方 ');
+        continue;
+      }
+      if (tag === 'sub'){ out += ' 下標 ' + speakNode(n) + ' '; continue; }
+      if (tag === 'br'){ out += '，'; continue; }
+      out += speakNode(n);
+    }
+    return out;
+  }
+  function mathSpeak(html){
+    var box = document.createElement('div');
+    box.innerHTML = String(html == null ? '' : html);
+    return speakNode(box).replace(/\s+/g, ' ')
+                         .replace(/\s+([，。、：；])/g, '$1')
+                         .trim();
+  }
+
+  /* ---- 播放器本體 ---- */
+  var pracNarr = {
+    on:false, cues:[], i:0, rate:1, board:null, timer:null, utt:null,
+    btnId:null, barId:null, voice:null, noVoice:false
+  };
+  function narrVoice(){
+    if (!window.speechSynthesis) return null;
+    if (pracNarr.voice) return pracNarr.voice;
+    var list = [];
+    try { list = window.speechSynthesis.getVoices() || []; } catch (e) { list = []; }
+    if (!list.length) return null;
+    function pick(re){ for (var i = 0; i < list.length; i++) if (re.test(list[i].lang || '')) return list[i]; return null; }
+    pracNarr.voice = pick(/^zh[-_]TW/i) || pick(/^zh[-_]HK/i) || pick(/^zh/i) || null;
+    return pracNarr.voice;
+  }
+  function narrSupported(){
+    if (pracNarr.noVoice) return false;        // 試過了，這台裝置其實發不出聲音
+    return !!(window.speechSynthesis && window.SpeechSynthesisUtterance);
+  }
+  function narrBar(html){
+    var bar = document.getElementById(pracNarr.barId);
+    if (!bar) return;
+    if (html == null){ bar.hidden = true; bar.innerHTML = ''; return; }
+    bar.hidden = false; bar.innerHTML = html;
+  }
+  function narrBtn(txt){
+    var b = document.getElementById(pracNarr.btnId);
+    if (b) b.textContent = txt;
+  }
+  function narrStop(){
+    pracNarr.on = false;
+    if (pracNarr.timer){ clearTimeout(pracNarr.timer); pracNarr.timer = null; }
+    if (narrSupported()){ try { window.speechSynthesis.cancel(); } catch (e) {} }
+    pracNarr.utt = null;
+    if (pracNarr.board && pracNarr.board.clearMark) pracNarr.board.clearMark();
+    narrBtn('▶ 播放講解');
+    narrBar(null);
+  }
+  function narrSay(text, done){
+    if (!narrSupported()){
+      // 沒有語音：用字數估一個時間，畫面照樣一步一步走
+      var ms = Math.max(1400, Math.min(11000, text.length * 165 / pracNarr.rate));
+      pracNarr.timer = setTimeout(done, ms);
+      return;
+    }
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang = 'zh-TW';
+    u.rate = pracNarr.rate;
+    var v = narrVoice(); if (v) u.voice = v;
+    var fired = false;
+    function once(){ if (fired) return; fired = true; done(); }
+    u.onend = once;
+    u.onerror = once;
+    pracNarr.utt = u;
+    // 保險：有些瀏覽器 onend 不一定會來，用估算的時間當後備
+    var guard = Math.max(2500, Math.min(20000, text.length * 300 / pracNarr.rate));
+    pracNarr.timer = setTimeout(once, guard);
+    try { window.speechSynthesis.cancel(); window.speechSynthesis.speak(u); }
+    catch (e) { once(); return; }
+    // 有些裝置「可以呼叫 speak() 但根本沒有語音」——半秒後還沒開始念就當作沒有聲音，
+    // 改成純畫面的自動播放，才不會整個卡住
+    setTimeout(function(){
+      if (fired || !pracNarr.on) return;
+      var sp = false;
+      try { sp = window.speechSynthesis.speaking || window.speechSynthesis.pending; } catch (e) {}
+      if (!sp){
+        pracNarr.noVoice = true;
+        narrBar('這台裝置沒有中文語音，改成一步一步自動展開（沒有聲音）。');
+        once();
+      }
+    }, 600);
+  }
+  function narrNext(){
+    if (!pracNarr.on) return;
+    if (pracNarr.timer){ clearTimeout(pracNarr.timer); pracNarr.timer = null; }
+    if (pracNarr.i >= pracNarr.cues.length){
+      narrBtn('▶ 播放講解');
+      narrBar('講解播完了。想再聽一次就再按一次「播放講解」。');
+      pracNarr.on = false;
+      if (pracNarr.board && pracNarr.board.clearMark) pracNarr.board.clearMark();
+      return;
+    }
+    var cue = pracNarr.cues[pracNarr.i++];
+    if (cue.step && pracNarr.board){
+      pracNarr.board.showUpTo(cue.step);
+      pracNarr.board.mark(cue.step);
+    }
+    narrBar('<b>' + cue.label + '</b>　' + cue.show);
+    narrSay(cue.text, function(){
+      if (!pracNarr.on) return;
+      // 每一句之間留一點空檔，才不會像機關槍
+      pracNarr.timer = setTimeout(narrNext, 420);
+    });
+  }
+  /* 把一個題型的「觀念 → 例題 → 每一步」排成要念的句子 */
+  function narrBuildCues(t, ex){
+    var cues = [];
+    cues.push({ label:'題型', show:t.section + '｜' + t.name,
+                text:'這個題型是，' + mathSpeak(t.section) + '，' + mathSpeak(t.name) + '。' });
+    (t.concept || []).forEach(function(c, i){
+      cues.push({ label:'觀念 ' + (i + 1), show:c, text:'觀念' + (i + 1) + '：' + mathSpeak(c) });
+    });
+    if (t.formula) cues.push({ label:'重點公式', show:t.formula, text:'重點公式是，' + mathSpeak(t.formula) });
+    cues.push({ label:'例題', show:ex.stem, text:'我們來看例題。' + mathSpeak(ex.stem) });
+    (ex.steps || []).forEach(function(st, i){
+      var eq = mathSpeak(st.eq), why = mathSpeak(st.why || '');
+      cues.push({ label:'第 ' + (i + 1) + ' 步', step:i + 1,
+                  show:st.eq + (st.why ? '　——　' + st.why : ''),
+                  text:'第' + (i + 1) + '步。' + eq + (why ? '。' + why : '') + '。' });
+    });
+    cues.push({ label:'結束', show:'講解結束，按「開始練習」自己做五題。',
+                text:'講解到這裡。接下來按開始練習，自己做五題看看。' });
+    return cues;
+  }
+  function narrPlay(board, cues, btnId, barId){
+    if (pracNarr.on){ narrStop(); return; }      // 再按一次 = 停止
+    pracNarr.board = board; pracNarr.cues = cues; pracNarr.i = 0;
+    pracNarr.btnId = btnId; pracNarr.barId = barId;
+    pracNarr.on = true;
+    narrBtn('■ 停止播放');
+    if (!narrSupported()){
+      narrBar('這個瀏覽器不能發出語音，所以只會一步一步自動展開（畫面照走）。');
+    }
+    if (board && board.showUpTo) board.showUpTo(1);
+    narrNext();
+  }
+
   var pracExBoard = createStepBoard('pracExSteps',
     {prev:'pracExPrev', next:'pracExNext', all:'pracExAll', reset:'pracExReset'});
   var pracRvBoard = createStepBoard('pracRvSteps',
@@ -13862,7 +14124,29 @@
     }
     return null;
   }
+  var pracExCurrent = null;
+  (function bindNarr(){
+    var play = document.getElementById('pracExPlay');
+    var rate = document.getElementById('pracExRate');
+    if (play) play.addEventListener('click', function(){
+      var t = pracType();
+      if (!t || !pracExCurrent) return;
+      narrPlay(pracExBoard, narrBuildCues(t, pracExCurrent), 'pracExPlay', 'pracExNarr');
+    });
+    if (rate) rate.addEventListener('change', function(){
+      pracNarr.rate = parseFloat(this.value) || 1;
+      if (pracNarr.on){ pracNarr.i = Math.max(0, pracNarr.i - 1); narrNext(); }   // 立刻用新語速重念這一句
+    });
+    // 語音清單常常是非同步載入的，載好了要重挑一次
+    if (window.speechSynthesis && 'onvoiceschanged' in window.speechSynthesis){
+      window.speechSynthesis.onvoiceschanged = function(){ pracNarr.voice = null; };
+    }
+    // 換頁、關視窗就別再念了
+    window.addEventListener('pagehide', narrStop);
+    document.addEventListener('visibilitychange', function(){ if (document.hidden) narrStop(); });
+  })();
   function pracShowView(which){
+    narrStop();
     ['pracPickerView','pracLearnView','pracQuizView','pracResultView'].forEach(function(id){
       document.getElementById(id).hidden = (id !== which);
     });
@@ -13982,6 +14266,8 @@
     });
     document.getElementById('pracFormula').innerHTML = '重點公式：' + t.formula;
     var ex = pracFixQ(t.example());
+    pracExCurrent = ex;
+    narrStop();
     document.getElementById('pracExStem').innerHTML = '例題：' + ex.stem;
     pracExBoard.setSteps(ex.steps);
     pracShowView('pracLearnView');
