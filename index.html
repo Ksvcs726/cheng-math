@@ -5784,9 +5784,9 @@
       concept:[
         '斜截式 y = mx + b 裡的 m 是斜率、b 是 y 截距（直線與 y 軸交點的 y 值）。',
         '把一般式 ax + by + c = 0 整理成 y = … 的形式，就能一眼看出斜率與 y 截距。',
-        '由一般式直接看：m = －a / b，y 截距 = －c / b（b ≠ 0）。'
+        '由一般式直接看：m = －' + fracH('a', 'b') + '，y 截距 = －' + fracH('c', 'b') + '（b ≠ 0）。'
       ],
-      formula:'y = m x ＋ b　　（由 ax + by + c = 0 得 m = －a/b）',
+      formula:'y = m x ＋ b　　（由 ax + by + c = 0 得 m = －' + fracH('a', 'b') + '）',
       example:function(){ return this.gen({a:2, b:-3, c:-6}); },
       gen:function(fix){
         var a = fix ? fix.a : rndNonZero(-6, 6);
@@ -6484,7 +6484,7 @@
     {
       id:'fromFig', book:'第3冊', section:'3-2 二元一次不等式', name:'由圖示寫出二元一次不等式',
       concept:[
-        '先看圖上直線通過的兩個截距，用截距式 x/a ＋ y/b ＝ 1 寫出直線方程式，再化成一般式。',
+        '先看圖上直線通過的兩個截距，用截距式 ' + fracH('x', 'a') + ' ＋ ' + fracH('y', 'b') + ' ＝ 1 寫出直線方程式，再化成一般式。',
         '再看鋪色區域在直線的哪一側，決定不等號的方向（可以代一個點檢驗）。',
         '最後看邊界是實線還是虛線：實線有「＝」，虛線沒有「＝」。'
       ],
@@ -6972,7 +6972,7 @@
     {
       id:'midDist', book:'第1冊', section:'1-2 平面坐標系與線型函數', name:'中點公式與兩點距離',
       concept:[
-        '中點公式：M ＝ ( (x₁＋x₂)/2 , (y₁＋y₂)/2 )，就是兩個坐標各自取平均。',
+        '中點公式：M ＝ ( ' + fracH('x₁＋x₂', '2') + ' , ' + fracH('y₁＋y₂', '2') + ' )，就是兩個坐標各自取平均。',
         '兩點距離公式：AB ＝ ' + sqrtH('( x₂－x₁ )² ＋ ( y₂－y₁ )²') + '，由畢氏定理而來。',
         '根號算完要化到最簡（把完全平方因數提出來）。'
       ],
@@ -7022,7 +7022,7 @@
       id:'section', book:'第1冊', section:'1-2 平面坐標系與線型函數', name:'分點公式',
       concept:[
         'P 在 AB 上且 AP : PB ＝ m : n 時，P 的坐標是 A、B 的「加權平均」。',
-        '公式：P = ( (n·x₁＋m·x₂)/(m＋n) , (n·y₁＋m·y₂)/(m＋n) )。',
+        '公式：P = ( ' + fracH('n·x₁＋m·x₂', 'm＋n') + ' , ' + fracH('n·y₁＋m·y₂', 'm＋n') + ' )。',
         '注意分子的權重是「對面」那一段：靠近 B 的比例 m 要乘 x₂。'
       ],
       formula:'P = ( <span class="frac"><span class="num">n x₁ ＋ m x₂</span><span class="den">m ＋ n</span></span> , <span class="frac"><span class="num">n y₁ ＋ m y₂</span><span class="den">m ＋ n</span></span> )　（AP : PB = m : n）',
@@ -7071,7 +7071,7 @@
       id:'paral4', book:'第1冊', section:'1-2 平面坐標系與線型函數', name:'平行四邊形的第四個頂點',
       concept:[
         '平行四邊形 ABCD 的兩條對角線 AC 與 BD 互相平分，也就是它們的中點是同一點。',
-        '所以 (A＋C)/2 ＝ (B＋D)/2，推得 D ＝ A ＋ C － B。',
+        '所以 ' + fracH('A＋C', '2') + ' ＝ ' + fracH('B＋D', '2') + '，推得 D ＝ A ＋ C － B。',
         '頂點的順序很重要：ABCD 代表 AC、BD 是對角線。'
       ],
       formula:'平行四邊形 ABCD ⇒ A ＋ C = B ＋ D ⇒ D = A ＋ C － B',
@@ -7120,7 +7120,7 @@
       id:'centroid2', book:'第1冊', section:'1-2 平面坐標系與線型函數', name:'三角形的重心坐標',
       concept:[
         '三角形的重心是三條中線的交點，坐標就是三個頂點坐標的平均。',
-        'G = ( (x₁＋x₂＋x₃)/3 , (y₁＋y₂＋y₃)/3 )。',
+        'G = ( ' + fracH('x₁＋x₂＋x₃', '3') + ' , ' + fracH('y₁＋y₂＋y₃', '3') + ' )。',
         '重心把每條中線分成 2 : 1（靠頂點那一段比較長）。'
       ],
       formula:'G = ( <span class="frac"><span class="num">x₁＋x₂＋x₃</span><span class="den">3</span></span> , <span class="frac"><span class="num">y₁＋y₂＋y₃</span><span class="den">3</span></span> )',
@@ -7279,7 +7279,7 @@
       id:'quadGraph', book:'第1冊', section:'1-3 二次函數', name:'二次函數的頂點與最大最小值',
       concept:[
         '一般式 y ＝ ax² ＋ bx ＋ c 先配方（或用公式）求頂點。',
-        '頂點的 x 坐標是 －b/(2a)，把它代回去就得到 y 坐標。',
+        '頂點的 x 坐標是 －' + fracH('b', '2a') + '，把它代回去就得到 y 坐標。',
         'a ＞ 0 時頂點的 y 是最小值；a ＜ 0 時是最大值。'
       ],
       formula:'頂點 x = －<span class="frac"><span class="num">b</span><span class="den">2a</span></span>　，　再代回求 y',
@@ -7634,7 +7634,7 @@
       id:'genSlope', book:'第1冊', section:'2-3 一般式與點到直線的距離', name:'由一般式求斜率與截距',
       concept:[
         '直線的一般式 ax ＋ by ＋ c ＝ 0（a、b 不同時為 0）。',
-        'b ≠ 0 時斜率 m ＝ －a/b；b ＝ 0 時是鉛直線，斜率不存在。',
+        'b ≠ 0 時斜率 m ＝ －' + fracH('a', 'b') + '；b ＝ 0 時是鉛直線，斜率不存在。',
         'x 截距：令 y ＝ 0 解出 x；y 截距：令 x ＝ 0 解出 y。'
       ],
       formula:'m = －<span class="frac"><span class="num">a</span><span class="den">b</span></span>　，　x 截距 = －<span class="frac"><span class="num">c</span><span class="den">a</span></span>　，　y 截距 = －<span class="frac"><span class="num">c</span><span class="den">b</span></span>',
@@ -7948,7 +7948,7 @@
       concept:[
         '以 x － a 除多項式時，可以用綜合除法：把係數排好，一路「乘 a 再相加」。',
         '最後一個數是餘式，前面的數就是商式的係數（次數比原來少一次）。',
-        '如果除式是 px － q，先用 x － q/p 做綜合除法，最後商式還要再除以 p。'
+        '如果除式是 px － q，先用 x － ' + fracH('q', 'p') + ' 做綜合除法，最後商式還要再除以 p。'
       ],
       formula:'以 x － a 除 ⇒ 綜合除法：下一個數 = 上一個結果 × a ＋ 本項係數',
       example:function(){ return this.gen({a:2, q2:1, q1:-3, q0:4, r:5}); },
@@ -8058,8 +8058,8 @@
     {
       id:'remLinear', book:'第1冊', section:'3-2 除法原理與餘式定理', name:'以 ax － b 除的餘式',
       concept:[
-        '除式是 px － q 時，先令 px － q ＝ 0 得 x ＝ q / p。',
-        '餘式仍然是把這個數代進 f ( x )：餘式 ＝ f ( q / p )。',
+        '除式是 px － q 時，先令 px － q ＝ 0 得 x ＝ ' + fracH('q', 'p') + '。',
+        '餘式仍然是把這個數代進 f ( x )：餘式 ＝ f ( ' + fracH('q', 'p') + ' )。',
         '（注意：商式會差一個 p 倍，但「餘式」不受影響。）'
       ],
       formula:'f ( x ) 除以 ( p x － q ) 的餘式 = f ( ' + fracH('q', 'p') + ' )',
@@ -8391,11 +8391,11 @@
     {
       id:'xPlusInv', book:'第1冊', section:'3-3 因式分解與分式', name:'由 x ＋ 1/x 求值',
       concept:[
-        '( x ＋ 1/x )² ＝ x² ＋ 2 ＋ 1/x²，所以 x² ＋ 1/x² ＝ ( x ＋ 1/x )² － 2。',
-        '( x ＋ 1/x )³ ＝ x³ ＋ 3x ＋ 3/x ＋ 1/x³，整理得 x³ ＋ 1/x³ ＝ ( x ＋ 1/x )³ － 3( x ＋ 1/x )。',
-        '重點是把 x·(1/x) ＝ 1 這件事用出來。'
+        '( x ＋ ' + fracH('1', 'x') + ' )² ＝ x² ＋ 2 ＋ ' + fracH('1', 'x²') + '，所以 x² ＋ ' + fracH('1', 'x²') + ' ＝ ( x ＋ ' + fracH('1', 'x') + ' )² － 2。',
+        '( x ＋ ' + fracH('1', 'x') + ' )³ ＝ x³ ＋ 3x ＋ ' + fracH('3', 'x') + ' ＋ ' + fracH('1', 'x³') + '，整理得 x³ ＋ ' + fracH('1', 'x³') + ' ＝ ( x ＋ ' + fracH('1', 'x') + ' )³ － 3( x ＋ ' + fracH('1', 'x') + ' )。',
+        '重點是把 x·' + fracH('1', 'x') + ' ＝ 1 這件事用出來。'
       ],
-      formula:'x² ＋ <span class="frac"><span class="num">1</span><span class="den">x²</span></span> = t² － 2　；　x³ ＋ <span class="frac"><span class="num">1</span><span class="den">x³</span></span> = t³ － 3t　（t = x ＋ 1/x）',
+      formula:'x² ＋ <span class="frac"><span class="num">1</span><span class="den">x²</span></span> = t² － 2　；　x³ ＋ <span class="frac"><span class="num">1</span><span class="den">x³</span></span> = t³ － 3t　（t = x ＋ ' + fracH('1', 'x') + '）',
       example:function(){ return this.gen({t:3, want:2}); },
       gen:function(fix){
         var t = fix ? fix.t : rndPick([2, 3, 4, 5, -2, -3, -4]);
@@ -8412,7 +8412,7 @@
           answerHtml:ans,
           steps:want === 2
             ? [{eq:'( x ＋ ' + frac(1, 'x') + ' )² = x² ＋ 2·x·' + frac(1, 'x') + ' ＋ ' + frac(1, 'x²'), why:'先把左邊平方展開'},
-               {eq:'= x² ＋ 2 ＋ ' + frac(1, 'x²'), why:'中間那一項 x × 1/x = 1，所以是 2'},
+               {eq:'= x² ＋ 2 ＋ ' + frac(1, 'x²'), why:'中間那一項 x × ' + fracH('1', 'x') + ' = 1，所以是 2'},
                {eq:'x² ＋ ' + frac(1, 'x²') + ' = ( ' + t + ' )² － 2', why:'移項'},
                {eq:'= ' + (t * t) + ' － 2 = ' + v2, why:'算出答案'}]
             : [{eq:'( x ＋ ' + frac(1, 'x') + ' )³ = x³ ＋ 3x ＋ ' + frac(3, 'x') + ' ＋ ' + frac(1, 'x³'), why:'完全立方展開並化簡中間兩項'},
@@ -9003,7 +9003,7 @@
         '把含 k 的係數代進 D ＝ b² － 4ac，會得到一個關於 k 的不等式。',
         '別忘了：要是一元二次方程式，x² 的係數不能是 0。'
       ],
-      formula:'依題意列出 D ＞ 0 / D = 0 / D ＜ 0，再解 k 的不等式',
+      formula:'依題意列出 D ＞ 0、D = 0、D ＜ 0 三種情形，再解 k 的不等式',
       example:function(){ return this.gen({t:3, kind:'two'}); },
       gen:function(fix){
         var t = fix ? fix.t : rndInt(1, 6);
@@ -9111,7 +9111,7 @@
       concept:[
         '同底數相乘指數相加：a<sup>m</sup> · a<sup>n</sup> ＝ a<sup>m＋n</sup>；相除指數相減。',
         '次方的次方指數相乘：( a<sup>m</sup> )<sup>n</sup> ＝ a<sup>mn</sup>。',
-        '負指數就是倒數：a<sup>－n</sup> ＝ 1 / a<sup>n</sup>；a<sup>0</sup> ＝ 1（a ≠ 0）。'
+        '負指數就是倒數：a<sup>－n</sup> ＝ ' + fracH('1', 'a<sup>n</sup>') + '；a<sup>0</sup> ＝ 1（a ≠ 0）。'
       ],
       formula:'a<sup>m</sup> · a<sup>n</sup> = a<sup>m＋n</sup>　，　<span class="frac"><span class="num">a<sup>m</sup></span><span class="den">a<sup>n</sup></span></span> = a<sup>m－n</sup>　，　( a<sup>m</sup> )<sup>n</sup> = a<sup>mn</sup>',
       example:function(){ return this.gen({b:2, m:5, n:-3, k:2}); },
@@ -9146,7 +9146,7 @@
       concept:[
         '分數指數的定義：a<sup>' + fracH('m', 'n') + '</sup> ＝ ' + sqrtH('a<sup>m</sup>', 'n') + '（n 次根號）。',
         '算的時候先把底數寫成「某個數的 n 次方」，約分之後就很好算。',
-        '例如 8<sup>2/3</sup>：先寫 8 ＝ 2³，則 8<sup>2/3</sup> ＝ 2<sup>3×2/3</sup> ＝ 2² ＝ 4。'
+        '例如 8<sup>' + fracH('2', '3') + '</sup>：先寫 8 ＝ 2³，則 8<sup>' + fracH('2', '3') + '</sup> ＝ 2<sup>3×' + fracH('2', '3') + '</sup> ＝ 2² ＝ 4。'
       ],
       formula:'a<sup>' + fracH('m', 'n') + '</sup> = ' + sqrtH('a<sup>m</sup>', 'n') + '　；　( a<sup>p</sup> )<sup>' + fracH('m', 'n') + '</sup> = a<sup>' + fracH('pm', 'n') + '</sup>',
       example:function(){ return this.gen({t:2, p:3, m:2}); },
@@ -9360,7 +9360,7 @@
       id:'logRules', book:'第3冊', section:'4-3 對數', name:'對數的運算性質',
       concept:[
         'log<sub>a</sub> M ＋ log<sub>a</sub> N ＝ log<sub>a</sub> ( M N )（相加變相乘）。',
-        'log<sub>a</sub> M － log<sub>a</sub> N ＝ log<sub>a</sub> ( M / N )（相減變相除）。',
+        'log<sub>a</sub> M － log<sub>a</sub> N ＝ log<sub>a</sub> ' + fracH('M', 'N') + '（相減變相除）。',
         'log<sub>a</sub> M<sup>k</sup> ＝ k log<sub>a</sub> M（次方可以搬到前面）。'
       ],
       formula:'log M ＋ log N = log MN　，　log M － log N = log <span class="frac"><span class="num">M</span><span class="den">N</span></span>　，　log M<sup>k</sup> = k log M',
@@ -9394,7 +9394,7 @@
       concept:[
         '換底公式：log<sub>a</sub> b ＝ ' + fracH('log<sub>c</sub> b', 'log<sub>c</sub> a') + '（底數可以換成任何方便的數）。',
         '常用變形：log<sub>a</sub> b × log<sub>b</sub> c ＝ log<sub>a</sub> c（中間的底數「接龍」消掉）。',
-        '另一個變形：log<sub>a<sup>m</sup></sub> b<sup>n</sup> ＝ ( n / m ) log<sub>a</sub> b。'
+        '另一個變形：log<sub>a<sup>m</sup></sub> b<sup>n</sup> ＝ ' + fracH('n', 'm') + ' log<sub>a</sub> b。'
       ],
       formula:'log<sub>a</sub> b = <span class="frac"><span class="num">log<sub>c</sub> b</span><span class="den">log<sub>c</sub> a</span></span>　，　log<sub>a</sub> b × log<sub>b</sub> c = log<sub>a</sub> c',
       example:function(){ return this.gen({p:2, q:3, m:2, n:3}); },
@@ -9502,7 +9502,7 @@
     {
       id:'logEq', book:'第3冊', section:'4-4 對數函數及其圖形', name:'對數方程式',
       concept:[
-        '先用運算性質把左邊合併成一個對數：log M － log N ＝ log ( M / N )。',
+        '先用運算性質把左邊合併成一個對數：log M － log N ＝ log ' + fracH('M', 'N') + '。',
         '再用定義去掉對數：log<sub>a</sub> X ＝ k ⇔ X ＝ a<sup>k</sup>。',
         '最後一定要檢查：每一個真數都必須 ＞ 0，不合的解要捨去。'
       ],
@@ -9836,7 +9836,7 @@
     {
       id:'specialTrig', book:'第2冊', section:'1-2 銳角三角函數', name:'特別角的三角函數值',
       concept:[
-        '30°-60°-90° 的三邊比是 1 : √3 : 2；45°-45°-90° 的三邊比是 1 : 1 : √2。',
+        '30°-60°-90° 的三邊比是 1 : ' + sqrtH(3) + ' : 2；45°-45°-90° 的三邊比是 1 : 1 : ' + sqrtH(2) + '。',
         '把這兩個三角形畫出來，六個特別角的值就都推得出來，不用硬背。',
         'tan45° = 1、sin30° = ½ 是最常拿來當檢查點的兩個值。'
       ],
@@ -9954,8 +9954,8 @@
     {
       id:'trigPoint', book:'第2冊', section:'1-3 任意角的三角函數', name:'由終邊上一點求三角函數值',
       concept:[
-        '設 P(x, y) 在角 θ 的終邊上，r = √(x² + y²) 永遠是正的。',
-        'sinθ = y/r，cosθ = x/r，tanθ = y/x。',
+        '設 P(x, y) 在角 θ 的終邊上，r = ' + sqrtH('x² ＋ y²') + ' 永遠是正的。',
+        'sinθ = ' + fracH('y', 'r') + '，cosθ = ' + fracH('x', 'r') + '，tanθ = ' + fracH('y', 'x') + '。',
         'x、y 的正負決定三角函數的正負；r 不會是負的。'
       ],
       formula:'r = ' + sqrtH('x² ＋ y²') + '　sinθ = ' + fracH('y','r') + '　cosθ = ' + fracH('x','r') + '　tanθ = ' + fracH('y','x'),
@@ -9991,7 +9991,7 @@
       id:'quadSign', book:'第2冊', section:'1-3 任意角的三角函數', name:'各象限三角函數的正負',
       concept:[
         '口訣「全正、Sin、Tan、Cos」：第一象限全正，第二象限只有 sin 正，第三象限只有 tan 正，第四象限只有 cos 正。',
-        '想不起來就回到定義：sin = y/r、cos = x/r、tan = y/x，看 x、y 的正負即可。',
+        '想不起來就回到定義：sin = ' + fracH('y', 'r') + '、cos = ' + fracH('x', 'r') + '、tan = ' + fracH('y', 'x') + '，看 x、y 的正負即可。',
         'r 永遠是正的，所以正負只由 x、y 決定。'
       ],
       formula:'第一象限全正　│　第二象限 sin ＞ 0　│　第三象限 tan ＞ 0　│　第四象限 cos ＞ 0',
@@ -10237,7 +10237,7 @@
     {
       id:'lawSinSide', book:'第2冊', section:'2-1 正弦定理與餘弦定理', name:'正弦定理求邊長',
       concept:[
-        '正弦定理：邊和它的對角要配成一組，a/sinA = b/sinB = c/sinC。',
+        '正弦定理：邊和它的對角要配成一組，' + fracH('a', 'sinA') + ' = ' + fracH('b', 'sinB') + ' = ' + fracH('c', 'sinC') + '。',
         '題目給「兩角一邊」時用正弦定理最快。',
         '三角形內角和 180°，第三個角可以直接算出來。'
       ],
@@ -11438,8 +11438,8 @@
       id:'circleGen2Std', book:'第2冊', section:'4-1 圓方程式', name:'一般式配方求圓心與半徑',
       concept:[
         '一般式 x² ＋ y² ＋ dx ＋ ey ＋ f = 0，要用「配方法」還原成標準式。',
-        '配方：x² ＋ dx 補上 ( d/2 )²，y² ＋ ey 補上 ( e/2 )²，左右都要補。',
-        '也可以直接背公式：圓心 ( －d/2 , －e/2 )，r = ' + fracSpan(false, sqrtH('d² ＋ e² － 4f'), '2') + '。'
+        '配方：x² ＋ dx 補上 ( ' + fracH('d', '2') + ' )²，y² ＋ ey 補上 ( ' + fracH('e', '2') + ' )²，左右都要補。',
+        '也可以直接背公式：圓心 ( －' + fracH('d', '2') + ' , －' + fracH('e', '2') + ' )，r = ' + fracSpan(false, sqrtH('d² ＋ e² － 4f'), '2') + '。'
       ],
       formula:'圓心 ( －' + fracSpan(false, 'd', '2') + ' , －' + fracSpan(false, 'e', '2') + ' )　、　r = ' + fracSpan(false, sqrtH('d² ＋ e² － 4f'), '2'),
       example:function(){ return this.gen({h:1, k:-2, r2:9}); },
@@ -11464,7 +11464,7 @@
              why:'先把常數項移到右邊，x 和 y 各自分組'},
             {eq:'( x²' + termStr(d, 'x', false) + ' ＋ ' + (h * h) + ' ) ＋ ( y²' + termStr(e, 'y', false) + ' ＋ ' + (k * k) +
                 ' ) = ' + nStr(-f) + ' ＋ ' + (h * h) + ' ＋ ' + (k * k),
-             why:'配方：補上 ( d/2 )² = ' + (h * h) + '、( e/2 )² = ' + (k * k) + '（兩邊都要補）'},
+             why:'配方：補上 ( ' + fracH('d', '2') + ' )² = ' + (h * h) + '、( ' + fracH('e', '2') + ' )² = ' + (k * k) + '（兩邊都要補）'},
             {eq:circStdHtml(h, k, r2), why:'左邊變成兩個完全平方'},
             {eq:ans, why:'對照標準式讀出圓心與半徑'}
           ]
@@ -11476,7 +11476,7 @@
       concept:[
         '一般式 x² ＋ y² ＋ dx ＋ ey ＋ f = 0 不一定是圓，要看判別式 D = d² ＋ e² － 4f。',
         'D ＞ 0 → 是一個圓；D = 0 → 只有一個點；D ＜ 0 → 沒有圖形。',
-        '因為 D/4 就是 r²，r² 必須大於 0 才畫得出圓。'
+        '因為 ' + fracH('D', '4') + ' 就是 r²，r² 必須大於 0 才畫得出圓。'
       ],
       formula:'D = d² ＋ e² － 4f　：＞0 圓、=0 一點、＜0 無圖形',
       example:function(){ return this.gen({h:2, k:-3, r2:4}); },
@@ -13911,20 +13911,21 @@
     [/±/g, ' 正負 '], [/∓/g, ' 負正 '],
     [/∪/g, ' 聯集 '], [/∩/g, ' 交集 '], [/⊆|⊂/g, ' 包含於 '], [/∈/g, ' 屬於 '],
     [/∅/g, ' 空集合 '], [/∞/g, ' 無限大 '],
-    [/∵/g, ' 因為 '], [/∴|⇒|⟹|→/g, ' 所以 '],
+    [/∵/g, '，因為 '], [/∴|⇒|⟹|→/g, '，所以 '],
     [/∥/g, ' 平行 '], [/⊥/g, ' 垂直 '], [/∠/g, ' 角 '], [/△|Δ/g, ' 三角形 '],
     [/π/g, ' 圓周率 '], [/°/g, ' 度 '], [/′/g, ' 撇 '],
     [/√/g, ' 根號 '],
+    [/\s-\s*(?=[0-9０-９])/g, '、'],      // 30°-60°-90° 這種連字號是「頓號」不是減號
     [/Σ/g, ' sigma '], [/σ/g, ' sigma '], [/μ/g, ' mu '], [/θ/g, ' theta '],
     [/α/g, ' alpha '], [/β/g, ' beta '], [/γ/g, ' gamma '], [/ω/g, ' omega '],
     [/ᵢ/g, ' i '], [/_/g, ' '],
     [/([0-9a-zA-Z)）])\s*!/g, '$1 階乘 '],
-    [/(\d|\))\s*:\s*(\d|√)/g, '$1 比 $2'],
+    [/½/g, ' 2 分之 1 '], [/⅓/g, ' 3 分之 1 '], [/⅔/g, ' 3 分之 2 '],
+    [/¼/g, ' 4 分之 1 '], [/¾/g, ' 4 分之 3 '],
     [/²/g, ' 平方 '], [/³/g, ' 立方 '],
     [/₀/g, ' 0 '], [/₁/g, ' 1 '], [/₂/g, ' 2 '], [/₃/g, ' 3 '], [/₄/g, ' 4 '],
     [/₅/g, ' 5 '], [/₆/g, ' 6 '], [/₇/g, ' 7 '], [/₈/g, ' 8 '], [/₉/g, ' 9 '], [/ₙ/g, ' n '],
     [/✓|✔|✗|✕/g, ' '], [/[⏱⚠◀▶①②③④⑤]/g, ' '],
-    [/\s*\|\s*([^|]{1,14}?)\s*\|\s*/g, ' $1 的絕對值 ']
   ];
   function speakText(txt){
     var out = String(txt || '');
@@ -13980,7 +13981,11 @@
      這一段全部在組好的字串上做，因為負號、括號、隱含的乘號都要看前後文才判斷得出來。 */
   function speakPolish(t){
     var out = ' ' + String(t || '') + ' ';
-    // (0) 集合 { 1 , 2 , 3 } 要唸成「集合 1、2、3」；a/b 這種斜線分數中文要反過來唸
+    // (0) 比例的冒號、絕對值的直線：這兩個都可能跨標籤（1 : √3 的根號是另一個元素），
+    //     所以要等整句組好了才處理
+    out = out.replace(/\s*\|\s*([^|]{1,24}?)\s*\|\s*/g, ' $1 的絕對值 ');
+    out = out.replace(/\s*:\s*(?=\s*(?:[0-9０-９(（]|根號))/g, ' 比 ');
+    // 集合 { 1 , 2 , 3 } 要唸成「集合 1、2、3」；a/b 這種斜線分數中文要反過來唸
     out = out.replace(/\{\s*([^{}]*?)\s*\}/g, function(m, inner){
       return ' 集合 ' + inner.replace(/\s*,\s*/g, '、') + '，';
     });
@@ -14011,6 +14016,7 @@
     out = out.replace(/向量\s*([A-Za-z0-9]{1,3})\s*乘以\s*向量/g, '向量 $1 內積 向量');
     // (7) 一長串「等於……等於……」聽起來很機械，第二個以後改成「也就是」
     out = out.replace(/大於等於/g, '\u0001').replace(/小於等於/g, '\u0002');
+    out = out.replace(/\s+([，。、：；])/g, '$1');   // 先把標點前的空白收掉，數「幾個字」才會準
     var seg = out.split(' 等於 ');
     if (seg.length > 2){
       out = seg[0];
@@ -14018,7 +14024,9 @@
       for (var j = 1; j < seg.length; j++){
         // 中間有逗號、頓號就表示換了一句（例如「a 等於 2，b 等於 3」），不是同一條算式
         chain = /[，、；。]/.test(seg[j - 1]) ? 1 : chain + 1;
-        out += (chain >= 2 ? '，也就是 ' : ' 等於 ') + seg[j];
+        // 前面那一段如果很長，「等於」之前停一下，唸起來才有頓挫
+        var pause = (seg[j - 1].trim().split(/\s+/).length >= 4) ? '，' : '';
+        out += (chain >= 2 ? '，也就是 ' : pause + ' 等於 ') + seg[j];
       }
     }
     out = out.replace(/\u0001/g, '大於等於').replace(/\u0002/g, '小於等於');
@@ -14075,10 +14083,45 @@
     narrBtn('▶ 播放講解');
     narrBar(null);
   }
+  /* 把一句話照標點切成一段一段，每段分開唸、中間留空檔，聽起來才有頓挫，
+     不會像機器人一口氣把整句平平地讀完。 */
+  function narrChunks(text){
+    var t = String(text || ''), out = [], buf = '';
+    for (var i = 0; i < t.length; i++){
+      var ch = t.charAt(i);
+      buf += ch;
+      if ('。！？'.indexOf(ch) >= 0){ out.push({ s:buf, gap:430 }); buf = ''; }
+      else if ('，、：；'.indexOf(ch) >= 0 && buf.replace(/\s/g, '').length >= 5){
+        out.push({ s:buf, gap:210 }); buf = '';
+      }
+    }
+    if (buf.replace(/\s/g, '')) out.push({ s:buf, gap:260 });
+    // 太短的黏回前一段，不然會一個字一個字蹦出來
+    var merged = [];
+    out.forEach(function(c){
+      var last = merged[merged.length - 1];
+      if (last && c.s.replace(/\s/g, '').length < 5){ last.s += c.s; last.gap = c.gap; }
+      else merged.push(c);
+    });
+    return merged.length ? merged : [{ s:t, gap:260 }];
+  }
   function narrSay(text, done){
+    var parts = narrChunks(text), k = 0;
+    function step(){
+      if (!pracNarr.on) return;
+      if (k >= parts.length){ done(); return; }
+      var c = parts[k++];
+      narrSayOne(c.s, function(){
+        if (!pracNarr.on) return;
+        pracNarr.timer = setTimeout(step, Math.round(c.gap / Math.max(.5, pracNarr.rate)));
+      });
+    }
+    step();
+  }
+  function narrSayOne(text, done){
     if (!narrSupported()){
       // 沒有語音：用字數估一個時間，畫面照樣一步一步走
-      var ms = Math.max(1400, Math.min(11000, text.length * 165 / pracNarr.rate));
+      var ms = Math.max(500, Math.min(9000, text.length * 170 / pracNarr.rate));
       pracNarr.timer = setTimeout(done, ms);
       return;
     }
@@ -14133,11 +14176,16 @@
   }
   /* 把一個題型的「觀念 → 例題 → 每一步」排成要念的句子 */
   var NARR_CONCEPT_LEAD = ['第一個重點，', '第二個重點，', '第三個重點，', '還有一個重點，'];
+  /* 章節編號：「4-1」老師唸「四之一」，不是「四橫線一」；「3-3(2)」的 (2) 不用唸出來 */
+  function narrSectionText(sec){
+    return String(sec || '').replace(/\(\s*\d+\s*\)/g, ' ')
+                            .replace(/(\d)\s*[-－–]\s*(\d)/g, '$1 之 $2');
+  }
   function narrBuildCues(t, ex){
     var cues = [];
     var cn = (t.concept || []).length;
     cues.push({ label:'題型', show:t.section + '｜' + t.name,
-                text:'我們來看這個題型，' + mathSpeak(String(t.section).replace(/\((\d)\)/, ' 之 $1 ')) + '，' + mathSpeak(t.name) +
+                text:'我們來看這個題型，' + mathSpeak(narrSectionText(t.section)) + '，' + mathSpeak(t.name) +
                      '。先講要用到的觀念。' });
     (t.concept || []).forEach(function(c, i){
       cues.push({ label:'觀念 ' + (i + 1), show:c,
