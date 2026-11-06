@@ -13903,7 +13903,9 @@
   /* ---- 數學式 → 唸得出來的中文 ---- */
   var SPEAK_TXT = [
     [/　/g, ' '],
-    [/－/g, ' 減 '], [/＋/g, ' 加 '], [/×/g, ' 乘 '], [/÷/g, ' 除以 '], [/·/g, ' 乘 '],
+    [/([0-9０-９]+(?:\.[0-9]+)?)\s*[%％]/g, ' 百分之 $1 '],
+    [/－/g, ' 減 '], [/＋/g, ' 加 '], [/×/g, ' 乘以 '], [/÷/g, ' 除以 '], [/·/g, ' 乘以 '],
+    [/≈|≒/g, ' 大約等於 '], [/｜/g, '，'],
     [/≠/g, ' 不等於 '], [/≥|≧/g, ' 大於等於 '], [/≤|≦/g, ' 小於等於 '],
     [/＝|=/g, ' 等於 '], [/＞|>/g, ' 大於 '], [/＜|</g, ' 小於 '],
     [/±/g, ' 正負 '], [/∓/g, ' 負正 '],
@@ -13911,11 +13913,11 @@
     [/∅/g, ' 空集合 '], [/∞/g, ' 無限大 '],
     [/∵/g, ' 因為 '], [/∴|⇒|⟹|→/g, ' 所以 '],
     [/∥/g, ' 平行 '], [/⊥/g, ' 垂直 '], [/∠/g, ' 角 '], [/△|Δ/g, ' 三角形 '],
-    [/π/g, ' 圓周率 '], [/°/g, ' 度 '], [/′/g, ' 分 '],
+    [/π/g, ' 圓周率 '], [/°/g, ' 度 '], [/′/g, ' 撇 '],
     [/√/g, ' 根號 '],
     [/Σ/g, ' sigma '], [/σ/g, ' sigma '], [/μ/g, ' mu '], [/θ/g, ' theta '],
     [/α/g, ' alpha '], [/β/g, ' beta '], [/γ/g, ' gamma '], [/ω/g, ' omega '],
-    [/ᵢ/g, ' i '], [/_/g, ' 下標 '],
+    [/ᵢ/g, ' i '], [/_/g, ' '],
     [/([0-9a-zA-Z)）])\s*!/g, '$1 階乘 '],
     [/(\d|\))\s*:\s*(\d|√)/g, '$1 比 $2'],
     [/²/g, ' 平方 '], [/³/g, ' 立方 '],
@@ -13968,18 +13970,71 @@
         out += (e === '2') ? ' 平方 ' : (e === '3' ? ' 立方 ' : ' 的 ' + e + ' 次方 ');
         continue;
       }
-      if (tag === 'sub'){ out += ' 下標 ' + speakNode(n) + ' '; continue; }
+      if (tag === 'sub'){ out += ' ' + speakNode(n) + ' '; continue; }
       if (tag === 'br'){ out += '，'; continue; }
       out += speakNode(n);
     }
     return out;
   }
+  /* 把直譯出來的句子再修成「老師會講的話」。
+     這一段全部在組好的字串上做，因為負號、括號、隱含的乘號都要看前後文才判斷得出來。 */
+  function speakPolish(t){
+    var out = ' ' + String(t || '') + ' ';
+    // (0) 集合 { 1 , 2 , 3 } 要唸成「集合 1、2、3」；a/b 這種斜線分數中文要反過來唸
+    out = out.replace(/\{\s*([^{}]*?)\s*\}/g, function(m, inner){
+      return ' 集合 ' + inner.replace(/\s*,\s*/g, '、') + '，';
+    });
+    out = out.replace(/([0-9０-９a-zA-Z)）]+)\s*\/\s*([0-9０-９a-zA-Z(（]+)/g, ' $2 分之 $1 ');
+    // (1) 負號 vs 減號。判斷方式是看「減」前面有沒有一個算完的東西：
+    //     有（數字、字母、右括號、平方、階乘…）才是減法，沒有就是負號。
+    //     後面一定要接數字或字母，才不會把「終點 減 起點」這種中文句子改掉。
+    //     這一步一定要在處理括號之前做，不然 ( －2 , 4 ) 的括號被拿掉之後就判斷不出來了。
+    out = out.replace(/(\S*)\s+減\s+(?=[0-9０-９a-zA-Z√])/g, function(m, prev){
+      var isOperand = /[0-9０-９a-zA-Z)）]$/.test(prev) || /(平方|立方|次方|階乘|度|絕對值)$/.test(prev);
+      return prev + (isOperand ? ' 減 ' : ' 負 ');
+    });
+    // (2) ( a , b ) 這種「一對」不用唸括號，唸逗號就聽得懂（坐標、區間、向量）；
+    //     前面如果是一個大寫字母，那就是「A 點」。
+    out = out.replace(/(\S?)\s*\(\s*([^()]{1,24}?)\s*,\s*([^()]{1,24}?)\s*\)/g,
+      function(m, pre, a, bb){
+        var head = /^[A-Z]$/.test(pre) ? (pre + ' 點 ') : (pre ? (pre + ' ') : ' ');
+        return head + a + ' 逗號 ' + bb + ' ';
+      });
+    // (3) 括號後面接次方／階乘：括號到此結束，直接接「的……」
+    out = out.replace(/\)\s*(平方|立方|階乘)/g, ' 的$1');
+    out = out.replace(/\)\s*的\s*/g, ' 的 ');
+    // (4) 兩個括號並排 = 省略的乘號，老師一定會唸出來
+    out = out.replace(/\)\s*\(/g, ') 乘以 (');
+    // (5) 其餘的括號：開頭唸「括號」，結尾用停頓
+    out = out.replace(/\(/g, ' 括號 ').replace(/\)/g, '，');
+    // (6) 向量之間的點是內積，不是普通的乘
+    out = out.replace(/向量\s*([A-Za-z0-9]{1,3})\s*乘以\s*向量/g, '向量 $1 內積 向量');
+    // (7) 一長串「等於……等於……」聽起來很機械，第二個以後改成「也就是」
+    out = out.replace(/大於等於/g, '\u0001').replace(/小於等於/g, '\u0002');
+    var seg = out.split(' 等於 ');
+    if (seg.length > 2){
+      out = seg[0];
+      var chain = 0;
+      for (var j = 1; j < seg.length; j++){
+        // 中間有逗號、頓號就表示換了一句（例如「a 等於 2，b 等於 3」），不是同一條算式
+        chain = /[，、；。]/.test(seg[j - 1]) ? 1 : chain + 1;
+        out += (chain >= 2 ? '，也就是 ' : ' 等於 ') + seg[j];
+      }
+    }
+    out = out.replace(/\u0001/g, '大於等於').replace(/\u0002/g, '小於等於');
+    // (8) 收尾：空白與標點整理
+    return out.replace(/\s+/g, ' ')
+              .replace(/\s+([，。、：；])/g, '$1')
+              .replace(/，{2,}/g, '，')
+              .replace(/，、/g, '、').replace(/、，/g, '，')
+              .replace(/，([。：])/g, '$1')
+              .replace(/^[\s，。]+|[\s，]+$/g, '')
+              .trim();
+  }
   function mathSpeak(html){
     var box = document.createElement('div');
     box.innerHTML = String(html == null ? '' : html);
-    return speakNode(box).replace(/\s+/g, ' ')
-                         .replace(/\s+([，。、：；])/g, '$1')
-                         .trim();
+    return speakPolish(speakNode(box));
   }
 
   /* ---- 播放器本體 ---- */
@@ -14077,23 +14132,33 @@
     });
   }
   /* 把一個題型的「觀念 → 例題 → 每一步」排成要念的句子 */
+  var NARR_CONCEPT_LEAD = ['第一個重點，', '第二個重點，', '第三個重點，', '還有一個重點，'];
   function narrBuildCues(t, ex){
     var cues = [];
+    var cn = (t.concept || []).length;
     cues.push({ label:'題型', show:t.section + '｜' + t.name,
-                text:'這個題型是，' + mathSpeak(t.section) + '，' + mathSpeak(t.name) + '。' });
+                text:'我們來看這個題型，' + mathSpeak(String(t.section).replace(/\((\d)\)/, ' 之 $1 ')) + '，' + mathSpeak(t.name) +
+                     '。先講要用到的觀念。' });
     (t.concept || []).forEach(function(c, i){
-      cues.push({ label:'觀念 ' + (i + 1), show:c, text:'觀念' + (i + 1) + '：' + mathSpeak(c) });
+      cues.push({ label:'觀念 ' + (i + 1), show:c,
+                  text:(NARR_CONCEPT_LEAD[i] || '另外，') + mathSpeak(c) });
     });
-    if (t.formula) cues.push({ label:'重點公式', show:t.formula, text:'重點公式是，' + mathSpeak(t.formula) });
-    cues.push({ label:'例題', show:ex.stem, text:'我們來看例題。' + mathSpeak(ex.stem) });
+    if (t.formula) cues.push({ label:'重點公式', show:t.formula,
+                               text:'要記住的公式是：' + mathSpeak(t.formula) + '。' });
+    cues.push({ label:'例題', show:ex.stem,
+                text:'我們來看這一題。' + mathSpeak(ex.stem) + ' 跟著老師一步一步做。' });
+    var sn = (ex.steps || []).length;
     (ex.steps || []).forEach(function(st, i){
+      // 老師的講法是「先說這一步在做什麼，再把式子唸出來」，不是先丟一串算式
       var eq = mathSpeak(st.eq), why = mathSpeak(st.why || '');
+      var lead = (i === 0) ? '第一步，' :
+                 (i === sn - 1 ? '最後一步，' : '第 ' + (i + 1) + ' 步，');
       cues.push({ label:'第 ' + (i + 1) + ' 步', step:i + 1,
                   show:st.eq + (st.why ? '　——　' + st.why : ''),
-                  text:'第' + (i + 1) + '步。' + eq + (why ? '。' + why : '') + '。' });
+                  text:lead + (why ? why + '。' : '') + eq + '。' });
     });
     cues.push({ label:'結束', show:'講解結束，按「開始練習」自己做五題。',
-                text:'講解到這裡。接下來按開始練習，自己做五題看看。' });
+                text:'這一題就講到這裡。接下來按開始練習，自己做五題看看。' });
     return cues;
   }
   function narrPlay(board, cues, btnId, barId){
