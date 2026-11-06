@@ -2231,10 +2231,14 @@
                   <button type="button" class="btn btn-primary" id="pracExPlay">▶ 播放講解</button>
                   <label class="narr-rate">語速
                     <select id="pracExRate">
-                      <option value="0.8">慢</option>
+                      <option value="0.75">很慢</option>
+                      <option value="0.9">慢</option>
                       <option value="1" selected>正常</option>
-                      <option value="1.25">快</option>
+                      <option value="1.2">快</option>
                     </select>
+                  </label>
+                  <label class="narr-rate">聲音
+                    <select id="pracExVoice"></select>
                   </label>
                 </div>
               </div>
@@ -9109,8 +9113,8 @@
     {
       id:'expLaw', book:'第3冊', section:'4-1 指數', name:'指數律的運算',
       concept:[
-        '同底數相乘指數相加：a<sup>m</sup> · a<sup>n</sup> ＝ a<sup>m＋n</sup>；相除指數相減。',
-        '次方的次方指數相乘：( a<sup>m</sup> )<sup>n</sup> ＝ a<sup>mn</sup>。',
+        '同底數相乘，指數相加：a<sup>m</sup> · a<sup>n</sup> ＝ a<sup>m＋n</sup>；同底數相除，指數相減。',
+        '次方的次方，指數相乘：( a<sup>m</sup> )<sup>n</sup> ＝ a<sup>mn</sup>。',
         '負指數就是倒數：a<sup>－n</sup> ＝ ' + fracH('1', 'a<sup>n</sup>') + '；a<sup>0</sup> ＝ 1（a ≠ 0）。'
       ],
       formula:'a<sup>m</sup> · a<sup>n</sup> = a<sup>m＋n</sup>　，　<span class="frac"><span class="num">a<sup>m</sup></span><span class="den">a<sup>n</sup></span></span> = a<sup>m－n</sup>　，　( a<sup>m</sup> )<sup>n</sup> = a<sup>mn</sup>',
@@ -13932,6 +13936,8 @@
     SPEAK_TXT.forEach(function(r){ out = out.replace(r[0], r[1]); });
     return out;
   }
+  /* 分子、分母、根號裡面、指數裡面，開頭的那個「減」一定是負號 */
+  function speakLeadNeg(t){ return String(t).replace(/^\s*減(?=\s)/, ' 負'); }
   function speakCls(el){
     var c = el.getAttribute ? (el.getAttribute('class') || '') : '';
     return ' ' + c + ' ';
@@ -13948,12 +13954,14 @@
       if (tag === 'table'){ out += ' （請看表格） '; continue; }
       if (cls.indexOf(' frac ') >= 0){
         var den = n.querySelector('.den'), num = n.querySelector('.num');
-        out += ' ' + (den ? speakNode(den) : '') + ' 分之 ' + (num ? speakNode(num) : '') + ' ';
+        out += ' ' + speakLeadNeg(den ? speakNode(den) : '') + ' 分之 ' +
+               speakLeadNeg(num ? speakNode(num) : '') + ' ';
         continue;
       }
       if (cls.indexOf(' rad ') >= 0){
         var idx = n.querySelector('.rad-idx'), body = n.querySelector('.rad-body');
-        out += ' ' + (idx ? speakNode(idx).trim() + ' 次' : '') + '根號 ' + (body ? speakNode(body) : '') + ' ';
+        out += ' ' + (idx ? speakNode(idx).trim() + ' 次' : '') + '根號 ' +
+               speakLeadNeg(body ? speakNode(body) : '') + ' ';
         continue;
       }
       if (cls.indexOf(' vec ') >= 0){ out += ' 向量 ' + speakNode(n) + ' '; continue; }
@@ -13967,7 +13975,7 @@
         continue;
       }
       if (tag === 'sup'){
-        var e = speakNode(n).replace(/\s+/g, ' ').trim();
+        var e = speakLeadNeg(speakNode(n)).replace(/\s+/g, ' ').trim();
         out += (e === '2') ? ' 平方 ' : (e === '3' ? ' 立方 ' : ' 的 ' + e + ' 次方 ');
         continue;
       }
@@ -13979,6 +13987,17 @@
   }
   /* 把直譯出來的句子再修成「老師會講的話」。
      這一段全部在組好的字串上做，因為負號、括號、隱含的乘號都要看前後文才判斷得出來。 */
+  /* 數學式裡的英數字串要拆開唸：ax → 「a x」、4ac → 「4 a c」、sinA → 「sin A」。
+     函數名、希臘字母的英文拼法、純數字要整個保留，不能拆成一個字母一個字母。 */
+  var NARR_KEEP = /^(sin|cos|tan|cot|sec|csc|log|ln|lim|max|min|sigma|mu|theta|alpha|beta|gamma|omega|pi)$/i;
+  function narrSplitToken(tok){
+    if (/^[0-9]+(\.[0-9]+)?$/.test(tok)) return tok;        // 純數字整個唸
+    if (NARR_KEEP.test(tok)) return tok;
+    var re = /(sin|cos|tan|cot|sec|csc|log|ln|lim|max|min|sigma|mu|theta|alpha|beta|gamma|omega|pi)|([0-9]+(?:\.[0-9]+)?)|([A-Za-z])/gi;
+    var out = [], m;
+    while ((m = re.exec(tok))) out.push(m[0]);
+    return out.length ? out.join(' ') : tok;
+  }
   function speakPolish(t){
     var out = ' ' + String(t || '') + ' ';
     // (0) 比例的冒號、絕對值的直線：這兩個都可能跨標籤（1 : √3 的根號是另一個元素），
@@ -13994,7 +14013,7 @@
     //     有（數字、字母、右括號、平方、階乘…）才是減法，沒有就是負號。
     //     後面一定要接數字或字母，才不會把「終點 減 起點」這種中文句子改掉。
     //     這一步一定要在處理括號之前做，不然 ( －2 , 4 ) 的括號被拿掉之後就判斷不出來了。
-    out = out.replace(/(\S*)\s+減\s+(?=[0-9０-９a-zA-Z√])/g, function(m, prev){
+    out = out.replace(/(\S*)\s+減\s+(?=[0-9０-９a-zA-Z√負]|根號)/g, function(m, prev){
       var isOperand = /[0-9０-９a-zA-Z)）]$/.test(prev) || /(平方|立方|次方|階乘|度|絕對值)$/.test(prev);
       return prev + (isOperand ? ' 減 ' : ' 負 ');
     });
@@ -14007,6 +14026,7 @@
       });
     // (3) 括號後面接次方／階乘：括號到此結束，直接接「的……」
     out = out.replace(/\)\s*(平方|立方|階乘)/g, ' 的$1');
+    out = out.replace(/\)\s*次方/g, ' 次方');
     out = out.replace(/\)\s*的\s*/g, ' 的 ');
     // (4) 兩個括號並排 = 省略的乘號，老師一定會唸出來
     out = out.replace(/\)\s*\(/g, ') 乘以 (');
@@ -14025,12 +14045,18 @@
         // 中間有逗號、頓號就表示換了一句（例如「a 等於 2，b 等於 3」），不是同一條算式
         chain = /[，、；。]/.test(seg[j - 1]) ? 1 : chain + 1;
         // 前面那一段如果很長，「等於」之前停一下，唸起來才有頓挫
-        var pause = (seg[j - 1].trim().split(/\s+/).length >= 4) ? '，' : '';
+        var tail = seg[j - 1].slice(-14).replace(
+          /平方|立方|次方|分之|根號|階乘|絕對值|括號|逗號|也就是|等於|乘以|除以|內積|集合|正負|加|減|負|的|比/g, '');
+        var pause = (seg[j - 1].trim().split(/\s+/).length >= 4 &&
+                     !/[\u4e00-\u9fff，、；：。]/.test(tail)) ? '，' : '';
         out += (chain >= 2 ? '，也就是 ' : pause + ' 等於 ') + seg[j];
       }
     }
     out = out.replace(/\u0001/g, '大於等於').replace(/\u0002/g, '小於等於');
-    // (8) 收尾：空白與標點整理
+    // (8) 「ax」「4ac」「sinA」這種黏在一起的要一個一個唸，
+    //     不然語音引擎會把 ax 當成英文單字念成「斧頭」，整串聽起來就糊掉了
+    out = out.replace(/[A-Za-z0-9]+(?:\.[0-9]+)?/g, narrSplitToken);
+    // (9) 收尾：空白與標點整理
     return out.replace(/\s+/g, ' ')
               .replace(/\s+([，。、：；])/g, '$1')
               .replace(/，{2,}/g, '，')
@@ -14048,17 +14074,53 @@
   /* ---- 播放器本體 ---- */
   var pracNarr = {
     on:false, cues:[], i:0, rate:1, board:null, timer:null, utt:null,
-    btnId:null, barId:null, voice:null, noVoice:false
+    btnId:null, barId:null, voiceName:'', noVoice:false
   };
-  function narrVoice(){
-    if (!window.speechSynthesis) return null;
-    if (pracNarr.voice) return pracNarr.voice;
+  try { pracNarr.voiceName = localStorage.getItem('prac_narr_voice') || ''; } catch (e) {}
+  /* 每台裝置裝的中文語音差很多，有的很清楚、有的是很舊的壓縮語音。
+     這裡先自動挑一個最好的，再讓老師自己從選單換（選了會記住）。 */
+  function narrVoiceList(){
     var list = [];
-    try { list = window.speechSynthesis.getVoices() || []; } catch (e) { list = []; }
+    try { list = (window.speechSynthesis && window.speechSynthesis.getVoices()) || []; } catch (e) { list = []; }
+    return list.filter(function(v){ return /^zh/i.test(v.lang || ''); });
+  }
+  function narrScore(v){
+    var n = (v.name || '') + ' ' + (v.voiceURI || ''), sc = 0;
+    if (/^zh[-_]TW/i.test(v.lang)) sc += 100;
+    else if (/^zh[-_]HK/i.test(v.lang)) sc += 40;
+    else sc += 20;
+    if (v.localService === false) sc += 30;          // 雲端語音通常比較自然
+    if (/Google/i.test(n)) sc += 25;
+    if (/國語|臺灣|台灣|Mei-?Jia|美嘉|Siri/i.test(n)) sc += 20;
+    if (/compact|eloquence|espeak|pico/i.test(n)) sc -= 50;
+    return sc;
+  }
+  function narrFillVoiceMenu(){
+    var sel = document.getElementById('pracExVoice');
+    if (!sel) return;
+    var list = narrVoiceList().slice().sort(function(a, b){ return narrScore(b) - narrScore(a); });
+    if (!list.length){
+      sel.innerHTML = '<option value="">（這台裝置沒有中文語音）</option>';
+      sel.disabled = true; return;
+    }
+    sel.disabled = false;
+    var want = pracNarr.voiceName;
+    if (!want || !list.some(function(v){ return v.name === want; })) want = list[0].name;
+    pracNarr.voiceName = want;
+    var h = '';
+    list.forEach(function(v){
+      h += '<option value="' + String(v.name).replace(/"/g, '&quot;') + '"' +
+           (v.name === want ? ' selected' : '') + '>' + v.name + '</option>';
+    });
+    sel.innerHTML = h;
+  }
+  function narrVoice(){
+    var list = narrVoiceList();
     if (!list.length) return null;
-    function pick(re){ for (var i = 0; i < list.length; i++) if (re.test(list[i].lang || '')) return list[i]; return null; }
-    pracNarr.voice = pick(/^zh[-_]TW/i) || pick(/^zh[-_]HK/i) || pick(/^zh/i) || null;
-    return pracNarr.voice;
+    for (var i = 0; i < list.length; i++) if (list[i].name === pracNarr.voiceName) return list[i];
+    var best = list.slice().sort(function(a, b){ return narrScore(b) - narrScore(a); })[0];
+    pracNarr.voiceName = best ? best.name : '';
+    return best || null;
   }
   function narrSupported(){
     if (pracNarr.noVoice) return false;        // 試過了，這台裝置其實發不出聲音
@@ -14250,9 +14312,16 @@
       pracNarr.rate = parseFloat(this.value) || 1;
       if (pracNarr.on){ pracNarr.i = Math.max(0, pracNarr.i - 1); narrNext(); }   // 立刻用新語速重念這一句
     });
-    // 語音清單常常是非同步載入的，載好了要重挑一次
+    var vsel = document.getElementById('pracExVoice');
+    if (vsel) vsel.addEventListener('change', function(){
+      pracNarr.voiceName = this.value;
+      try { localStorage.setItem('prac_narr_voice', this.value); } catch (e) {}
+      pracNarr.noVoice = false;
+    });
+    narrFillVoiceMenu();
+    // 語音清單常常是非同步載入的，載好了要重新填一次選單
     if (window.speechSynthesis && 'onvoiceschanged' in window.speechSynthesis){
-      window.speechSynthesis.onvoiceschanged = function(){ pracNarr.voice = null; };
+      window.speechSynthesis.onvoiceschanged = function(){ narrFillVoiceMenu(); };
     }
     // 換頁、關視窗就別再念了
     window.addEventListener('pagehide', narrStop);
