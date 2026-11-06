@@ -514,6 +514,8 @@
   }
   .narr-bar b{color:var(--ink);}
   .narr-rate{display:inline-flex;align-items:center;gap:4px;font-size:.78rem;color:var(--ink-soft);}
+  .narr-tip{margin:6px 0 0;font-size:.76rem;line-height:1.75;color:var(--ink-soft);}
+  .narr-tip b{color:var(--ink);}
   .narr-rate select{font-size:.78rem;padding:2px 4px;}
   .lp-readout{font-size:.84rem;color:var(--ink-soft);}
   .lp-readout .mono{color:var(--red);font-weight:600;}
@@ -2231,17 +2233,31 @@
                   <button type="button" class="btn btn-primary" id="pracExPlay">▶ 播放講解</button>
                   <label class="narr-rate">語速
                     <select id="pracExRate">
-                      <option value="0.75">很慢</option>
-                      <option value="0.9">慢</option>
+                      <option value="0.7">很慢</option>
+                      <option value="0.85">慢</option>
                       <option value="1" selected>正常</option>
-                      <option value="1.2">快</option>
+                      <option value="1.1">稍快</option>
                     </select>
                   </label>
                   <label class="narr-rate">聲音
                     <select id="pracExVoice"></select>
                   </label>
+                  <label class="narr-rate">音調
+                    <select id="pracExPitch">
+                      <option value="0.6">很低</option>
+                      <option value="0.78">低</option>
+                      <option value="1" selected>原本</option>
+                      <option value="1.2">高</option>
+                    </select>
+                  </label>
+                  <button type="button" class="btn btn-ghost" id="pracExTry">試聽</button>
                 </div>
               </div>
+              <p class="narr-tip">想換成<b>男聲</b>：網頁只能用這台裝置已經裝好的語音。
+                <b>iPad／iPhone</b> → 設定 → 輔助使用 → 朗讀內容 → 語音 → 中文，可以下載更多語音；
+                <b>Windows</b> → 設定 → 時間與語言 → 語音 → 新增語音。
+                裝好之後回到這一頁，「聲音」選單就會多出來。
+                先用「音調」調低也會明顯沉一點，按「試聽」可以馬上比較。</p>
               <p class="narr-bar" id="pracExNarr" hidden></p>
               <p class="prac-stem" id="pracExStem"></p>
               <ol class="steps-list" id="pracExSteps"></ol>
@@ -14074,9 +14090,13 @@
   /* ---- 播放器本體 ---- */
   var pracNarr = {
     on:false, cues:[], i:0, rate:1, board:null, timer:null, utt:null,
-    btnId:null, barId:null, voiceName:'', noVoice:false
+    btnId:null, barId:null, voiceName:'', pitch:1, noVoice:false, everSpoke:false
   };
-  try { pracNarr.voiceName = localStorage.getItem('prac_narr_voice') || ''; } catch (e) {}
+  try {
+    pracNarr.voiceName = localStorage.getItem('prac_narr_voice') || '';
+    pracNarr.rate  = parseFloat(localStorage.getItem('prac_narr_rate'))  || 1;
+    pracNarr.pitch = parseFloat(localStorage.getItem('prac_narr_pitch')) || 1;
+  } catch (e) {}
   /* 每台裝置裝的中文語音差很多，有的很清楚、有的是很舊的壓縮語音。
      這裡先自動挑一個最好的，再讓老師自己從選單換（選了會記住）。 */
   function narrVoiceList(){
@@ -14152,20 +14172,22 @@
     for (var i = 0; i < t.length; i++){
       var ch = t.charAt(i);
       buf += ch;
-      if ('。！？'.indexOf(ch) >= 0){ out.push({ s:buf, gap:430 }); buf = ''; }
-      else if ('，、：；'.indexOf(ch) >= 0 && buf.replace(/\s/g, '').length >= 5){
-        out.push({ s:buf, gap:210 }); buf = '';
+      // 只在「一句話講完」的地方才真的切開重念。
+      // 逗號、頓號不切——語音引擎本來就會在標點停一下，再自己切反而多一次啟動延遲，
+      // 「（a、b 不同時為 0）」那種就會變成一個字一個字蹦出來。
+      if ('。！？'.indexOf(ch) >= 0){ out.push({ s:buf, gap:300 }); buf = ''; }
+      else if (buf.replace(/\s/g, '').length >= 60 && '，、；：'.indexOf(ch) >= 0){
+        out.push({ s:buf, gap:140 }); buf = '';     // 太長的句子還是要斷，免得被引擎截斷
       }
     }
-    if (buf.replace(/\s/g, '')) out.push({ s:buf, gap:260 });
-    // 太短的黏回前一段，不然會一個字一個字蹦出來
+    if (buf.replace(/\s/g, '')) out.push({ s:buf, gap:220 });
     var merged = [];
     out.forEach(function(c){
       var last = merged[merged.length - 1];
-      if (last && c.s.replace(/\s/g, '').length < 5){ last.s += c.s; last.gap = c.gap; }
+      if (last && c.s.replace(/\s/g, '').length < 6){ last.s += c.s; last.gap = c.gap; }
       else merged.push(c);
     });
-    return merged.length ? merged : [{ s:t, gap:260 }];
+    return merged.length ? merged : [{ s:t, gap:220 }];
   }
   function narrSay(text, done){
     var parts = narrChunks(text), k = 0;
@@ -14190,29 +14212,43 @@
     var u = new SpeechSynthesisUtterance(text);
     u.lang = 'zh-TW';
     u.rate = pracNarr.rate;
+    u.pitch = pracNarr.pitch;
     var v = narrVoice(); if (v) u.voice = v;
-    var fired = false;
-    function once(){ if (fired) return; fired = true; done(); }
+    var fired = false, started = false;
+    function clearT(){ if (pracNarr.timer){ clearTimeout(pracNarr.timer); pracNarr.timer = null; } }
+    function once(){ if (fired) return; fired = true; clearT(); done(); }
+    /* 一定要等到 onstart（真的出聲）才開始算「唸多久」的後備計時器。
+       Google 的雲端語音要先去抓音檔，慢的時候要一兩秒才出聲；
+       如果從 speak() 就開始倒數，下一句的 speak() 會把還沒唸完的這一句切掉，
+       聽起來就是「還沒聽到聲音就跳過去了」。 */
+    u.onstart = function(){
+      started = true; pracNarr.everSpoke = true;
+      clearT();
+      var ms = Math.max(3000, Math.min(60000, text.length * 340 / Math.max(.5, pracNarr.rate)));
+      pracNarr.timer = setTimeout(once, ms);
+    };
     u.onend = once;
     u.onerror = once;
     pracNarr.utt = u;
-    // 保險：有些瀏覽器 onend 不一定會來，用估算的時間當後備
-    var guard = Math.max(2500, Math.min(20000, text.length * 300 / pracNarr.rate));
-    pracNarr.timer = setTimeout(once, guard);
-    try { window.speechSynthesis.cancel(); window.speechSynthesis.speak(u); }
-    catch (e) { once(); return; }
-    // 有些裝置「可以呼叫 speak() 但根本沒有語音」——半秒後還沒開始念就當作沒有聲音，
-    // 改成純畫面的自動播放，才不會整個卡住
-    setTimeout(function(){
-      if (fired || !pracNarr.on) return;
+    // 等待出聲的上限：3 秒還沒開始，再給 5 秒；都沒動靜才當作這台裝置沒有語音
+    pracNarr.timer = setTimeout(function(){
+      if (fired || started || !pracNarr.on) return;
       var sp = false;
       try { sp = window.speechSynthesis.speaking || window.speechSynthesis.pending; } catch (e) {}
-      if (!sp){
-        pracNarr.noVoice = true;
-        narrBar('這台裝置沒有中文語音，改成一步一步自動展開（沒有聲音）。');
-        once();
+      if (sp || pracNarr.everSpoke){
+        pracNarr.timer = setTimeout(function(){
+          if (fired || started || !pracNarr.on) return;
+          once();                       // 這一句卡住了就跳過，但不要認定整台裝置沒語音
+        }, 5000);
+        return;
       }
-    }, 600);
+      pracNarr.noVoice = true;
+      narrBar('這台裝置沒有中文語音，改成一步一步自動展開（沒有聲音）。');
+      once();
+    }, 3000);
+    // 這裡不呼叫 cancel()：段落之間若先 cancel 再 speak，iOS 有時會把新的那一句也吞掉
+    try { window.speechSynthesis.speak(u); }
+    catch (e) { once(); return; }
   }
   function narrNext(){
     if (!pracNarr.on) return;
@@ -14233,7 +14269,7 @@
     narrSay(cue.text, function(){
       if (!pracNarr.on) return;
       // 每一句之間留一點空檔，才不會像機關槍
-      pracNarr.timer = setTimeout(narrNext, 420);
+      pracNarr.timer = setTimeout(narrNext, 300);
     });
   }
   /* 把一個題型的「觀念 → 例題 → 每一步」排成要念的句子 */
@@ -14276,6 +14312,7 @@
     pracNarr.board = board; pracNarr.cues = cues; pracNarr.i = 0;
     pracNarr.btnId = btnId; pracNarr.barId = barId;
     pracNarr.on = true;
+    if (narrSupported()){ try { window.speechSynthesis.cancel(); } catch (e) {} }
     narrBtn('■ 停止播放');
     if (!narrSupported()){
       narrBar('這個瀏覽器不能發出語音，所以只會一步一步自動展開（畫面照走）。');
@@ -14308,9 +14345,38 @@
       if (!t || !pracExCurrent) return;
       narrPlay(pracExBoard, narrBuildCues(t, pracExCurrent), 'pracExPlay', 'pracExNarr');
     });
-    if (rate) rate.addEventListener('change', function(){
-      pracNarr.rate = parseFloat(this.value) || 1;
-      if (pracNarr.on){ pracNarr.i = Math.max(0, pracNarr.i - 1); narrNext(); }   // 立刻用新語速重念這一句
+    if (rate){
+      rate.value = String(pracNarr.rate);
+      if (rate.selectedIndex < 0) rate.value = '1';
+      rate.addEventListener('change', function(){
+        pracNarr.rate = parseFloat(this.value) || 1;
+        try { localStorage.setItem('prac_narr_rate', this.value); } catch (e) {}
+        if (pracNarr.on){ pracNarr.i = Math.max(0, pracNarr.i - 1); narrNext(); }   // 立刻用新語速重念
+      });
+    }
+    var pit = document.getElementById('pracExPitch');
+    if (pit){
+      pit.value = String(pracNarr.pitch);
+      if (pit.selectedIndex < 0) pit.value = '1';
+      pit.addEventListener('change', function(){
+        pracNarr.pitch = parseFloat(this.value) || 1;
+        try { localStorage.setItem('prac_narr_pitch', this.value); } catch (e) {}
+        if (pracNarr.on){ pracNarr.i = Math.max(0, pracNarr.i - 1); narrNext(); }
+      });
+    }
+    var tryBtn = document.getElementById('pracExTry');
+    if (tryBtn) tryBtn.addEventListener('click', function(){
+      narrStop();
+      if (!narrSupported()){
+        narrBar('這台裝置沒有中文語音，所以聽不到聲音（畫面還是會一步一步自動展開）。');
+        return;
+      }
+      narrBar('<b>試聽</b>　現在的聲音、語速、音調聽起來是這樣。');
+      var u = new SpeechSynthesisUtterance(
+        '這是現在選的聲音。x 平方 減 7 x 加 10 等於 括號 x 減 2，乘以 括號 x 減 5。');
+      u.lang = 'zh-TW'; u.rate = pracNarr.rate; u.pitch = pracNarr.pitch;
+      var v = narrVoice(); if (v) u.voice = v;
+      try { window.speechSynthesis.cancel(); window.speechSynthesis.speak(u); } catch (e) {}
     });
     var vsel = document.getElementById('pracExVoice');
     if (vsel) vsel.addEventListener('change', function(){
