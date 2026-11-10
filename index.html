@@ -565,6 +565,38 @@
   .ineq-test-point.is-in{fill:var(--teal);}
   .ineq-test-point.is-out{fill:var(--red);}
   .ineq-test-label{font-family:"JetBrains Mono",monospace;font-size:10px;fill:var(--ink);}
+  /* 兩直線的關係（第1冊 2-3） */
+  .tl-line1{stroke:var(--indigo);stroke-width:2.8;fill:none;stroke-linecap:round;}
+  .tl-line2{stroke:var(--red);stroke-width:2.8;fill:none;stroke-linecap:round;}
+  .tl-line2.is-same{stroke-dasharray:8 7;}
+  .tl-dot{fill:var(--teal);stroke:var(--surface);stroke-width:2.2;}
+  .tl-dot-label{font-size:12px;fill:var(--teal);font-weight:700;}
+  .tl-name{font-size:12px;font-weight:700;}
+  .tl-name1{fill:var(--indigo);}
+  .tl-name2{fill:var(--red);}
+  .tl-tag{display:inline-block;padding:1px 7px;border-radius:999px;font-weight:700;color:var(--surface);}
+  .tl-tag1{background:var(--indigo);}
+  .tl-tag2{background:var(--red);}
+  .tl-verdict{font-size:.82rem;line-height:1.8;padding:10px 12px;border-radius:4px;margin:8px 0 6px;}
+  .tl-verdict b{display:block;font-size:1rem;margin-bottom:2px;}
+  .tl-verdict .tl-em{font-weight:700;}
+  .tl-ratio .tl-note{width:100%;text-align:center;font-size:.76rem;opacity:.85;}
+  .tl-ratio .tl-note.is-warn{color:var(--red);opacity:1;}
+  .tl-ratio .is-muted{opacity:.45;}
+  .tl-verdict.is-cross{background:var(--teal-tint);color:var(--teal);}
+  .tl-verdict.is-para{background:var(--red-tint);color:var(--red);}
+  .tl-verdict.is-same{background:var(--indigo-tint);color:var(--indigo-strong);}
+  .tl-verdict.is-bad{background:var(--surface-2);color:var(--ink-soft);}
+  .tl-ratio{font-family:"JetBrains Mono",monospace;font-size:.86rem;line-height:1.9;
+    background:var(--indigo-tint);color:var(--indigo-strong);padding:10px 12px;border-radius:4px;
+    margin-bottom:8px;display:flex;flex-wrap:wrap;align-items:center;gap:2px 7px;justify-content:center;}
+  .tl-ratio .frac{font-size:1em;}
+  .tl-cross{background:var(--surface-2);color:var(--ink-soft);justify-content:flex-start;
+    font-size:.78rem;line-height:1.8;display:block;}
+  .tl-cross b{color:var(--ink);}
+  .tl-rel{font-weight:700;font-size:1.1em;padding:0 2px;}
+  .tl-rel.eq{color:var(--teal);}
+  .tl-rel.ne{color:var(--red);}
   .ineq-verdict{font-size:.8rem;line-height:1.7;padding:10px 12px;border-radius:4px;}
   .ineq-verdict.is-in{background:var(--teal-tint);color:var(--teal);}
   .ineq-verdict.is-out{background:var(--red-tint);color:var(--red);}
@@ -1971,6 +2003,72 @@
         </details>
 
         <!-- 二元一次不等式（第3冊 3-2，課本 P.67～P.71） -->
+        <!-- 兩直線一般式的關係（第1冊 2-3(1)） -->
+        <details class="book demo-topic" id="topicTwoLine">
+          <summary>
+            <span class="book-tag">第1冊 2-3</span>
+            <span class="demo-topic-title">兩直線的關係：交於一點、平行、重合</span>
+            <span class="subbook-tag">對應聯立方程式的解</span>
+          </summary>
+          <div class="book-body demo-topic-body">
+            <div class="demo-head">
+              <h3>兩直線的關係：交於一點、平行、重合</h3>
+              <span class="badge">a₁x ＋ b₁y ＋ c₁ = 0　與　a₂x ＋ b₂y ＋ c₂ = 0</span>
+            </div>
+            <div class="demo-body">
+              <div>
+                <div class="graph-wrap">
+                  <svg id="tlSvg" class="graph" viewBox="0 0 519 438" role="img" aria-label="兩直線的關係"></svg>
+                </div>
+                <div class="plot-tools">
+                  <button type="button" class="btn btn-ghost" id="tlZoomInBtn">＋ 放大</button>
+                  <button type="button" class="btn btn-ghost" id="tlZoomOutBtn">－ 縮小</button>
+                  <button type="button" class="btn btn-ghost" id="tlFitBtn">自動框住重點</button>
+                  <button type="button" class="btn btn-ghost" id="tlResetViewBtn">回到預設範圍</button>
+                  <span class="plot-hint">在圖上按住拖曳可以平移，滾輪可以縮放</span>
+                </div>
+              </div>
+              <div class="controls">
+                <div class="func-switch func-switch-4" id="tlCaseSwitch">
+                  <button type="button" data-tlcase="cross" aria-pressed="true">交於一點</button>
+                  <button type="button" data-tlcase="para" aria-pressed="false">平行</button>
+                  <button type="button" data-tlcase="same" aria-pressed="false">重合</button>
+                  <button type="button" data-tlcase="rand" aria-pressed="false">隨機換一組</button>
+                </div>
+
+                <div class="demo-subpanel">
+                  <div class="demo-subpanel-eq"><span class="tl-tag tl-tag1">L₁</span>　<span id="tlEq1"></span></div>
+                  <div class="mini-row mini-row-3">
+                    <div class="control-row"><label>a₁ <output id="outTlA1">1</output></label><input type="range" id="tlA1" min="-8" max="8" step="1" value="1"></div>
+                    <div class="control-row"><label>b₁ <output id="outTlB1">-1</output></label><input type="range" id="tlB1" min="-8" max="8" step="1" value="-1"></div>
+                    <div class="control-row"><label>c₁ <output id="outTlC1">-1</output></label><input type="range" id="tlC1" min="-20" max="20" step="1" value="-1"></div>
+                  </div>
+                </div>
+
+                <div class="demo-subpanel">
+                  <div class="demo-subpanel-eq"><span class="tl-tag tl-tag2">L₂</span>　<span id="tlEq2"></span></div>
+                  <div class="mini-row mini-row-3">
+                    <div class="control-row"><label>a₂ <output id="outTlA2">1</output></label><input type="range" id="tlA2" min="-24" max="24" step="1" value="1"></div>
+                    <div class="control-row"><label>b₂ <output id="outTlB2">2</output></label><input type="range" id="tlB2" min="-24" max="24" step="1" value="2"></div>
+                    <div class="control-row"><label>c₂ <output id="outTlC2">-7</output></label><input type="range" id="tlC2" min="-60" max="60" step="1" value="-7"></div>
+                  </div>
+                  <div class="control-row">
+                    <label>一鍵把 L₂ 變成 L₁ 的 k 倍　k <output id="outTlK">2</output></label>
+                    <input type="range" id="tlK" min="-3" max="3" step="1" value="2">
+                  </div>
+                  <p class="demo-hint">拉這條滑桿會直接把 L₂ 設成 <b>k·L₁</b>（三個係數同時乘 k），兩條線就會<b>重合</b>；
+                    接著只要再動一下 c₂，比值就只有 c 那一組不一樣，變成<b>平行</b>。k = 0 不算（整條變成 0 ＝ 0，不是直線）。</p>
+                </div>
+
+                <div class="tl-verdict" id="tlVerdict"></div>
+                <div class="tl-ratio" id="tlRatio"></div>
+                <div class="tl-ratio tl-cross" id="tlCross"></div>
+                <ul class="lp-vertex-list" id="tlFacts"></ul>
+              </div>
+            </div>
+          </div>
+        </details>
+
         <details class="book demo-topic" id="topicIneq">
           <summary>
             <span class="book-tag">第3冊 3-2</span>
@@ -2098,6 +2196,7 @@
             </div>
           </div>
         </details>
+
 
       </div>
 
@@ -2580,6 +2679,7 @@
     redrawTriangle();
     redrawIneq();
     redrawSystem();
+    redrawTwoLine();
   }
   Array.prototype.forEach.call(document.querySelectorAll('[data-numfmt-switch]'), function(sw){
     sw.addEventListener('click', function(e){
@@ -4121,6 +4221,215 @@
     sysPlot.fitTo(pts);
   });
 
+  /* ============ 動畫 7：兩直線一般式的關係（第1冊 2-3(1)）============
+     L₁：a₁x ＋ b₁y ＋ c₁ = 0 　L₂：a₂x ＋ b₂y ＋ c₂ = 0
+       a₁/a₂ ≠ b₁/b₂            → 交於一點（聯立恰有一組解）
+       a₁/a₂ = b₁/b₂ ≠ c₁/c₂    → 平行       （聯立無解）
+       a₁/a₂ = b₁/b₂ = c₁/c₂    → 重合       （聯立無限多組解）
+     真正的判定用「交叉相乘」：D = a₁b₂ － a₂b₁、Dx、Dy。
+     比值寫法在係數有 0 的時候會出現分母 0（寫不出來），交叉相乘則永遠成立，
+     所以畫面上兩種都給：上面是課本的比值寫法，下面是交叉相乘的實際數字。 */
+  var tlPlot = createPlot(document.getElementById('tlSvg'), {
+    w:519, h:438, margin:30, xMin:-9, xMax:9, yMin:-7.6, yMax:7.6, step:1, labelStep:2,
+    interactive:true,
+    onViewChange:function(){ redrawTwoLine(); }
+  });
+  var TL_IDS = ['tlA1','tlB1','tlC1','tlA2','tlB2','tlC2'];
+  function tlRead(id){ return parseFloat(document.getElementById(id).value); }
+  function tlSet(id, v){
+    var el2 = document.getElementById(id);
+    var lo = parseFloat(el2.min), hi = parseFloat(el2.max);
+    el2.value = Math.max(lo, Math.min(hi, v));
+  }
+  /* 比值那一行：係數有 0 的時候分母是 0，課本的寫法就寫不出來，要講清楚 */
+  function tlRatioCell(n1, n2){
+    if (n2 === 0) return { ok:false, html:'<span class="frac"><span class="num">' + nStr(n1) +
+                                          '</span><span class="den">0</span></span>' };
+    return { ok:true, html:ratHtml(ratMake(n1, n2)) };
+  }
+  function redrawTwoLine(){
+    var a1 = tlRead('tlA1'), b1 = tlRead('tlB1'), c1 = tlRead('tlC1');
+    var a2 = tlRead('tlA2'), b2 = tlRead('tlB2'), c2 = tlRead('tlC2');
+    ['A1','B1','C1','A2','B2','C2'].forEach(function(k){
+      document.getElementById('outTl' + k).textContent = tlRead('tl' + k);
+    });
+    document.getElementById('tlEq1').innerHTML = linearExpr(a1, b1, c1) + ' = 0';
+    document.getElementById('tlEq2').innerHTML = linearExpr(a2, b2, c2) + ' = 0';
+
+    var verdictEl = document.getElementById('tlVerdict');
+    var ratioEl = document.getElementById('tlRatio');
+    var crossEl = document.getElementById('tlCross');
+    var factsEl = document.getElementById('tlFacts');
+    tlPlot.clear();
+
+    // 先擋掉「不是直線」的情形
+    var bad1 = (a1 === 0 && b1 === 0), bad2 = (a2 === 0 && b2 === 0);
+    if (bad1 || bad2){
+      verdictEl.className = 'tl-verdict is-bad';
+      verdictEl.innerHTML = '<b>這還不是兩條直線</b>' +
+        (bad1 ? 'L₁ ' : '') + (bad1 && bad2 ? '和 ' : '') + (bad2 ? 'L₂ ' : '') +
+        '的 x、y 係數同時是 0，整個式子沒有 x 也沒有 y，畫不出直線。把 a 或 b 調成不是 0 的數字。';
+      ratioEl.innerHTML = '';
+      crossEl.innerHTML = '';
+      factsEl.innerHTML = '';
+      return;
+    }
+
+    var D  = a1 * b2 - a2 * b1;        // 係數行列式
+    var Dx = b1 * c2 - b2 * c1;        // 代入克拉瑪的分子（注意常數項在左邊，符號已含在內）
+    var Dy = c1 * a2 - c2 * a1;
+    var kind = (Math.abs(D) > 1e-9) ? 'cross'
+             : ((Math.abs(Dx) > 1e-9 || Math.abs(Dy) > 1e-9) ? 'para' : 'same');
+
+    // ---- 圖：兩條線 ----
+    var seg1 = lineInView(a1, b1, c1, tlPlot);
+    var seg2 = lineInView(a2, b2, c2, tlPlot);
+    function drawSeg(seg, cls, name, nameCls){
+      if (seg.length !== 2) return;
+      tlPlot.add(el('line', {x1:tlPlot.sx(seg[0].x), y1:tlPlot.sy(seg[0].y),
+                             x2:tlPlot.sx(seg[1].x), y2:tlPlot.sy(seg[1].y), class:cls}));
+      var p = seg[0].y > seg[1].y ? seg[0] : seg[1];      // 標籤放比較上面那一端
+      var t = el('text', {x:tlPlot.sx(p.x) + 6, y:tlPlot.sy(p.y) + 16, class:'tl-name ' + nameCls});
+      t.textContent = name;
+      tlPlot.add(t);
+    }
+    drawSeg(seg1, 'tl-line1', 'L₁', 'tl-name1');
+    // 重合時第二條畫成虛線疊上去，才看得出來「兩條其實是同一條」
+    drawSeg(seg2, 'tl-line2' + (kind === 'same' ? ' is-same' : ''), 'L₂', 'tl-name2');
+
+    var sol = null;
+    if (kind === 'cross'){
+      sol = { x: Dx / D, y: Dy / D };
+      tlPlot.add(el('circle', {cx:tlPlot.sx(sol.x), cy:tlPlot.sy(sol.y), r:6.5, class:'tl-dot'}));
+      var lab = el('text', {x:tlPlot.sx(sol.x) + 15, y:tlPlot.sy(sol.y) - 15, class:'tl-dot-label'});
+      var nice = (Math.abs(sol.x - Math.round(sol.x)) < 1e-9 && Math.abs(sol.y - Math.round(sol.y)) < 1e-9);
+      lab.textContent = nice ? ('交點 (' + Math.round(sol.x) + ', ' + Math.round(sol.y) + ')') : '交點';
+      tlPlot.add(lab);
+    }
+
+    // ---- 課本的比值寫法 ----
+    var ra = tlRatioCell(a1, a2), rb = tlRatioCell(b1, b2), rc = tlRatioCell(c1, c2);
+    var abEq = (Math.abs(D) < 1e-9);                     // a₁/a₂ = b₁/b₂ ⇔ a₁b₂ = a₂b₁
+    var bcEq = (Math.abs(Dx) < 1e-9);                    // b₁/b₂ = c₁/c₂ ⇔ b₁c₂ = b₂c₁
+    function rel(isEq){
+      return '<span class="tl-rel ' + (isEq ? 'eq' : 'ne') + '">' + (isEq ? '＝' : '≠') + '</span>';
+    }
+    var muted = abEq ? '' : ' is-muted';      // 第一組就不一樣，後面不用看
+    ratioEl.innerHTML =
+      '<span>' + ra.html + '</span>' + rel(abEq) + '<span>' + rb.html + '</span>' +
+      '<span class="' + muted.trim() + '">' + rel(bcEq) + '</span>' +
+      '<span class="' + muted.trim() + '">' + rc.html + '</span>' +
+      '<span class="tl-note">（上面依序是 a₁:a₂、b₁:b₂、c₁:c₂ 三組比值）</span>' +
+      (abEq ? '' : '<span class="tl-note">a 跟 b 這一組就已經不一樣了，c 那一組不用再看。</span>');
+    if (!ra.ok || !rb.ok || !rc.ok){
+      ratioEl.innerHTML += '<span class="tl-note is-warn">' +
+        '有係數是 0，這一組比值的分母變成 0、課本的寫法寫不出來 —— 這時候要看下面的交叉相乘。</span>';
+    }
+
+    // ---- 交叉相乘（永遠成立的判定）----
+    crossEl.innerHTML =
+      '交叉相乘（係數有 0 也適用）：<br>' +
+      'a₁b₂ － a₂b₁ ＝ ' + pStr(a1) + '×' + pStr(b2) + ' － ' + pStr(a2) + '×' + pStr(b1) +
+        ' ＝ <b>' + nStr(D) + '</b>' + (Math.abs(D) > 1e-9 ? '（不是 0 → 兩條線一定交於一點）' : '（＝ 0 → 兩條線平行或重合）') + '<br>' +
+      'b₁c₂ － b₂c₁ ＝ <b>' + nStr(Dx) + '</b>　，　c₁a₂ － c₂a₁ ＝ <b>' + nStr(Dy) + '</b>';
+
+    // ---- 結論 ----
+    var facts = [];
+    if (kind === 'cross'){
+      verdictEl.className = 'tl-verdict is-cross';
+      verdictEl.innerHTML = '<b>交於一點　→　聯立方程式恰有一組解</b>' +
+        'a₁:a₂ 跟 b₁:b₂ <span class="tl-em">不一樣</span>，兩條線的斜率不同，一定會交叉。';
+      facts.push('兩條線的交點：( ' + ratHtml(ratMake(Dx, D)) + ' , ' + ratHtml(ratMake(Dy, D)) + ' )');
+      facts.push('這個交點就是聯立方程式的唯一解（x, y 各一個值）。');
+    } else if (kind === 'para'){
+      verdictEl.className = 'tl-verdict is-para';
+      verdictEl.innerHTML = '<b>平行　→　聯立方程式無解</b>' +
+        'a₁:a₂ 跟 b₁:b₂ 一樣（斜率相同），但 c₁:c₂ 不一樣 —— 同方向卻不是同一條，永遠不會相交。';
+      facts.push('兩條線的斜率相同、截距不同，所以永遠碰不到。');
+      facts.push('代數上就是「消去一個未知數之後得到 0 ＝ 某個不為 0 的數」，矛盾 → 無解。');
+    } else {
+      verdictEl.className = 'tl-verdict is-same';
+      verdictEl.innerHTML = '<b>重合　→　聯立方程式有無限多組解</b>' +
+        '三組比值 a₁:a₂、b₁:b₂、c₁:c₂ 全部一樣，第二條其實是第一條乘上一個倍數，是同一條線。';
+      var kk = null;
+      if (a1 !== 0) kk = ratMake(a2, a1); else if (b1 !== 0) kk = ratMake(b2, b1);
+      if (kk) facts.push('L₂ ＝ ' + ratHtml(kk) + ' × L₁（三個係數都是同一個倍數）。');
+      facts.push('代數上就是「消去之後得到 0 ＝ 0」，恆成立 → 線上每一點都是解，無限多組。');
+    }
+    // 斜率補充（鉛直線沒有斜率，要分開講）
+    function slopeTxt(a, b){
+      return (Math.abs(b) < 1e-9) ? '不存在（鉛直線）' : ratHtml(ratMake(-a, b));
+    }
+    facts.push('L₁ 的斜率 ＝ ' + slopeTxt(a1, b1) + '　；　L₂ 的斜率 ＝ ' + slopeTxt(a2, b2));
+    factsEl.innerHTML = facts.map(function(f){ return '<li>' + f + '</li>'; }).join('');
+  }
+
+  TL_IDS.forEach(function(id){
+    document.getElementById(id).addEventListener('input', redrawTwoLine);
+  });
+  document.getElementById('tlK').addEventListener('input', function(){
+    var k = parseFloat(this.value);
+    document.getElementById('outTlK').textContent = k;
+    if (k === 0) return;                       // k = 0 整條變成 0 ＝ 0，不是直線
+    var a1 = tlRead('tlA1'), b1 = tlRead('tlB1'), c1 = tlRead('tlC1');
+    tlSet('tlA2', a1 * k); tlSet('tlB2', b1 * k); tlSet('tlC2', c1 * k);
+    redrawTwoLine();
+  });
+  /* 三個範例：一鍵切到交於一點／平行／重合，另外一顆隨機換數字 */
+  var TL_PRESET = {
+    cross:[1, -1, -1,  1, 2, -7],
+    para: [2,  3, -6,  4, 6,  5],
+    same: [2,  3, -6, -4, -6, 12]
+  };
+  function tlApply(arr){
+    TL_IDS.forEach(function(id, i){ tlSet(id, arr[i]); });
+    redrawTwoLine();
+  }
+  function tlRandom(){
+    function r(lo, hi){ return Math.floor(Math.random() * (hi - lo + 1)) + lo; }
+    var a1 = r(-5, 5), b1 = r(-5, 5), c1 = r(-9, 9);
+    while (a1 === 0 && b1 === 0){ a1 = r(-5, 5); b1 = r(-5, 5); }
+    var mode = r(1, 3);
+    if (mode === 1){                      // 交於一點：另外隨機一條，確認不平行
+      var a2 = r(-5, 5), b2 = r(-5, 5), c2 = r(-9, 9);
+      var guard = 0;
+      while (((a2 === 0 && b2 === 0) || Math.abs(a1 * b2 - a2 * b1) < 1e-9) && guard++ < 60){
+        a2 = r(-5, 5); b2 = r(-5, 5);
+      }
+      return [a1, b1, c1, a2, b2, c2];
+    }
+    var k = r(1, 3) * (Math.random() < .35 ? -1 : 1);
+    if (mode === 2) return [a1, b1, c1, a1 * k, b1 * k, c1 * k + r(1, 2) * (Math.random() < .5 ? -1 : 1)];
+    return [a1, b1, c1, a1 * k, b1 * k, c1 * k];
+  }
+  document.getElementById('tlCaseSwitch').addEventListener('click', function(e){
+    var btn = e.target.closest('button[data-tlcase]');
+    if (!btn) return;
+    var kind = btn.getAttribute('data-tlcase');
+    Array.prototype.forEach.call(this.querySelectorAll('button'), function(b){
+      b.setAttribute('aria-pressed', (b === btn && kind !== 'rand') ? 'true' : 'false');
+    });
+    tlApply(kind === 'rand' ? tlRandom() : TL_PRESET[kind]);
+  });
+  document.getElementById('tlZoomInBtn').addEventListener('click', function(){ tlPlot.zoomBy(1 / 1.3); });
+  document.getElementById('tlZoomOutBtn').addEventListener('click', function(){ tlPlot.zoomBy(1.3); });
+  document.getElementById('tlResetViewBtn').addEventListener('click', function(){ tlPlot.resetView(); });
+  document.getElementById('tlFitBtn').addEventListener('click', function(){
+    var a1 = tlRead('tlA1'), b1 = tlRead('tlB1'), c1 = tlRead('tlC1');
+    var a2 = tlRead('tlA2'), b2 = tlRead('tlB2'), c2 = tlRead('tlC2');
+    var D = a1 * b2 - a2 * b1, pts = [{x:0, y:0}];
+    if (Math.abs(D) > 1e-9){
+      var sx2 = (b1 * c2 - b2 * c1) / D, sy2 = (c1 * a2 - c2 * a1) / D;
+      pts.push({x:sx2 - 4, y:sy2 - 4}); pts.push({x:sx2 + 4, y:sy2 + 4});
+    } else {
+      [[a1, b1, c1], [a2, b2, c2]].forEach(function(L){
+        if (Math.abs(L[0]) > 1e-9) pts.push({x:-L[2] / L[0], y:0});
+        if (Math.abs(L[1]) > 1e-9) pts.push({x:0, y:-L[2] / L[1]});
+      });
+    }
+    tlPlot.fitTo(pts);
+  });
+
   redrawAllDemos();
 
 
@@ -4152,6 +4461,9 @@
   var DEMO_LINKS = {
     '1-3 二次函數':'#demos',
     '2-1 斜率':'#demos',
+    '2-2 直線方程式':'#demos',
+    '2-3(1) 直線的一般式':'#demos',
+    '3-1 二元一次聯立方程組':'#demos',
     '3-2 二元一次不等式':'#demos',
     '3-3 線性規劃':'#demos'
   };
