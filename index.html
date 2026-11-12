@@ -1609,7 +1609,7 @@
           </div>
           <div class="ledger-wrap">
             <table class="ledger">
-              <thead><tr><th>座號</th><th>學號</th><th>姓名</th><th>設為小老師</th><th></th></tr></thead>
+              <thead><tr><th>座號</th><th>學號</th><th>姓名</th><th>設為小老師</th><th></th><th></th></tr></thead>
               <tbody id="accountsBody"></tbody>
             </table>
           </div>
@@ -1617,6 +1617,30 @@
             <button type="button" class="btn btn-primary" id="saveAccountsBtn">儲存小老師設定</button>
             <span class="roster-status" id="accountsStatus"></span>
           </div>
+          <h3 class="ledger-subhead" style="margin-top:26px;">新增學生</h3>
+          <div class="exam-meta">
+            <label>班級<select id="newStuClass"></select></label>
+            <label>座號<input type="text" id="newStuSeat" placeholder="1"></label>
+            <label>姓名<input type="text" id="newStuName" placeholder="王小明"></label>
+            <label>學號（登入帳號）<input type="text" id="newStuSid" placeholder="115122"></label>
+            <label>密碼<input type="text" id="newStuPwd" placeholder="留白就跟學號一樣"></label>
+          </div>
+          <div class="roster-actions">
+            <button type="button" class="btn btn-primary" id="addStudentBtn">新增學生</button>
+            <span class="roster-status" id="addStudentStatus"></span>
+          </div>
+
+          <h3 class="ledger-subhead" style="margin-top:26px;">新增班級</h3>
+          <div class="query-row">
+            <input type="text" id="newClassName" placeholder="班級名稱，例如 3307">
+            <button type="button" class="btn btn-primary" id="addClassBtn">新增班級</button>
+          </div>
+          <p class="demo-hint" style="margin-top:-12px;">
+            會在試算表自動開一個同名分頁，表頭（座號／姓名／學號／密碼／小老師）都排好。
+            <b>不用再回程式裡登記班級名稱</b>——只要分頁的表頭有「學號」和「姓名」，系統就會自動把它當成一個班級。
+            <span class="roster-status" id="addClassStatus"></span>
+          </p>
+
           <h3 class="ledger-subhead" style="margin-top:24px;">快速查詢任一學生成績</h3>
           <div class="query-row">
             <input type="text" id="adminQueryInput" placeholder="輸入學號，例如 30503">
@@ -17572,15 +17596,26 @@
       sel.appendChild(opt);
     });
     if (prev && adminClassList.indexOf(prev) !== -1) sel.value = prev;
+    var sel2 = document.getElementById('newStuClass');
+    if (sel2){
+      var prev2 = sel2.value;
+      sel2.innerHTML = '';
+      adminClassList.forEach(function(cls){
+        var o = document.createElement('option');
+        o.value = cls; o.textContent = cls;
+        sel2.appendChild(o);
+      });
+      sel2.value = (prev2 && adminClassList.indexOf(prev2) !== -1) ? prev2 : sel.value;
+    }
     loadAccountsForClass(sel.value);
   }
   function loadAccountsForClass(cls){
     var tbody = document.getElementById('accountsBody');
     if (!tbody || !cls) return;
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">載入中…</td></tr>';
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="6">載入中…</td></tr>';
     callApi('getRoster', { actorAccount: currentUser.account, actorPassword: currentPassword, className: cls }).then(function(res){
       if (!res.ok){
-        tbody.innerHTML = '<tr class="empty-row"><td colspan="5">' + (res.error || '讀取名單失敗。') + '</td></tr>';
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="6">' + (res.error || '讀取名單失敗。') + '</td></tr>';
         return;
       }
       var students = (res.students || []).slice().sort(function(a, b){
@@ -17599,11 +17634,13 @@
           '<td class="mono">' + stu.sid + '</td>' +
           '<td>' + stu.name + '</td>' +
           '<td style="text-align:center;"><input type="checkbox" class="monitor-check" data-sid="' + stu.sid + '"' + (stu.isMonitor ? ' checked' : '') + '></td>' +
-          '<td><button type="button" class="del-btn reset-pw-btn" data-sid="' + stu.sid + '">重設密碼為學號</button></td>';
+          '<td><button type="button" class="del-btn reset-pw-btn" data-sid="' + stu.sid + '">重設密碼為學號</button></td>' +
+          '<td><button type="button" class="del-btn del-stu-btn" data-sid="' + stu.sid +
+            '" data-name="' + stu.name + '">刪除</button></td>';
         tbody.appendChild(tr);
       });
       if (!tbody.children.length){
-        tbody.innerHTML = '<tr class="empty-row"><td colspan="5">這個班級目前沒有名單資料。</td></tr>';
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="6">這個班級目前沒有名單資料。</td></tr>';
       }
       var accountsStatus = document.getElementById('accountsStatus');
       if (accountsStatus){ accountsStatus.textContent = ''; accountsStatus.className = 'roster-status'; }
@@ -17612,6 +17649,70 @@
   function renderAccountsTable(){
     populateAccountsClassOptions();
   }
+  /* ---- 新增班級／新增學生／刪除學生（v56）----
+     以前這三件事都要自己開 Google 試算表做，而且加完班級還要回程式裡登記名稱，
+     不然那一班的學生會一直登不進去。 */
+  function accStatus(id, msg, isErr){
+    var el2 = document.getElementById(id);
+    if (!el2) return;
+    el2.textContent = msg || '';
+    el2.className = 'roster-status' + (isErr ? ' is-error' : '');
+  }
+  var addClassBtn = document.getElementById('addClassBtn');
+  if (addClassBtn) addClassBtn.addEventListener('click', function(){
+    var input = document.getElementById('newClassName');
+    var name = (input.value || '').trim();
+    if (!name){ accStatus('addClassStatus', '請先輸入班級名稱。', true); return; }
+    addClassBtn.disabled = true;
+    accStatus('addClassStatus', '建立中…');
+    callApi('addClass', { actorAccount: currentUser.account, actorPassword: currentPassword,
+                          className: name })
+      .then(function(res){
+        addClassBtn.disabled = false;
+        if (!res || !res.ok){ accStatus('addClassStatus', (res && res.error) || '新增失敗。', true); return; }
+        input.value = '';
+        adminClassList = res.classes || adminClassList.concat([name]);
+        // 新班級要讓所有用到班級的下拉選單都看得到
+        try { populateExamClassOptions(); } catch (e) {}
+        try { populateExportClassOptions(); } catch (e) {}
+        try { populatePracticeClassOptions(); } catch (e) {}
+        populateAccountsClassOptions();
+        var sel = document.getElementById('accountsClassSelect');
+        if (sel){ sel.value = name; loadAccountsForClass(name); }
+        var sel2 = document.getElementById('newStuClass');
+        if (sel2) sel2.value = name;
+        accStatus('addClassStatus', '已經開好「' + name + '」，可以直接在上面新增學生了。');
+      })
+      .catch(function(){ addClassBtn.disabled = false; accStatus('addClassStatus', '連不到後端。', true); });
+  });
+  var addStudentBtn = document.getElementById('addStudentBtn');
+  if (addStudentBtn) addStudentBtn.addEventListener('click', function(){
+    var cls  = (document.getElementById('newStuClass').value || '').trim();
+    var seat = (document.getElementById('newStuSeat').value || '').trim();
+    var name = (document.getElementById('newStuName').value || '').trim();
+    var sid  = (document.getElementById('newStuSid').value || '').trim();
+    var pwd  = (document.getElementById('newStuPwd').value || '').trim();
+    if (!cls){ accStatus('addStudentStatus', '請先選班級（還沒有班級的話先到下面新增一個）。', true); return; }
+    if (!sid){ accStatus('addStudentStatus', '請輸入學號，學號就是學生的登入帳號。', true); return; }
+    if (!name){ accStatus('addStudentStatus', '請輸入姓名。', true); return; }
+    addStudentBtn.disabled = true;
+    accStatus('addStudentStatus', '新增中…');
+    callApi('addStudent', { actorAccount: currentUser.account, actorPassword: currentPassword,
+                            className: cls, seat: seat, name: name, sid: sid, password: pwd })
+      .then(function(res){
+        addStudentBtn.disabled = false;
+        if (!res || !res.ok){ accStatus('addStudentStatus', (res && res.error) || '新增失敗。', true); return; }
+        document.getElementById('newStuSeat').value = '';
+        document.getElementById('newStuName').value = '';
+        document.getElementById('newStuSid').value = '';
+        document.getElementById('newStuPwd').value = '';
+        accStatus('addStudentStatus', '已新增 ' + res.name + '（' + res.sid + '），' +
+          '登入帳號 ' + res.sid + '、密碼 ' + res.password + '。');
+        var sel = document.getElementById('accountsClassSelect');
+        if (sel && sel.value === cls) loadAccountsForClass(cls);
+      })
+      .catch(function(){ addStudentBtn.disabled = false; accStatus('addStudentStatus', '連不到後端。', true); });
+  });
   var accountsClassSelectEl = document.getElementById('accountsClassSelect');
   if (accountsClassSelectEl) accountsClassSelectEl.addEventListener('change', function(){ loadAccountsForClass(this.value); });
   var accountsBody = document.getElementById('accountsBody');
@@ -17647,6 +17748,34 @@
   }
   if (accountsBody){
     accountsBody.addEventListener('click', function(e){
+      var del = e.target.closest('.del-stu-btn');
+      if (del){
+        // 會真的把那一列從試算表刪掉，所以要按兩次
+        if (!del.dataset.armed){
+          del.dataset.armed = '1';
+          del.textContent = '再按一次確定刪除';
+          setTimeout(function(){
+            if (!del.dataset.armed) return;
+            del.dataset.armed = ''; del.textContent = '刪除';
+          }, 4000);
+          return;
+        }
+        del.dataset.armed = '';
+        del.disabled = true; del.textContent = '刪除中…';
+        callApi('deleteStudent', { actorAccount: currentUser.account, actorPassword: currentPassword,
+                                   sid: del.getAttribute('data-sid') })
+          .then(function(res){
+            if (!res || !res.ok){
+              del.disabled = false; del.textContent = '刪除';
+              showApiError((res && res.error) || '刪除失敗。');
+              return;
+            }
+            clearApiError();
+            loadAccountsForClass(document.getElementById('accountsClassSelect').value);
+          })
+          .catch(function(){ del.disabled = false; del.textContent = '刪除'; showApiError('連不到後端。'); });
+        return;
+      }
       var btn = e.target.closest('.reset-pw-btn');
       if (!btn) return;
       var sid = btn.getAttribute('data-sid');
